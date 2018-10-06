@@ -1,0 +1,41 @@
+# Build results
+[Bb]in/*
+[Oo]bj/*
+[Bb]uild/*
+[Dd]ebug/*
+[Rr]elease/*
+[Ss]tub/[Dd]ebug/*
+[Ss]tub/[Rr]elease/*
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Other Visual Studio files
+.vs/*
+RC*
+ipch/*
+*.ipch
+*.user
+*.suo
+*.aps
+*.log
+*.tlog
+*.exp
+*.ncb
+*.res
+*.sdf
+*.opensdf
+*.lastbuildstate
+*.ipsh
+*.idb
+*.db
+.opendb
+*.opendb
+*.TMP
