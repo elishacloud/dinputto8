@@ -50,12 +50,13 @@ HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj,
 	return hr;
 }
 
-void genericQueryInterface(REFIID riid, LPVOID * ppvObj)
+HRESULT genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 #define QUERYINTERFACE(x) \
 	if (riid == IID_ ## x) \
 		{ \
 			*ppvObj = ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
+			return DI_OK; \
 		}
 
 	QUERYINTERFACE(IDirectInputA);
@@ -71,4 +72,6 @@ void genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 	QUERYINTERFACE(IDirectInputDevice7A);
 	QUERYINTERFACE(IDirectInputDevice7W);
 	QUERYINTERFACE(IDirectInputEffect);
+
+	return E_NOINTERFACE;
 }

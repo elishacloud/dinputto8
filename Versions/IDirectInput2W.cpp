@@ -14,8 +14,6 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-class m_IDirectInput2W;
-
 #include "..\dinput.h"
 
 HRESULT m_IDirectInput2W::QueryInterface(REFIID riid, LPVOID * ppvObj)
