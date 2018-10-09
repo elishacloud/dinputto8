@@ -18,7 +18,9 @@
 #include "dinput.h"
 
 #ifndef DINPUTTO8NOLOG
-std::ofstream Log::LOG("dinput.log");
+std::ofstream Logging::LOG("dinput.log");
+#else
+std::ofstream Logging::LOG;
 #endif
 AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
@@ -30,6 +32,9 @@ DllUnregisterServerProc m_pDllUnregisterServer;
 
 bool WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 {
+	UNREFERENCED_PARAMETER(lpReserved);
+	UNREFERENCED_PARAMETER(hModule);
+
 	static HMODULE dinput8dll = nullptr;
 
 	switch (dwReason)
@@ -38,9 +43,7 @@ bool WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
 		// Load dll
 		char path[MAX_PATH];
 		strcpy_s(path, "dinput8.dll");
-#ifndef DINPUTTO8NOLOG
-		Log() << "Loading " << path;
-#endif
+		Logging::Log() << "Loading " << path;
 		dinput8dll = LoadLibraryA(path);
 
 		// Get function addresses
@@ -66,6 +69,8 @@ HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 		return E_FAIL;
 	}
 
+	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create'";
+
 	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, IID_IDirectInput8A, (LPVOID*)lplpDirectInput, punkOuter);
 
 	if (SUCCEEDED(hr))
@@ -83,6 +88,8 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 		return E_FAIL;
 	}
 
+	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create' using " << riid;
+
 	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
 
 	if (SUCCEEDED(hr))
@@ -99,6 +106,8 @@ HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 	{
 		return E_FAIL;
 	}
+
+	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create'";
 
 	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, IID_IDirectInput8W, (LPVOID*)lplpDirectInput, punkOuter);
 

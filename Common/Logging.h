@@ -3,56 +3,153 @@
 #include <fstream>
 #include <stdarg.h> 
 
-class Log
+namespace Logging
 {
-public:
-	Log() {}
-	~Log()
+	extern std::ofstream LOG;
+
+	class Log
 	{
-		if (LOG.is_open())
+	public:
+		Log() {}
+		~Log()
 		{
-			LOG << std::endl;
+			if (LOG.is_open())
+			{
+				LOG << std::endl;
+			}
 		}
-	}
+
+		template <typename T>
+		Log& operator<<(const T& t)
+		{
+			if (LOG.is_open())
+			{
+				LOG << t;
+			}
+			return *this;
+		}
+	};
+
+	class LogDebug
+	{
+	public:
+		LogDebug() {}
+		~LogDebug()
+		{
+#ifdef _DEBUG
+			if (LOG.is_open())
+			{
+				LOG << std::endl;
+			}
+#endif // _DEBUG
+		}
+
+		template <typename T>
+		LogDebug& operator<<(const T& t)
+		{
+#ifdef _DEBUG
+			if (LOG.is_open())
+			{
+				LOG << t;
+			}
+#endif // _DEBUG
+			return *this;
+		}
+	};
 
 	template <typename T>
-	Log& operator<<(const T& t)
+	struct Hex
 	{
-		if (LOG.is_open())
-		{
-			LOG << t;
-		}
-		return *this;
+		explicit Hex(T val) : val(val) {}
+		T val;
+	};
+
+	template <typename T>
+	static Hex<T> hex(T val) { return Hex<T>(val); }
+
+	template <typename T>
+	typename std::enable_if<std::is_class<T>::value && !std::is_same<T, std::string>::value, std::ostream&>::type operator<<(std::ostream& os, const T& t)
+	{
+		return os << static_cast<const void*>(&t);
 	}
-private:
-	static std::ofstream LOG;
-};
 
-static std::ostream& operator<<(std::ostream& os, const wchar_t* wchr)
-{
-	std::wstring ws(wchr);
-	return os << std::string(ws.begin(), ws.end()).c_str();
-}
+	static std::ostream& operator<<(std::ostream& os, const wchar_t* wchr)
+	{
+		std::wstring ws(wchr);
+		return os << std::string(ws.begin(), ws.end()).c_str();
+	}
 
-static void logf(char * fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	auto size = vsnprintf(nullptr, 0, fmt, ap);
-	std::string output(size + 1, '\0');
-	vsprintf_s(&output[0], size + 1, fmt, ap);
-	Log() << output.c_str();
-	va_end(ap);
-}
+#pragma warning(suppress: 4505)
+	static std::ostream& operator<<(std::ostream& os, REFIID riid)
+	{
+#define CHECK_REFIID(riidPrefix, riidName) \
+	if (riid == riidPrefix ## _ ## riidName) \
+	{ \
+		return os << #riidPrefix << "_" << #riidName; \
+	}
 
-static void logf(wchar_t * fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
+		CHECK_REFIID(IID, IUnknown);
+		CHECK_REFIID(IID, IClassFactory);
+		// dinput
+		CHECK_REFIID(CLSID, DirectInput);
+		CHECK_REFIID(CLSID, DirectInputDevice);
+		CHECK_REFIID(CLSID, DirectInput8);
+		CHECK_REFIID(CLSID, DirectInputDevice8);
+		CHECK_REFIID(IID, IDirectInputA);
+		CHECK_REFIID(IID, IDirectInputW);
+		CHECK_REFIID(IID, IDirectInput2A);
+		CHECK_REFIID(IID, IDirectInput2W);
+		CHECK_REFIID(IID, IDirectInput7A);
+		CHECK_REFIID(IID, IDirectInput7W);
+		CHECK_REFIID(IID, IDirectInput8A);
+		CHECK_REFIID(IID, IDirectInput8W);
+		CHECK_REFIID(IID, IDirectInputDeviceA);
+		CHECK_REFIID(IID, IDirectInputDeviceW);
+		CHECK_REFIID(IID, IDirectInputDevice2A);
+		CHECK_REFIID(IID, IDirectInputDevice2W);
+		CHECK_REFIID(IID, IDirectInputDevice7A);
+		CHECK_REFIID(IID, IDirectInputDevice7W);
+		CHECK_REFIID(IID, IDirectInputDevice8A);
+		CHECK_REFIID(IID, IDirectInputDevice8W);
+		CHECK_REFIID(IID, IDirectInputEffect);
+
+		return os << "{" 
+			<< hex(riid.Data1) << ","
+			<< hex(riid.Data2) << ","
+			<< hex(riid.Data3) << ","
+			<< hex((UINT)riid.Data4[0]) << ","
+			<< hex((UINT)riid.Data4[1]) << ","
+			<< hex((UINT)riid.Data4[2]) << ","
+			<< hex((UINT)riid.Data4[3]) << ","
+			<< hex((UINT)riid.Data4[4]) << ","
+			<< hex((UINT)riid.Data4[5]) << ","
+			<< hex((UINT)riid.Data4[6]) << ","
+			<< hex((UINT)riid.Data4[7]) << ","
+			<< "}";
+	}
+
+#pragma warning(suppress: 4505)
+	static void logf(char * fmt, ...)
+	{
+		va_list ap;
+		va_start(ap, fmt);
+		auto size = vsnprintf(nullptr, 0, fmt, ap);
+		std::string output(size + 1, '\0');
+		vsprintf_s(&output[0], size + 1, fmt, ap);
+		Log() << output.c_str();
+		va_end(ap);
+	}
+
+#pragma warning(suppress: 4505)
+	static void logf(wchar_t * fmt, ...)
+	{
+		va_list ap;
+		va_start(ap, fmt);
 #pragma warning(suppress: 4996)
-	auto size = _vsnwprintf(nullptr, 0, fmt, ap);
-	std::wstring output(size + 1, '\0');
-	vswprintf_s(&output[0], size + 1, fmt, ap);
-	Log() << output.c_str();
-	va_end(ap);
+		auto size = _vsnwprintf(nullptr, 0, fmt, ap);
+		std::wstring output(size + 1, '\0');
+		vswprintf_s(&output[0], size + 1, fmt, ap);
+		Log() << output.c_str();
+		va_end(ap);
+	}
 }
