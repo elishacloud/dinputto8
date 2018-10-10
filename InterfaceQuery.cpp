@@ -24,6 +24,28 @@ DWORD GetStringType(REFIID riid)
 		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? UNICODE : DIERR_UNSUPPORTED;
 }
 
+REFIID ConvertREFIID(REFIID riid)
+{
+	if (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A)
+	{
+		return IID_IDirectInput8A;
+	}
+	else if (riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W)
+	{
+		return IID_IDirectInput8W;
+	}
+	else if (riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A)
+	{
+		return IID_IDirectInputDevice8A;
+	}
+	else if (riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W)
+	{
+		return IID_IDirectInputDevice8W;
+	}
+
+	return riid;
+}
+
 HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
 {
 	if (!ppvObj)
@@ -40,7 +62,9 @@ HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj,
 		return S_OK;
 	}
 
-	HRESULT hr = ((IUnknown*)ProxyInterface)->QueryInterface(riid, ppvObj);
+	HRESULT hr = ((IUnknown*)ProxyInterface)->QueryInterface(ConvertREFIID(riid), ppvObj);
+
+	LogDebug() << __FUNCTION__ << " QueryInterface --> '" << riid << "' QueryInterface results: " << hr;
 
 	if (SUCCEEDED(hr))
 	{
@@ -55,6 +79,7 @@ HRESULT genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 #define QUERYINTERFACE(x) \
 	if (riid == IID_ ## x) \
 		{ \
+			LogDebug() << "Getting device for: m_" ## #x; \
 			*ppvObj = ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
 			return DI_OK; \
 		}

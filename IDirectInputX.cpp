@@ -18,16 +18,22 @@
 
 HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
 }
 
 ULONG m_IDirectInputX::AddRef()
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInputX::Release()
 {
+	LogDebug() << __FUNCTION__;
+
 	ULONG x = ProxyInterface->Release();
 
 	if (x == 0)
@@ -43,6 +49,8 @@ template HRESULT m_IDirectInputX::CreateDevice<LPDIRECTINPUTDEVICEW>(REFGUID rgu
 template <typename T>
 HRESULT m_IDirectInputX::CreateDevice(REFGUID rguid, T *lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	LogDebug() << __FUNCTION__;
+
 	HRESULT hr = ProxyInterface->CreateDevice(rguid, (LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice, pUnkOuter);
 
 	if (SUCCEEDED(hr) && lplpDirectInputDevice)
@@ -58,21 +66,29 @@ template HRESULT m_IDirectInputX::EnumDevices<LPDIENUMDEVICESCALLBACKW>(DWORD dw
 template <typename T>
 HRESULT m_IDirectInputX::EnumDevices(DWORD dwDevType, T lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->EnumDevices(dwDevType, (LPDIENUMDEVICESCALLBACKW)lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->GetDeviceStatus(rguidInstance);
 }
 
 HRESULT m_IDirectInputX::RunControlPanel(HWND hwndOwner, DWORD dwFlags)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->RunControlPanel(hwndOwner, dwFlags);
 }
 
 HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->Initialize(hinst, dwVersion);
 }
 
@@ -81,11 +97,15 @@ template HRESULT m_IDirectInputX::FindDevice<LPCWSTR>(REFGUID rguidClass, LPCWST
 template <typename T>
 HRESULT m_IDirectInputX::FindDevice(REFGUID rguidClass, T ptszName, LPGUID pguidInstance)
 {
+	LogDebug() << __FUNCTION__;
+
 	return ProxyInterface->FindDevice(rguidClass, (LPCWSTR)ptszName, pguidInstance);
 }
 
 HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID * ppvObj, LPUNKNOWN pUnkOuter)
 {
+	LogDebug() << __FUNCTION__;
+
 	HRESULT hr = ProxyInterface->CreateDevice(rguid, (LPDIRECTINPUTDEVICE8W *)ppvObj, pUnkOuter);
 
 	if (SUCCEEDED(hr))

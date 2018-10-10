@@ -18,63 +18,59 @@
 #include "dinput.h"
 
 #ifndef DINPUTTO8NOLOG
-std::ofstream Logging::LOG("dinput.log");
-#else
-std::ofstream Logging::LOG;
+std::ofstream LOG("dinput.log");
 #endif
+
+bool InitFlag = false;
+DWORD diVersion = 0;
+
 AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
-DirectInput8CreateProc m_pDirectInput8Create;
-DllCanUnloadNowProc m_pDllCanUnloadNow;
-DllGetClassObjectProc m_pDllGetClassObject;
-DllRegisterServerProc m_pDllRegisterServer;
-DllUnregisterServerProc m_pDllUnregisterServer;
+DirectInput8CreateProc m_pDirectInput8Create = nullptr;
+DllCanUnloadNowProc m_pDllCanUnloadNow = nullptr;
+DllGetClassObjectProc m_pDllGetClassObject = nullptr;
+DllRegisterServerProc m_pDllRegisterServer = nullptr;
+DllUnregisterServerProc m_pDllUnregisterServer = nullptr;
 
-bool WINAPI DllMain(HMODULE hModule, DWORD dwReason, LPVOID lpReserved)
+void InitDinput8()
 {
-	UNREFERENCED_PARAMETER(lpReserved);
-	UNREFERENCED_PARAMETER(hModule);
-
-	static HMODULE dinput8dll = nullptr;
-
-	switch (dwReason)
+	// Check if already initialized
+	if (InitFlag)
 	{
-	case DLL_PROCESS_ATTACH:
-		// Load dll
-		char path[MAX_PATH];
-		strcpy_s(path, "dinput8.dll");
-		Logging::Log() << "Loading " << path;
-		dinput8dll = LoadLibraryA(path);
-
-		// Get function addresses
-		m_pDirectInput8Create = (DirectInput8CreateProc)GetProcAddress(dinput8dll, "DirectInput8Create");
-		m_pDllCanUnloadNow = (DllCanUnloadNowProc)GetProcAddress(dinput8dll, "DllCanUnloadNow");
-		m_pDllGetClassObject = (DllGetClassObjectProc)GetProcAddress(dinput8dll, "DllGetClassObject");
-		m_pDllRegisterServer = (DllRegisterServerProc)GetProcAddress(dinput8dll, "DllRegisterServer");
-		m_pDllUnregisterServer = (DllUnregisterServerProc)GetProcAddress(dinput8dll, "DllUnregisterServer");
-		break;
-
-	case DLL_PROCESS_DETACH:
-		FreeLibrary(dinput8dll);
-		break;
+		return;
 	}
+	InitFlag = true;
 
-	return true;
+	// Load dll
+	char path[MAX_PATH];
+	strcpy_s(path, "dinput8.dll");
+	Log() << "Loading " << path;
+	HMODULE dinput8dll = LoadLibraryA(path);
+
+	// Get function addresses
+	m_pDirectInput8Create = (DirectInput8CreateProc)GetProcAddress(dinput8dll, "DirectInput8Create");
+	m_pDllCanUnloadNow = (DllCanUnloadNowProc)GetProcAddress(dinput8dll, "DllCanUnloadNow");
+	m_pDllGetClassObject = (DllGetClassObjectProc)GetProcAddress(dinput8dll, "DllGetClassObject");
+	m_pDllRegisterServer = (DllRegisterServerProc)GetProcAddress(dinput8dll, "DllRegisterServer");
+	m_pDllUnregisterServer = (DllUnregisterServerProc)GetProcAddress(dinput8dll, "DllUnregisterServer");
 }
 
 HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
 {
+	InitDinput8();
+
 	if (!m_pDirectInput8Create || !lplpDirectInput)
 	{
 		return E_FAIL;
 	}
 
-	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create'";
+	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
 
-	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, IID_IDirectInput8A, (LPVOID*)lplpDirectInput, punkOuter);
+	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, IID_IDirectInput8A, (LPVOID*)lplpDirectInput, punkOuter);
 
 	if (SUCCEEDED(hr))
 	{
+		diVersion = dwVersion;
 		*lplpDirectInput = ProxyAddressLookupTable.FindAddress<m_IDirectInputA>(*lplpDirectInput);
 	}
 
@@ -83,17 +79,20 @@ HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 
 HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN punkOuter)
 {
+	InitDinput8();
+
 	if (!m_pDirectInput8Create || !lplpDD)
 	{
 		return E_FAIL;
 	}
 
-	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create' using " << riid;
+	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
 
-	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
+	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
 
 	if (SUCCEEDED(hr))
 	{
+		diVersion = dwVersion;
 		genericQueryInterface(riid, lplpDD);
 	}
 
@@ -102,17 +101,20 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN punkOuter)
 {
+	InitDinput8();
+
 	if (!m_pDirectInput8Create || !lplpDirectInput)
 	{
 		return E_FAIL;
 	}
 
-	Logging::Log() << __FUNCTION__ << " Redirecting to --> 'DirectInput8Create'";
+	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
 
-	HRESULT hr = m_pDirectInput8Create(hinst, dwVersion, IID_IDirectInput8W, (LPVOID*)lplpDirectInput, punkOuter);
+	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, IID_IDirectInput8W, (LPVOID*)lplpDirectInput, punkOuter);
 
 	if (SUCCEEDED(hr))
 	{
+		diVersion = dwVersion;
 		*lplpDirectInput = ProxyAddressLookupTable.FindAddress<m_IDirectInputW>(*lplpDirectInput);
 	}
 
@@ -121,6 +123,8 @@ HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 
 HRESULT WINAPI DllCanUnloadNow()
 {
+	InitDinput8();
+
 	if (!m_pDllCanUnloadNow)
 	{
 		return E_FAIL;
@@ -131,6 +135,8 @@ HRESULT WINAPI DllCanUnloadNow()
 
 HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID FAR* ppv)
 {
+	InitDinput8();
+
 	if (!m_pDllGetClassObject || !ppv)
 	{
 		return E_FAIL;
@@ -150,6 +156,8 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 
 HRESULT WINAPI DllRegisterServer()
 {
+	InitDinput8();
+
 	if (!m_pDllRegisterServer)
 	{
 		return E_FAIL;
@@ -160,6 +168,8 @@ HRESULT WINAPI DllRegisterServer()
 
 HRESULT WINAPI DllUnregisterServer()
 {
+	InitDinput8();
+
 	if (!m_pDllUnregisterServer)
 	{
 		return E_FAIL;

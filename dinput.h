@@ -24,9 +24,7 @@ class m_IDirectInputDeviceX;
 
 #include <memory>
 #include "Common\Wrapper.h"
-#ifndef DINPUTTO8NOLOG
 #include "Common\Logging.h"
-#endif
 
 typedef HRESULT(WINAPI *DirectInput8CreateProc)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
 typedef HRESULT(WINAPI *DllCanUnloadNowProc)();
@@ -38,6 +36,7 @@ DWORD GetStringType(REFIID riid);
 HRESULT genericQueryInterface(REFIID CalledID, LPVOID * ppvObj);
 HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
 extern AddressLookupTableDinput<void> ProxyAddressLookupTable;
+extern DWORD diVersion;
 
 #include "Versions\IDirectInputA.h"
 #include "Versions\IDirectInputW.h"

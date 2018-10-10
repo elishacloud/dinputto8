@@ -11,6 +11,8 @@ public:
 	m_IDirectInputEffect(IDirectInputEffect *aOriginal) : ProxyInterface(aOriginal), WrapperInterface(this)
 	{
 		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
+
+		LogDebug() << "Creating device " << __FUNCTION__;
 	}
 	~m_IDirectInputEffect()
 	{

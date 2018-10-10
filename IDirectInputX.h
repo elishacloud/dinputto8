@@ -13,6 +13,8 @@ public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, DWORD Version, REFIID riid, m_IDirectInput7W *Interface) : ProxyInterface(aOriginal), DirectXVersion(Version), WrapperID(riid), WrapperInterface(Interface)
 	{
 		StringType = GetStringType(WrapperID);
+
+		LogDebug() << "Creating device " << __FUNCTION__ << " converting device from v" << Version << " to v8 using " << ((StringType == UNICODE) ? "UNICODE" : "ANSI");
 	}
 	~m_IDirectInputX() { }
 
