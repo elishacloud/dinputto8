@@ -55,28 +55,6 @@ void InitDinput8()
 	m_pDllUnregisterServer = (DllUnregisterServerProc)GetProcAddress(dinput8dll, "DllUnregisterServer");
 }
 
-HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
-{
-	InitDinput8();
-
-	if (!m_pDirectInput8Create || !lplpDirectInput)
-	{
-		return E_FAIL;
-	}
-
-	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
-
-	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, IID_IDirectInput8A, (LPVOID*)lplpDirectInput, punkOuter);
-
-	if (SUCCEEDED(hr))
-	{
-		diVersion = dwVersion;
-		*lplpDirectInput = ProxyAddressLookupTable.FindAddress<m_IDirectInputA>(*lplpDirectInput);
-	}
-
-	return hr;
-}
-
 HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN punkOuter)
 {
 	InitDinput8();
@@ -86,7 +64,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 		return E_FAIL;
 	}
 
-	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
+	Log() << " Redirecting 'DirectInputCreate' " << riid << " version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
 
 	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
 
@@ -99,26 +77,14 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 	return hr;
 }
 
+HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
+{
+	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputA, (LPVOID*)lplpDirectInput, punkOuter);
+}
+
 HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN punkOuter)
 {
-	InitDinput8();
-
-	if (!m_pDirectInput8Create || !lplpDirectInput)
-	{
-		return E_FAIL;
-	}
-
-	Log() << __FUNCTION__ << " Redirecting version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
-
-	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, IID_IDirectInput8W, (LPVOID*)lplpDirectInput, punkOuter);
-
-	if (SUCCEEDED(hr))
-	{
-		diVersion = dwVersion;
-		*lplpDirectInput = ProxyAddressLookupTable.FindAddress<m_IDirectInputW>(*lplpDirectInput);
-	}
-
-	return hr;
+	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputW, (LPVOID*)lplpDirectInput, punkOuter);
 }
 
 HRESULT WINAPI DllCanUnloadNow()
