@@ -1,0 +1,3 @@
+[submodule "External/Logging"]
+	path = External/Logging
+	url = https://github.com/elishacloud/Logging
