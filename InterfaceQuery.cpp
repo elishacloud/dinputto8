@@ -14,7 +14,7 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "dinput.h"
+#include "dinputto8.h"
 
 DWORD GetStringType(REFIID riid)
 {
@@ -64,7 +64,7 @@ HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj,
 
 	HRESULT hr = ((IUnknown*)ProxyInterface)->QueryInterface(ConvertREFIID(riid), ppvObj);
 
-	LogDebug() << __FUNCTION__ << " QueryInterface --> '" << riid << "' QueryInterface results: " << hr;
+	Logging::LogDebug() << __FUNCTION__ << " QueryInterface --> '" << riid << "' QueryInterface result: " << hr;
 
 	if (SUCCEEDED(hr))
 	{
@@ -79,7 +79,7 @@ HRESULT genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 #define QUERYINTERFACE(x) \
 	if (riid == IID_ ## x) \
 		{ \
-			LogDebug() << "Getting device for: m_" ## #x; \
+			Logging::LogDebug() << "Getting device for: m_" ## #x; \
 			*ppvObj = ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
 			return DI_OK; \
 		}

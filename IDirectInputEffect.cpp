@@ -14,25 +14,25 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "dinput.h"
+#include "dinputto8.h"
 
 HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
 }
 
 ULONG m_IDirectInputEffect::AddRef()
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInputEffect::Release()
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	ULONG x = ProxyInterface->Release();
 
@@ -46,70 +46,70 @@ ULONG m_IDirectInputEffect::Release()
 
 HRESULT m_IDirectInputEffect::Initialize(HINSTANCE hinst, DWORD dwVersion, REFGUID rguid)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Initialize(hinst, dwVersion, rguid);
 }
 
 HRESULT m_IDirectInputEffect::GetEffectGuid(LPGUID pguid)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->GetEffectGuid(pguid);
 }
 
 HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT peff, DWORD dwFlags)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->GetParameters(peff, dwFlags);
 }
 
 HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->SetParameters(peff, dwFlags);
 }
 
 HRESULT m_IDirectInputEffect::Start(DWORD dwIterations, DWORD dwFlags)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Start(dwIterations, dwFlags);
 }
 
 HRESULT m_IDirectInputEffect::Stop()
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Stop();
 }
 
 HRESULT m_IDirectInputEffect::GetEffectStatus(LPDWORD pdwFlags)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->GetEffectStatus(pdwFlags);
 }
 
 HRESULT m_IDirectInputEffect::Download()
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Download();
 }
 
 HRESULT m_IDirectInputEffect::Unload()
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Unload();
 }
 
 HRESULT m_IDirectInputEffect::Escape(LPDIEFFESCAPE pesc)
 {
-	LogDebug() << __FUNCTION__;
+	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	return ProxyInterface->Escape(pesc);
 }

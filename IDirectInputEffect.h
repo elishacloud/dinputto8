@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputEffect : public IDirectInputEffect, public AddressLookupTableObject
+class m_IDirectInputEffect : public IDirectInputEffect, public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputEffect *ProxyInterface;
@@ -12,14 +12,18 @@ public:
 	{
 		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 
-		LogDebug() << "Creating device " << __FUNCTION__;
+		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")";
 	}
 	~m_IDirectInputEffect()
 	{
+		Logging::LogDebug() << __FUNCTION__ << "(" << this << ")" << " deleting device!";
+
 		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	IDirectInputEffect *GetProxyInterface() { return ProxyInterface; }
+	m_IDirectInputEffect *GetWrapperInterface() { return this; }
+	void IncRef() { }
 
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);

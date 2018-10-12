@@ -14,10 +14,10 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "dllmain.h"
-#include "dinput.h"
+#include "resource.h"
+#include "dinputto8.h"
 
-#ifndef DINPUTTO8NOLOG
+#ifndef NOLOGGING
 std::ofstream LOG("dinput.log");
 #endif
 
@@ -32,6 +32,8 @@ DllGetClassObjectProc m_pDllGetClassObject = nullptr;
 DllRegisterServerProc m_pDllRegisterServer = nullptr;
 DllUnregisterServerProc m_pDllUnregisterServer = nullptr;
 
+HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN punkOuter);
+
 void InitDinput8()
 {
 	// Check if already initialized
@@ -41,10 +43,15 @@ void InitDinput8()
 	}
 	InitFlag = true;
 
+	// Init logs
+	Logging::Log() << "Starting dinputto8 v" << APP_VERSION;
+	Logging::LogComputerManufacturer();
+	Logging::LogOSVersion();
+	Logging::LogProcessNameAndPID();
+
 	// Load dll
 	char path[MAX_PATH];
 	strcpy_s(path, "dinput8.dll");
-	Log() << "Loading " << path;
 	HMODULE dinput8dll = LoadLibraryA(path);
 
 	// Get function addresses
@@ -53,6 +60,16 @@ void InitDinput8()
 	m_pDllGetClassObject = (DllGetClassObjectProc)GetProcAddress(dinput8dll, "DllGetClassObject");
 	m_pDllRegisterServer = (DllRegisterServerProc)GetProcAddress(dinput8dll, "DllRegisterServer");
 	m_pDllUnregisterServer = (DllUnregisterServerProc)GetProcAddress(dinput8dll, "DllUnregisterServer");
+}
+
+HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
+{
+	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputA, (LPVOID*)lplpDirectInput, punkOuter);
+}
+
+HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN punkOuter)
+{
+	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputW, (LPVOID*)lplpDirectInput, punkOuter);
 }
 
 HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN punkOuter)
@@ -64,7 +81,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 		return E_FAIL;
 	}
 
-	Log() << " Redirecting 'DirectInputCreate' " << riid << " version " << hex(dwVersion) << " to --> 'DirectInput8Create'";
+	Logging::Log() << "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'";
 
 	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
 
@@ -75,16 +92,6 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 	}
 
 	return hr;
-}
-
-HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
-{
-	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputA, (LPVOID*)lplpDirectInput, punkOuter);
-}
-
-HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN punkOuter)
-{
-	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputW, (LPVOID*)lplpDirectInput, punkOuter);
 }
 
 HRESULT WINAPI DllCanUnloadNow()

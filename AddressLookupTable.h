@@ -2,7 +2,7 @@
 
 #include <unordered_map>
 #include <algorithm>
-#include "Common\Logging.h"
+#include "dinputto8.h"
 
 constexpr UINT MaxIndex = 8;
 
@@ -115,6 +115,8 @@ public:
 
 		if (it != std::end(g_map[CacheIndex]))
 		{
+			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
+			(static_cast<T *>(it->second))->GetWrapperInterface()->IncRef();
 			return static_cast<T *>(it->second);
 		}
 
@@ -149,13 +151,13 @@ public:
 
 private:
 	bool ConstructorFlag = false;
-	std::unordered_map<void*, class AddressLookupTableObject*> g_map[MaxIndex];
+	std::unordered_map<void*, class AddressLookupTableDinputObject*> g_map[MaxIndex];
 };
 
-class AddressLookupTableObject
+class AddressLookupTableDinputObject
 {
 public:
-	virtual ~AddressLookupTableObject() { }
+	virtual ~AddressLookupTableDinputObject() { }
 
 	void DeleteMe()
 	{

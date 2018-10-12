@@ -14,7 +14,6 @@
     <ProjectGuid>{0C32F7D5-4261-4E29-BBCB-93364B10A7BC}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>dinput</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -43,11 +42,13 @@
     <TargetName>dinput</TargetName>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)bin\Intermediate\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <TargetName>dinput</TargetName>
     <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)bin\Intermediate\$(Configuration)\</IntDir>
+    <IncludePath>$(ProjectDir);$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -85,10 +86,12 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BasicLogging.cpp" />
+    <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
     <ClCompile Include="IDirectInputEffect.cpp" />
     <ClCompile Include="IDirectInputEnumEffect.cpp" />
-    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="dinputto8.cpp" />
     <ClCompile Include="IDirectInputX.cpp" />
     <ClCompile Include="InterfaceQuery.cpp" />
     <ClCompile Include="Versions\IDirectInput2A.cpp" />
@@ -108,10 +111,10 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <None Include="dinput.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Common\Logging.h" />
-    <ClInclude Include="Common\Wrapper.h" />
-    <ClInclude Include="dinput.h" />
-    <ClInclude Include="dllmain.h" />
+    <ClInclude Include="BasicLogging.h" />
+    <ClInclude Include="dinputto8.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />
     <ClInclude Include="IDirectInputEffect.h" />
     <ClInclude Include="IDirectInputEnumEffect.h" />
@@ -128,10 +131,11 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <ClInclude Include="Versions\IDirectInputDeviceA.h" />
     <ClInclude Include="Versions\IDirectInputDeviceW.h" />
     <ClInclude Include="Versions\IDirectInputW.h" />
+    <ClInclude Include="AddressLookupTable.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="BuildNo.rc" />
-    <ResourceCompile Include="dinput.rc" />
+    <ResourceCompile Include="dinputto8.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

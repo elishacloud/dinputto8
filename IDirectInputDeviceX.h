@@ -8,17 +8,36 @@ private:
 	DWORD DirectXVersion;
 	REFIID WrapperID;
 	DWORD StringType;
+	ULONG RefCount = 1;
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, DWORD Version, REFIID riid, m_IDirectInputDevice7W *Interface) : ProxyInterface(aOriginal), DirectXVersion(Version), WrapperID(riid), WrapperInterface(Interface)
 	{
 		StringType = GetStringType(WrapperID);
 
-		LogDebug() << "Creating device " << __FUNCTION__ << " converting device from v" << Version << " to v8 using " << ((StringType == UNICODE) ? "UNICODE" : "ANSI");
+		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == UNICODE) ? "UNICODE" : "ANSI");
 	}
-	~m_IDirectInputDeviceX() { }
+	~m_IDirectInputDeviceX()
+	{
+		Logging::LogDebug() << __FUNCTION__ << "(" << this << ")" << " deleting device!";
+	}
 
+	// Helper functions
 	IDirectInputDevice8W *GetProxyInterface() { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPDIENUMDEVICEOBJECTSCALLBACKA) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPDIENUMDEVICEOBJECTSCALLBACKW) { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPDIDEVICEOBJECTINSTANCEA) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPDIDEVICEOBJECTINSTANCEW) { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPDIDEVICEINSTANCEA) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPDIDEVICEINSTANCEW) { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPDIENUMEFFECTSCALLBACKA) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPDIENUMEFFECTSCALLBACKW) { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPDIEFFECTINFOA) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPDIEFFECTINFOW) { return ProxyInterface; }
+	IDirectInputDevice8A *GetProxyInterface(LPCSTR) { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterface(LPCWSTR) { return ProxyInterface; }
+	m_IDirectInputDeviceX *GetWrapperInterface() { return this; }
+	void IncRef() { InterlockedIncrement(&RefCount); }
 
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);

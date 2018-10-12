@@ -14,7 +14,7 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "..\dinput.h"
+#include "dinputto8.h"
 
 HRESULT m_IDirectInput2W::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
@@ -33,7 +33,7 @@ ULONG m_IDirectInput2W::Release()
 
 HRESULT m_IDirectInput2W::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICEW *lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
-	return ProxyInterface->CreateDevice(rguid, lplpDirectInputDevice, pUnkOuter);
+	return ProxyInterface->CreateDeviceEx(rguid, IID_IDirectInputDevice2W, (LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice, pUnkOuter);
 }
 
 HRESULT m_IDirectInput2W::EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)

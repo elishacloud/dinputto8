@@ -23,8 +23,8 @@ class m_IDirectInputX;
 class m_IDirectInputDeviceX;
 
 #include <memory>
-#include "Common\Wrapper.h"
-#include "Common\Logging.h"
+#include "AddressLookupTable.h"
+#include "BasicLogging.h"
 
 typedef HRESULT(WINAPI *DirectInput8CreateProc)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
 typedef HRESULT(WINAPI *DllCanUnloadNowProc)();

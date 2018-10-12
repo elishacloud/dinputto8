@@ -14,7 +14,7 @@
 *   3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "dinput.h"
+#include "dinputto8.h"
 
 BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT a, LPVOID pvRef)
 {
