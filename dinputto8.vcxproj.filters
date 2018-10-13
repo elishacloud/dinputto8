@@ -45,8 +45,10 @@
       <Filter>External\Logging</Filter>
     </ClCompile>
     <ClCompile Include="dinputto8.cpp" />
-    <ClCompile Include="BasicLogging.cpp" />
     <ClCompile Include="InterfaceQuery.cpp" />
+    <ClCompile Include="Logging\Logging.cpp">
+      <Filter>Logging</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDirectInputEffect.h" />
@@ -94,8 +96,10 @@
     </ClInclude>
     <ClInclude Include="dinputto8.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="BasicLogging.h" />
     <ClInclude Include="AddressLookupTable.h" />
+    <ClInclude Include="Logging\Logging.h">
+      <Filter>Logging</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput.def" />
@@ -109,6 +113,9 @@
     </Filter>
     <Filter Include="External\Logging">
       <UniqueIdentifier>{8c10d327-5b6a-46b9-bbca-a46b90092d64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Logging">
+      <UniqueIdentifier>{f892643b-ec23-4837-8688-9750b30498f7}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

@@ -86,7 +86,6 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="BasicLogging.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
     <ClCompile Include="IDirectInputEffect.cpp" />
@@ -94,6 +93,7 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <ClCompile Include="dinputto8.cpp" />
     <ClCompile Include="IDirectInputX.cpp" />
     <ClCompile Include="InterfaceQuery.cpp" />
+    <ClCompile Include="Logging\Logging.cpp" />
     <ClCompile Include="Versions\IDirectInput2A.cpp" />
     <ClCompile Include="Versions\IDirectInput2W.cpp" />
     <ClCompile Include="Versions\IDirectInput7A.cpp" />
@@ -111,8 +111,8 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <None Include="dinput.def" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BasicLogging.h" />
     <ClInclude Include="dinputto8.h" />
+    <ClInclude Include="Logging\Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />
