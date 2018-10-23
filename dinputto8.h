@@ -33,8 +33,8 @@ typedef HRESULT(WINAPI *DllRegisterServerProc)();
 typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 
 DWORD GetStringType(REFIID riid);
-HRESULT genericQueryInterface(REFIID CalledID, LPVOID * ppvObj);
 HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
+void genericQueryInterface(REFIID CalledID, LPVOID * ppvObj);
 extern AddressLookupTableDinput<void> ProxyAddressLookupTable;
 extern DWORD diVersion;
 
