@@ -103,9 +103,9 @@ public:
 	}
 
 	template <typename T>
-	T * FindAddress(void *Proxy)
+	T *FindAddress(void *Proxy)
 	{
-		if (Proxy == nullptr)
+		if (!Proxy)
 		{
 			return nullptr;
 		}
@@ -127,7 +127,7 @@ public:
 	void SaveAddress(T *Wrapper, void *Proxy)
 	{
 		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
-		if (Wrapper != nullptr && Proxy != nullptr)
+		if (Wrapper && Proxy)
 		{
 			g_map[CacheIndex][Proxy] = Wrapper;
 		}
@@ -136,16 +136,18 @@ public:
 	template <typename T>
 	void DeleteAddress(T *Wrapper)
 	{
-		if (Wrapper != nullptr && !ConstructorFlag)
+		if (!Wrapper || ConstructorFlag)
 		{
-			constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
-			auto it = std::find_if(g_map[CacheIndex].begin(), g_map[CacheIndex].end(),
-				[=](auto Map) -> bool { return Map.second == Wrapper; });
+			return;
+		}
 
-			if (it != std::end(g_map[CacheIndex]))
-			{
-				it = g_map[CacheIndex].erase(it);
-			}
+		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
+		auto it = std::find_if(g_map[CacheIndex].begin(), g_map[CacheIndex].end(),
+			[=](auto Map) -> bool { return Map.second == Wrapper; });
+
+		if (it != std::end(g_map[CacheIndex]))
+		{
+			it = g_map[CacheIndex].erase(it);
 		}
 	}
 
