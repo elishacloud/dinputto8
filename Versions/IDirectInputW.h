@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputW : public IDirectInputW, public AddressLookupTableDinputObject
+class m_IDirectInputW : public IDirectInputW, public AddressLookupTableObject
 {
 private:
 	std::unique_ptr<m_IDirectInputX> ProxyInterface;

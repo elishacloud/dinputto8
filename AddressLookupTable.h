@@ -2,9 +2,8 @@
 
 #include <unordered_map>
 #include <algorithm>
-#include "dinputto8.h"
 
-constexpr UINT MaxIndex = 8;
+constexpr UINT MaxIndex = 14;
 
 template <typename D>
 class AddressLookupTableDinput
@@ -45,9 +44,9 @@ public:
 	template <>
 	struct AddressCacheIndex<m_IDirectInput7W> { static constexpr UINT CacheIndex = 6; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDeviceA> { static constexpr UINT CacheIndex = 1; };
+	struct AddressCacheIndex<m_IDirectInputDeviceA> { static constexpr UINT CacheIndex = 7; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDeviceW> { static constexpr UINT CacheIndex = 2;
+	struct AddressCacheIndex<m_IDirectInputDeviceW> { static constexpr UINT CacheIndex = 8;
 		using Type1A = m_IDirectInputDeviceA;
 		using Type2A = m_IDirectInputDevice2A;
 		using Type7A = m_IDirectInputDevice7A;
@@ -56,13 +55,15 @@ public:
 		using Type7W = m_IDirectInputDevice7W;
 	};
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice2A> { static constexpr UINT CacheIndex = 3; };
+	struct AddressCacheIndex<m_IDirectInputDevice2A> { static constexpr UINT CacheIndex = 9; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice2W> { static constexpr UINT CacheIndex = 4; };
+	struct AddressCacheIndex<m_IDirectInputDevice2W> { static constexpr UINT CacheIndex = 10; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice7A> { static constexpr UINT CacheIndex = 5; };
+	struct AddressCacheIndex<m_IDirectInputDevice7A> { static constexpr UINT CacheIndex = 11; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice7W> { static constexpr UINT CacheIndex = 6; };
+	struct AddressCacheIndex<m_IDirectInputDevice7W> { static constexpr UINT CacheIndex = 12; };
+	template <>
+	struct AddressCacheIndex<m_IDirectInputEffect> { static constexpr UINT CacheIndex = 13; };
 
 	template <typename T>
 	T *FindAddress(void *Proxy, DWORD Version, DWORD Type)
@@ -103,6 +104,25 @@ public:
 	}
 
 	template <typename T>
+	void ClearAddress(void *Proxy)
+	{
+		if (!Proxy || ConstructorFlag)
+		{
+			return;
+		}
+
+		for (UINT CacheIndex = 0; CacheIndex < MaxIndex; CacheIndex++)
+		{
+			auto it = g_map[CacheIndex].find(Proxy);
+
+			if (it != std::end(g_map[CacheIndex]))
+			{
+				static_cast<T *>(it->second)->DeleteMe();
+			}
+		}
+	}
+
+	template <typename T>
 	T *FindAddress(void *Proxy)
 	{
 		if (!Proxy)
@@ -115,10 +135,10 @@ public:
 
 		if (it != std::end(g_map[CacheIndex]))
 		{
-			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
-			(static_cast<T *>(it->second))->GetWrapperInterface()->IncRef();
 			return static_cast<T *>(it->second);
 		}
+
+		ClearAddress<T>(Proxy);
 
 		return new T(static_cast<T *>(Proxy));
 	}
@@ -153,13 +173,14 @@ public:
 
 private:
 	bool ConstructorFlag = false;
-	std::unordered_map<void*, class AddressLookupTableDinputObject*> g_map[MaxIndex];
+	D *unused = nullptr;
+	std::unordered_map<void*, class AddressLookupTableObject*> g_map[MaxIndex];
 };
 
-class AddressLookupTableDinputObject
+class AddressLookupTableObject
 {
 public:
-	virtual ~AddressLookupTableDinputObject() { }
+	virtual ~AddressLookupTableObject() { }
 
 	void DeleteMe()
 	{

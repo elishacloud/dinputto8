@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputEffect : public IDirectInputEffect, public AddressLookupTableDinputObject
+class m_IDirectInputEffect : public IDirectInputEffect, public AddressLookupTableObject
 {
 private:
 	IDirectInputEffect *ProxyInterface;
