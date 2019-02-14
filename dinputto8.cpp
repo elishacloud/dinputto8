@@ -17,9 +17,7 @@
 #include "resource.h"
 #include "dinputto8.h"
 
-#ifndef NOLOGGING
-std::ofstream LOG("dinput.log");
-#endif
+std::ofstream LOG;
 
 bool InitFlag = false;
 DWORD diVersion = 0;
@@ -44,6 +42,10 @@ void InitDinput8()
 	InitFlag = true;
 
 	// Init logs
+#ifdef NOLOGGING
+	Logging::EnableLogging = false;
+#endif
+	Logging::Open("dinput.log");
 	Logging::Log() << "Starting dinputto8 v" << APP_VERSION;
 	Logging::LogComputerManufacturer();
 	Logging::LogOSVersion();
