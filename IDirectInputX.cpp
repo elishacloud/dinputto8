@@ -55,7 +55,11 @@ HRESULT m_IDirectInputX::EnumDevices(DWORD dwDevType, T lpCallback, LPVOID pvRef
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterface(lpCallback)->EnumDevices(dwDevType, lpCallback, pvRef, dwFlags);
+	ENUMDEVICE CallbackContext;
+	CallbackContext.pvRef = pvRef;
+	CallbackContext.lpCallback = lpCallback;
+
+	return GetProxyInterface(lpCallback)->EnumDevices(dwDevType, m_IDirectInputEnumDevice::EnumDeviceCallback, &CallbackContext, dwFlags);
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)

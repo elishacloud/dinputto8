@@ -51,6 +51,7 @@ extern DWORD diVersion;
 #include "Versions\IDirectInputDevice7A.h"
 #include "Versions\IDirectInputDevice7W.h"
 #include "IDirectInputEffect.h"
-#include "IDirectInputEnumEffect.h"
+#include "IDirectInputEnum.h"
+#include "IDirectInputTypes.h"
 #include "IDirectInputX.h"
 #include "IDirectInputDeviceX.h"

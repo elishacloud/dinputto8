@@ -89,8 +89,9 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
     <ClCompile Include="IDirectInputEffect.cpp" />
-    <ClCompile Include="IDirectInputEnumEffect.cpp" />
+    <ClCompile Include="IDirectInputEnum.cpp" />
     <ClCompile Include="dinputto8.cpp" />
+    <ClCompile Include="IDirectInputTypes.cpp" />
     <ClCompile Include="IDirectInputX.cpp" />
     <ClCompile Include="InterfaceQuery.cpp" />
     <ClCompile Include="Logging\Logging.cpp" />
@@ -112,12 +113,13 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dinputto8.h" />
+    <ClInclude Include="IDirectInputTypes.h" />
     <ClInclude Include="Logging\Logging.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />
     <ClInclude Include="IDirectInputEffect.h" />
-    <ClInclude Include="IDirectInputEnumEffect.h" />
+    <ClInclude Include="IDirectInputEnum.h" />
     <ClInclude Include="IDirectInputX.h" />
     <ClInclude Include="Versions\IDirectInput2A.h" />
     <ClInclude Include="Versions\IDirectInput2W.h" />

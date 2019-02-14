@@ -145,7 +145,11 @@ HRESULT m_IDirectInputDeviceX::GetDeviceInfo(T pdidi)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterface(pdidi)->GetDeviceInfo(pdidi);
+	HRESULT hr = GetProxyInterface(pdidi)->GetDeviceInfo(pdidi);
+
+	pdidi->dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(pdidi->dwDevType));
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::RunControlPanel(HWND hwndOwner, DWORD dwFlags)

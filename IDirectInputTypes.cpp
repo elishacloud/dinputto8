@@ -16,14 +16,52 @@
 
 #include "dinputto8.h"
 
-BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT a, LPVOID pvRef)
+#define DIDEVTYPE_DEVICE        1
+#define DIDEVTYPE_MOUSE         2
+#define DIDEVTYPE_KEYBOARD      3
+#define DIDEVTYPE_JOYSTICK      4
+
+DWORD ConvertDevTypeTo7(DWORD dwDevType)
 {
-	ENUMEFFECT *lpCallbackContext = (ENUMEFFECT*)pvRef;
-
-	if (a)
+	switch (dwDevType)
 	{
-		a = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(a);
+	case DI8DEVTYPE_DEVICE:
+		return DIDEVTYPE_DEVICE;
+		break;
+	case DI8DEVTYPE_MOUSE:
+		return DIDEVTYPE_MOUSE;
+		break;
+	case DI8DEVTYPE_KEYBOARD:
+		return DIDEVTYPE_KEYBOARD;
+		break;
+	case DI8DEVTYPE_JOYSTICK:
+	case DI8DEVTYPE_GAMEPAD:
+		return DIDEVTYPE_JOYSTICK;
+		break;
+	default:
+		return dwDevType;
+		break;
 	}
+}
 
-	return lpCallbackContext->lpCallback(a, lpCallbackContext->pvRef);
+DWORD ConvertDevTypeTo8(DWORD dwDevType)
+{
+	switch (dwDevType)
+	{
+	case DIDEVTYPE_DEVICE:
+		return DI8DEVTYPE_DEVICE;
+		break;
+	case DIDEVTYPE_MOUSE:
+		return DI8DEVTYPE_MOUSE;
+		break;
+	case DIDEVTYPE_KEYBOARD:
+		return DI8DEVTYPE_KEYBOARD;
+		break;
+	case DIDEVTYPE_JOYSTICK:
+		return DI8DEVTYPE_GAMEPAD;
+		break;
+	default:
+		return dwDevType;
+		break;
+	}
 }
