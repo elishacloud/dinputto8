@@ -12,7 +12,7 @@
 #define APP_REVISION			0
 #define APP_COMPANYNAME			"Sadrate Presents"
 #define APP_DESCRPTION			"Converts DirectInput 1-7 (dinput.dll) to DirectInput 8 (dinput8.dll) for older games."
-#define APP_COPYRIGHT			"Copyright (C) 2018 Elisha Riedlinger"
+#define APP_COPYRIGHT			"Copyright (C) 2019 Elisha Riedlinger"
 #define APP_ORIGINALVERSION		"dinput.dll"
 #define APP_INTERNALNAME		"dinputto8"
 

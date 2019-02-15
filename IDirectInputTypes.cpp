@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2018 Elisha Riedlinger
+* Copyright (C) 2019 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -27,20 +27,15 @@ DWORD ConvertDevTypeTo7(DWORD dwDevType)
 	{
 	case DI8DEVTYPE_DEVICE:
 		return DIDEVTYPE_DEVICE;
-		break;
 	case DI8DEVTYPE_MOUSE:
 		return DIDEVTYPE_MOUSE;
-		break;
 	case DI8DEVTYPE_KEYBOARD:
 		return DIDEVTYPE_KEYBOARD;
-		break;
 	case DI8DEVTYPE_JOYSTICK:
 	case DI8DEVTYPE_GAMEPAD:
 		return DIDEVTYPE_JOYSTICK;
-		break;
 	default:
 		return dwDevType;
-		break;
 	}
 }
 
@@ -50,18 +45,13 @@ DWORD ConvertDevTypeTo8(DWORD dwDevType)
 	{
 	case DIDEVTYPE_DEVICE:
 		return DI8DEVTYPE_DEVICE;
-		break;
 	case DIDEVTYPE_MOUSE:
 		return DI8DEVTYPE_MOUSE;
-		break;
 	case DIDEVTYPE_KEYBOARD:
 		return DI8DEVTYPE_KEYBOARD;
-		break;
 	case DIDEVTYPE_JOYSTICK:
 		return DI8DEVTYPE_GAMEPAD;
-		break;
 	default:
 		return dwDevType;
-		break;
 	}
 }

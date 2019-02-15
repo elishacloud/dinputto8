@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2018 Elisha Riedlinger
+* Copyright (C) 2019 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -104,6 +104,7 @@ HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, T *ppvObj, L
 
 	if (SUCCEEDED(hr))
 	{
+		AddRef();
 		genericQueryInterface(riid, (LPVOID *)ppvObj);
 	}
 

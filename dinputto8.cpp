@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2018 Elisha Riedlinger
+* Copyright (C) 2019 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -44,17 +44,16 @@ void InitDinput8()
 	// Init logs
 #ifdef NOLOGGING
 	Logging::EnableLogging = false;
-#endif
+#else
 	Logging::Open("dinput.log");
 	Logging::Log() << "Starting dinputto8 v" << APP_VERSION;
 	Logging::LogComputerManufacturer();
 	Logging::LogOSVersion();
 	Logging::LogProcessNameAndPID();
+#endif
 
 	// Load dll
-	char path[MAX_PATH];
-	strcpy_s(path, "dinput8.dll");
-	HMODULE dinput8dll = LoadLibraryA(path);
+	HMODULE dinput8dll = LoadLibraryA("dinput8.dll");
 
 	// Get function addresses
 	m_pDirectInput8Create = (DirectInput8CreateProc)GetProcAddress(dinput8dll, "DirectInput8Create");
