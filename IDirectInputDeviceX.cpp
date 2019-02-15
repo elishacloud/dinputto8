@@ -104,7 +104,21 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyInterface->GetDeviceData(cbObjectData, rgdod, pdwInOut, dwFlags);
+	if (!rgdod || !cbObjectData || cbObjectData > sizeof(DIDEVICEOBJECTDATA))
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	DIDEVICEOBJECTDATA dod;
+
+	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &dod, pdwInOut, dwFlags);
+
+	if (SUCCEEDED(hr))
+	{
+		CopyMemory(rgdod, &dod, cbObjectData);
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
@@ -243,7 +257,18 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyInterface->SendDeviceData(cbObjectData, rgdod, pdwInOut, fl);
+	if (!rgdod || !cbObjectData || cbObjectData > sizeof(DIDEVICEOBJECTDATA))
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	DIDEVICEOBJECTDATA dod = { NULL };
+
+	CopyMemory(&dod, rgdod, cbObjectData);
+
+	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), &dod, pdwInOut, fl);
+
+	return hr;
 }
 
 template HRESULT m_IDirectInputDeviceX::EnumEffectsInFile<LPCSTR>(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags);

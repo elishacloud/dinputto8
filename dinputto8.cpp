@@ -22,7 +22,7 @@ std::ofstream LOG;
 bool InitFlag = false;
 DWORD diVersion = 0;
 
-AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
+AddressLookupTable<void> ProxyAddressLookupTable = AddressLookupTable<void>();
 
 DirectInput8CreateProc m_pDirectInput8Create = nullptr;
 DllCanUnloadNowProc m_pDllCanUnloadNow = nullptr;

@@ -104,7 +104,6 @@ HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, T *ppvObj, L
 
 	if (SUCCEEDED(hr))
 	{
-		AddRef();
 		genericQueryInterface(riid, (LPVOID *)ppvObj);
 	}
 

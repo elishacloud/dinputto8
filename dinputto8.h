@@ -35,7 +35,7 @@ typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 DWORD GetStringType(REFIID riid);
 HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
 void genericQueryInterface(REFIID CalledID, LPVOID * ppvObj);
-extern AddressLookupTableDinput<void> ProxyAddressLookupTable;
+extern AddressLookupTable<void> ProxyAddressLookupTable;
 extern DWORD diVersion;
 
 #include "Versions\IDirectInputA.h"
