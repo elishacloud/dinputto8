@@ -104,19 +104,41 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (!rgdod || !cbObjectData || cbObjectData > sizeof(DIDEVICEOBJECTDATA))
+	if (*pdwInOut == (DWORD)-1)
 	{
 		return DIERR_INVALIDPARAM;
 	}
 
-	DIDEVICEOBJECTDATA dod;
+	// Verify that only one thrad can use the varable at a time
+	while (dodThreadFlag) {}
+	dodThreadFlag = true;
 
-	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &dod, pdwInOut, dwFlags);
-
-	if (SUCCEEDED(hr))
+	// Check the size of the array
+	if (rgdod && *pdwInOut && *pdwInOut != dodSize)
 	{
-		CopyMemory(rgdod, &dod, cbObjectData);
+		if (pdod)
+		{
+			delete pdod;
+		}
+
+		dodSize = *pdwInOut;
+		pdod = new DIDEVICEOBJECTDATA[dodSize];
+
+		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << dodSize;
 	}
+
+	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? pdod : nullptr, pdwInOut, dwFlags);
+
+	// Copy array
+	if (SUCCEEDED(hr) && rgdod && cbObjectData)
+	{
+		for (UINT x = 0; x < *pdwInOut; x++)
+		{
+			CopyMemory((void*)((DWORD)rgdod + (cbObjectData * x)), &pdod[x], cbObjectData);
+		}
+	}
+
+	dodThreadFlag = false;
 
 	return hr;
 }
@@ -257,16 +279,42 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (!rgdod || !cbObjectData || cbObjectData > sizeof(DIDEVICEOBJECTDATA))
+	if (*pdwInOut == (DWORD)-1)
 	{
 		return DIERR_INVALIDPARAM;
 	}
 
-	DIDEVICEOBJECTDATA dod = { NULL };
+	// Verify that only one thrad can use the varable at a time
+	while (dodThreadFlag) {}
+	dodThreadFlag = true;
 
-	CopyMemory(&dod, rgdod, cbObjectData);
+	// Check the size of the array
+	if (rgdod && *pdwInOut && *pdwInOut != dodSize)
+	{
+		if (pdod)
+		{
+			delete pdod;
+		}
 
-	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), &dod, pdwInOut, fl);
+		dodSize = *pdwInOut;
+		pdod = new DIDEVICEOBJECTDATA[dodSize];
+
+		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << dodSize;
+	}
+
+	// Copy array
+	if (rgdod && cbObjectData)
+	{
+		ZeroMemory(pdod, sizeof(DIDEVICEOBJECTDATA) * dodSize);
+		for (UINT x = 0; x < *pdwInOut; x++)
+		{
+			CopyMemory(&pdod[x], (void*)((DWORD)rgdod + (cbObjectData * x)), cbObjectData);
+		}
+	}
+
+	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), pdod, pdwInOut, fl);
+
+	dodThreadFlag = false;
 
 	return hr;
 }
