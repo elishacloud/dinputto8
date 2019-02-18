@@ -7,11 +7,11 @@
 constexpr UINT MaxIndex = 14;
 
 template <typename D>
-class AddressLookupTable
+class AddressLookupTableDinput
 {
 public:
-	explicit AddressLookupTable() {}
-	~AddressLookupTable()
+	explicit AddressLookupTableDinput() {}
+	~AddressLookupTableDinput()
 	{
 		ConstructorFlag = true;
 		for (const auto& cache : g_map)
@@ -155,13 +155,13 @@ public:
 
 private:
 	bool ConstructorFlag = false;
-	std::unordered_map<void*, class AddressLookupTableObject*> g_map[MaxIndex];
+	std::unordered_map<void*, class AddressLookupTableDinputObject*> g_map[MaxIndex];
 };
 
-class AddressLookupTableObject
+class AddressLookupTableDinputObject
 {
 public:
-	virtual ~AddressLookupTableObject() { }
+	virtual ~AddressLookupTableDinputObject() { }
 
 	void DeleteMe()
 	{

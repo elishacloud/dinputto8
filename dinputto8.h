@@ -32,11 +32,17 @@ typedef	HRESULT(WINAPI *DllGetClassObjectProc)(REFCLSID, REFIID, LPVOID *);
 typedef HRESULT(WINAPI *DllRegisterServerProc)();
 typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 
-DWORD GetStringType(REFIID riid);
-HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
-void genericQueryInterface(REFIID CalledID, LPVOID * ppvObj);
-extern AddressLookupTable<void> ProxyAddressLookupTable;
+namespace dinputto8
+{
+	DWORD GetStringType(REFIID riid);
+	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
+	void genericQueryInterface(REFIID riid, LPVOID * ppvObj);
+}
+
+extern AddressLookupTableDinput<void> ProxyAddressLookupTable;
 extern DWORD diVersion;
+
+using namespace dinputto8;
 
 #include "Versions\IDirectInputA.h"
 #include "Versions\IDirectInputW.h"

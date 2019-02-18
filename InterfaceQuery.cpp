@@ -16,15 +16,20 @@
 
 #include "dinputto8.h"
 
-DWORD GetStringType(REFIID riid)
+namespace dinputto8
+{
+	REFIID ConvertREFIID(REFIID riid);
+}
+
+DWORD dinputto8::GetStringType(REFIID riid)
 {
 	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A ||
 		riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? ANSI_CHARSET :
 		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W ||
-		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? UNICODE : DIERR_UNSUPPORTED;
+		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? DEFAULT_CHARSET : DIERR_UNSUPPORTED;
 }
 
-REFIID ConvertREFIID(REFIID riid)
+REFIID dinputto8::ConvertREFIID(REFIID riid)
 {
 	if (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A)
 	{
@@ -46,7 +51,7 @@ REFIID ConvertREFIID(REFIID riid)
 	return riid;
 }
 
-HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
+HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
 {
 	if (!ppvObj)
 	{
@@ -74,7 +79,7 @@ HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj,
 	return hr;
 }
 
-void genericQueryInterface(REFIID riid, LPVOID * ppvObj)
+void dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	if (!ppvObj || !*ppvObj)
 	{

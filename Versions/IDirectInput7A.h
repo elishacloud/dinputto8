@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInput7A : public IDirectInput7A, public AddressLookupTableObject
+class m_IDirectInput7A : public IDirectInput7A, public AddressLookupTableDinputObject
 {
 private:
 	std::unique_ptr<m_IDirectInputX> ProxyInterface;

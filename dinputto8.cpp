@@ -22,7 +22,7 @@ std::ofstream LOG;
 bool InitFlag = false;
 DWORD diVersion = 0;
 
-AddressLookupTable<void> ProxyAddressLookupTable = AddressLookupTable<void>();
+AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
 DirectInput8CreateProc m_pDirectInput8Create = nullptr;
 DllCanUnloadNowProc m_pDllCanUnloadNow = nullptr;
@@ -84,7 +84,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 	Logging::Log() << "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'";
 
-	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, (GetStringType(riid) == UNICODE) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
+	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, (GetStringType(riid) == DEFAULT_CHARSET) ? IID_IDirectInput8W : IID_IDirectInput8A, lplpDD, punkOuter);
 
 	if (SUCCEEDED(hr))
 	{
@@ -118,7 +118,7 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 
 	DWORD StringType = GetStringType(riid);
 
-	HRESULT hr = m_pDllGetClassObject(rclsid, (StringType == ANSI_CHARSET) ? IID_IDirectInput8A : (StringType == UNICODE) ? IID_IDirectInput8W : riid, ppv);
+	HRESULT hr = m_pDllGetClassObject(rclsid, (StringType == ANSI_CHARSET) ? IID_IDirectInput8A : (StringType == DEFAULT_CHARSET) ? IID_IDirectInput8W : riid, ppv);
 
 	if (SUCCEEDED(hr))
 	{

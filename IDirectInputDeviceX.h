@@ -20,7 +20,7 @@ public:
 	{
 		StringType = GetStringType(WrapperID);
 
-		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == UNICODE) ? "UNICODE" : "ANSI");
+		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == DEFAULT_CHARSET) ? "UNICODE" : "ANSI");
 	}
 	~m_IDirectInputDeviceX()
 	{
