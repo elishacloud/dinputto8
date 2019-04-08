@@ -36,7 +36,7 @@ namespace dinputto8
 {
 	DWORD GetStringType(REFIID riid);
 	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
-	void genericQueryInterface(REFIID riid, LPVOID * ppvObj);
+	void WINAPI genericQueryInterface(REFIID riid, LPVOID * ppvObj);
 }
 
 extern AddressLookupTableDinput<void> ProxyAddressLookupTable;

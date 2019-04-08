@@ -79,7 +79,7 @@ HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOI
 	return hr;
 }
 
-void dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
+void WINAPI dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	if (!ppvObj || !*ppvObj)
 	{
