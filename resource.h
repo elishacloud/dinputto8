@@ -1,6 +1,6 @@
 //{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by dxwrapper.rc
+// Used by dinputto8.rc
 
 #include "BuildNo.rc"
 
