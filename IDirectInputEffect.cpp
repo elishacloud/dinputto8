@@ -34,14 +34,14 @@ ULONG m_IDirectInputEffect::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	ULONG x = ProxyInterface->Release();
+	ULONG ref = ProxyInterface->Release();
 
-	if (x == 0)
+	if (ref == 0)
 	{
-		WrapperInterface->DeleteMe();
+		delete this;
 	}
 
-	return x;
+	return ref;
 }
 
 HRESULT m_IDirectInputEffect::Initialize(HINSTANCE hinst, DWORD dwVersion, REFGUID rguid)

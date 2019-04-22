@@ -38,14 +38,14 @@ ULONG m_IDirectInputDeviceX::Release()
 
 	ProxyInterface->Release();
 
-	ULONG x = InterlockedDecrement(&RefCount);
+	ULONG ref = InterlockedDecrement(&RefCount);
 
-	if (x == 0)
+	if (ref == 0)
 	{
 		WrapperInterface->DeleteMe();
 	}
 
-	return x;
+	return ref;
 }
 
 HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)

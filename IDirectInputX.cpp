@@ -38,14 +38,14 @@ ULONG m_IDirectInputX::Release()
 
 	ProxyInterface->Release();
 	
-	ULONG x = InterlockedDecrement(&RefCount);
+	ULONG ref = InterlockedDecrement(&RefCount);
 
-	if (x == 0)
+	if (ref == 0)
 	{
 		WrapperInterface->DeleteMe();
 	}
 
-	return x;
+	return ref;
 }
 
 template HRESULT m_IDirectInputX::EnumDevices<LPDIENUMDEVICESCALLBACKA>(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags);
