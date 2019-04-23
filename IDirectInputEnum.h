@@ -27,6 +27,6 @@ public:
 	m_IDirectInputEnumDevice() {}
 	~m_IDirectInputEnumDevice() {}
 
-	static BOOL CALLBACK EnumDeviceCallback(LPCDIDEVICEINSTANCEA, LPVOID);
-	static BOOL CALLBACK EnumDeviceCallback(LPCDIDEVICEINSTANCEW, LPVOID);
+	static BOOL CALLBACK EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA, LPVOID);
+	static BOOL CALLBACK EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW, LPVOID);
 };

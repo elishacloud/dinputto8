@@ -28,7 +28,7 @@ BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT a
 	return lpCallbackContext->lpCallback(a, lpCallbackContext->pvRef);
 }
 
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallback(LPCDIDEVICEINSTANCEA a, LPVOID pvRef)
+BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA a, LPVOID pvRef)
 {
 	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
 
@@ -39,7 +39,7 @@ BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallback(LPCDIDEVICEINSTANCEA 
 	return ((LPDIENUMDEVICESCALLBACKA)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }
 
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallback(LPCDIDEVICEINSTANCEW a, LPVOID pvRef)
+BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW a, LPVOID pvRef)
 {
 	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
 

@@ -38,7 +38,7 @@ HRESULT m_IDirectInputDevice7A::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 
 HRESULT m_IDirectInputDevice7A::EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumObjects(lpCallback, pvRef, dwFlags);
+	return ProxyInterface->EnumObjectsA(lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputDevice7A::GetProperty(REFGUID rguidProp, LPDIPROPHEADER pdiph)
@@ -88,12 +88,12 @@ HRESULT m_IDirectInputDevice7A::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 
 HRESULT m_IDirectInputDevice7A::GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
 {
-	return ProxyInterface->GetObjectInfo(pdidoi, dwObj, dwHow);
+	return ProxyInterface->GetObjectInfoA(pdidoi, dwObj, dwHow);
 }
 
 HRESULT m_IDirectInputDevice7A::GetDeviceInfo(LPDIDEVICEINSTANCEA pdidi)
 {
-	return ProxyInterface->GetDeviceInfo(pdidi);
+	return ProxyInterface->GetDeviceInfoA(pdidi);
 }
 
 HRESULT m_IDirectInputDevice7A::RunControlPanel(HWND hwndOwner, DWORD dwFlags)
@@ -113,12 +113,12 @@ HRESULT m_IDirectInputDevice7A::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, L
 
 HRESULT m_IDirectInputDevice7A::EnumEffects(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
 {
-	return ProxyInterface->EnumEffects(lpCallback, pvRef, dwEffType);
+	return ProxyInterface->EnumEffectsA(lpCallback, pvRef, dwEffType);
 }
 
 HRESULT m_IDirectInputDevice7A::GetEffectInfo(LPDIEFFECTINFOA pdei, REFGUID rguid)
 {
-	return ProxyInterface->GetEffectInfo(pdei, rguid);
+	return ProxyInterface->GetEffectInfoA(pdei, rguid);
 }
 
 HRESULT m_IDirectInputDevice7A::GetForceFeedbackState(LPDWORD pdwOut)
@@ -153,10 +153,10 @@ HRESULT m_IDirectInputDevice7A::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOB
 
 HRESULT m_IDirectInputDevice7A::EnumEffectsInFile(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumEffectsInFile(lpszFileName, pec, pvRef, dwFlags);
+	return ProxyInterface->EnumEffectsInFileA(lpszFileName, pec, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputDevice7A::WriteEffectToFile(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 {
-	return ProxyInterface->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+	return ProxyInterface->WriteEffectToFileA(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
 }

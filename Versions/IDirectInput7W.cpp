@@ -33,12 +33,12 @@ ULONG m_IDirectInput7W::Release()
 
 HRESULT m_IDirectInput7W::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICEW *lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
-	return ProxyInterface->CreateDeviceEx(rguid, IID_IDirectInputDevice7W, (LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice, pUnkOuter);
+	return ProxyInterface->CreateDeviceExW(rguid, IID_IDirectInputDevice7W, (LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice, pUnkOuter);
 }
 
 HRESULT m_IDirectInput7W::EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumDevices(dwDevType, lpCallback, pvRef, dwFlags);
+	return ProxyInterface->EnumDevicesW(dwDevType, lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInput7W::GetDeviceStatus(REFGUID rguidInstance)
@@ -58,10 +58,10 @@ HRESULT m_IDirectInput7W::Initialize(HINSTANCE hinst, DWORD dwVersion)
 
 HRESULT m_IDirectInput7W::FindDevice(REFGUID rguidClass, LPCWSTR ptszName, LPGUID pguidInstance)
 {
-	return ProxyInterface->FindDevice(rguidClass, ptszName, pguidInstance);
+	return ProxyInterface->FindDeviceW(rguidClass, ptszName, pguidInstance);
 }
 
 HRESULT m_IDirectInput7W::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID * ppvObj, LPUNKNOWN pUnkOuter)
 {
-	return ProxyInterface->CreateDeviceEx(rguid, riid, (LPDIRECTINPUTDEVICE8W *)ppvObj, pUnkOuter);
+	return ProxyInterface->CreateDeviceExW(rguid, riid, (LPDIRECTINPUTDEVICE8W *)ppvObj, pUnkOuter);
 }

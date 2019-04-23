@@ -32,32 +32,15 @@ public:
 		}
 	}
 
-	// Helper functions
-	IDirectInputDevice8W *GetProxyInterface() { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPDIENUMDEVICEOBJECTSCALLBACKA) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPDIENUMDEVICEOBJECTSCALLBACKW) { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPDIDEVICEOBJECTINSTANCEA) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPDIDEVICEOBJECTINSTANCEW) { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPDIDEVICEINSTANCEA) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPDIDEVICEINSTANCEW) { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPDIENUMEFFECTSCALLBACKA) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPDIENUMEFFECTSCALLBACKW) { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPDIEFFECTINFOA) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPDIEFFECTINFOW) { return ProxyInterface; }
-	IDirectInputDevice8A *GetProxyInterface(LPCSTR) { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterface(LPCWSTR) { return ProxyInterface; }
-	m_IDirectInputDeviceX *GetWrapperInterface() { return this; }
-	void IncRef() { InterlockedIncrement(&RefCount); }
-
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);
 	STDMETHOD_(ULONG, AddRef)(THIS);
 	STDMETHOD_(ULONG, Release)(THIS);
 
-	/*** IDirectInputDevice2 methods ***/
+	/*** IDirectInputDevice methods ***/
 	STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS);
-	template <typename T>
-	HRESULT EnumObjects(T, LPVOID, DWORD);
+	STDMETHOD(EnumObjectsA)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
+	STDMETHOD(EnumObjectsW)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW, LPVOID, DWORD);
 	STDMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER);
 	STDMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER);
 	STDMETHOD(Acquire)(THIS);
@@ -67,17 +50,19 @@ public:
 	STDMETHOD(SetDataFormat)(THIS_ LPCDIDATAFORMAT);
 	STDMETHOD(SetEventNotification)(THIS_ HANDLE);
 	STDMETHOD(SetCooperativeLevel)(THIS_ HWND, DWORD);
-	template <typename T>
-	HRESULT GetObjectInfo(T, DWORD, DWORD);
-	template <typename T>
-	HRESULT GetDeviceInfo(T);
+	STDMETHOD(GetObjectInfoA)(THIS_ LPDIDEVICEOBJECTINSTANCEA, DWORD, DWORD);
+	STDMETHOD(GetObjectInfoW)(THIS_ LPDIDEVICEOBJECTINSTANCEW, DWORD, DWORD);
+	STDMETHOD(GetDeviceInfoA)(THIS_ LPDIDEVICEINSTANCEA);
+	STDMETHOD(GetDeviceInfoW)(THIS_ LPDIDEVICEINSTANCEW);
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
 	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD, REFGUID);
+
+	/*** IDirectInputDevice2 methods ***/
 	STDMETHOD(CreateEffect)(THIS_ REFGUID, LPCDIEFFECT, LPDIRECTINPUTEFFECT *, LPUNKNOWN);
-	template <typename T>
-	HRESULT EnumEffects(T, LPVOID, DWORD);
-	template <typename T>
-	HRESULT GetEffectInfo(T, REFGUID);
+	STDMETHOD(EnumEffectsA)(THIS_ LPDIENUMEFFECTSCALLBACKA, LPVOID, DWORD);
+	STDMETHOD(EnumEffectsW)(THIS_ LPDIENUMEFFECTSCALLBACKW, LPVOID, DWORD);
+	STDMETHOD(GetEffectInfoA)(THIS_ LPDIEFFECTINFOA, REFGUID);
+	STDMETHOD(GetEffectInfoW)(THIS_ LPDIEFFECTINFOW, REFGUID);
 	STDMETHOD(GetForceFeedbackState)(THIS_ LPDWORD);
 	STDMETHOD(SendForceFeedbackCommand)(THIS_ DWORD);
 	STDMETHOD(EnumCreatedEffectObjects)(THIS_ LPDIENUMCREATEDEFFECTOBJECTSCALLBACK, LPVOID, DWORD);
@@ -86,8 +71,13 @@ public:
 	STDMETHOD(SendDeviceData)(THIS_ DWORD, LPCDIDEVICEOBJECTDATA, LPDWORD, DWORD);
 
 	/*** IDirectInputDevice7 methods ***/
-	template <typename T>
-	HRESULT EnumEffectsInFile(T, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
-	template <typename T>
-	HRESULT WriteEffectToFile(T, DWORD, LPDIFILEEFFECT, DWORD);
+	STDMETHOD(EnumEffectsInFileA)(THIS_ LPCSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
+	STDMETHOD(EnumEffectsInFileW)(THIS_ LPCWSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
+	STDMETHOD(WriteEffectToFileA)(THIS_ LPCSTR, DWORD, LPDIFILEEFFECT, DWORD);
+	STDMETHOD(WriteEffectToFileW)(THIS_ LPCWSTR, DWORD, LPDIFILEEFFECT, DWORD);
+
+	// Helper functions
+	void IncRef() { InterlockedIncrement(&RefCount); }
+	IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
+	IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
 };

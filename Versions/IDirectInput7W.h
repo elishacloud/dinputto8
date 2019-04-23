@@ -28,14 +28,14 @@ public:
 	STDMETHOD_(ULONG, AddRef)(THIS);
 	STDMETHOD_(ULONG, Release)(THIS);
 
-	/*** IDirectInput2W methods ***/
+	/*** IDirectInputW methods ***/
 	STDMETHOD(CreateDevice)(THIS_ REFGUID, LPDIRECTINPUTDEVICEW *, LPUNKNOWN);
 	STDMETHOD(EnumDevices)(THIS_ DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
 	STDMETHOD(GetDeviceStatus)(THIS_ REFGUID);
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
 	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD);
+	/*** IDirectInput2W methods ***/
 	STDMETHOD(FindDevice)(THIS_ REFGUID, LPCWSTR, LPGUID);
-
 	/*** IDirectInput7W methods ***/
 	STDMETHOD(CreateDeviceEx)(THIS_ REFGUID, REFIID, LPVOID *, LPUNKNOWN);
 };

@@ -33,12 +33,12 @@ ULONG m_IDirectInput2A::Release()
 
 HRESULT m_IDirectInput2A::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICEA *lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
-	return ProxyInterface->CreateDeviceEx(rguid, IID_IDirectInputDevice2A, (LPDIRECTINPUTDEVICE8A *)lplpDirectInputDevice, pUnkOuter);
+	return ProxyInterface->CreateDeviceExA(rguid, IID_IDirectInputDevice2A, (LPDIRECTINPUTDEVICE8A *)lplpDirectInputDevice, pUnkOuter);
 }
 
 HRESULT m_IDirectInput2A::EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumDevices(dwDevType, lpCallback, pvRef, dwFlags);
+	return ProxyInterface->EnumDevicesA(dwDevType, lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInput2A::GetDeviceStatus(REFGUID rguidInstance)
@@ -58,5 +58,5 @@ HRESULT m_IDirectInput2A::Initialize(HINSTANCE hinst, DWORD dwVersion)
 
 HRESULT m_IDirectInput2A::FindDevice(REFGUID rguidClass, LPCSTR ptszName, LPGUID pguidInstance)
 {
-	return ProxyInterface->FindDevice(rguidClass, ptszName, pguidInstance);
+	return ProxyInterface->FindDeviceA(rguidClass, ptszName, pguidInstance);
 }

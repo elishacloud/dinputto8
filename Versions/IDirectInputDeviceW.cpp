@@ -38,7 +38,7 @@ HRESULT m_IDirectInputDeviceW::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 
 HRESULT m_IDirectInputDeviceW::EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumObjects(lpCallback, pvRef, dwFlags);
+	return ProxyInterface->EnumObjectsW(lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputDeviceW::GetProperty(REFGUID rguidProp, LPDIPROPHEADER pdiph)
@@ -88,12 +88,12 @@ HRESULT m_IDirectInputDeviceW::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 
 HRESULT m_IDirectInputDeviceW::GetObjectInfo(LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
 {
-	return ProxyInterface->GetObjectInfo(pdidoi, dwObj, dwHow);
+	return ProxyInterface->GetObjectInfoW(pdidoi, dwObj, dwHow);
 }
 
 HRESULT m_IDirectInputDeviceW::GetDeviceInfo(LPDIDEVICEINSTANCEW pdidi)
 {
-	return ProxyInterface->GetDeviceInfo(pdidi);
+	return ProxyInterface->GetDeviceInfoW(pdidi);
 }
 
 HRESULT m_IDirectInputDeviceW::RunControlPanel(HWND hwndOwner, DWORD dwFlags)

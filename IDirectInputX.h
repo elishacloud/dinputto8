@@ -22,32 +22,28 @@ public:
 		Logging::LogDebug() << __FUNCTION__ << "(" << this << ")" << " deleting device!";
 	}
 
-	// Helper functions
-	IDirectInput8W *GetProxyInterface() { return ProxyInterface; }
-	IDirectInput8A *GetProxyInterface(LPDIENUMDEVICESCALLBACKA) { return (IDirectInput8A*)ProxyInterface; }
-	IDirectInput8W *GetProxyInterface(LPDIENUMDEVICESCALLBACKW) { return ProxyInterface; }
-	IDirectInput8A *GetProxyInterface(LPDIRECTINPUTDEVICE8A) { return (IDirectInput8A*)ProxyInterface; }
-	IDirectInput8W *GetProxyInterface(LPDIRECTINPUTDEVICE8W) { return ProxyInterface; }
-	IDirectInput8A *GetProxyInterface(LPCSTR) { return (IDirectInput8A*)ProxyInterface; }
-	IDirectInput8W *GetProxyInterface(LPCWSTR) { return ProxyInterface; }
-	m_IDirectInputX *GetWrapperInterface() { return this; }
-	void IncRef() { InterlockedIncrement(&RefCount); }
-
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);
 	STDMETHOD_(ULONG, AddRef)(THIS);
 	STDMETHOD_(ULONG, Release)(THIS);
 
-	/*** IDirectInput2 methods ***/
-	template <typename T>
-	HRESULT EnumDevices(DWORD, T, LPVOID, DWORD);
+	/*** IDirectInput methods ***/
+	STDMETHOD(EnumDevicesA)(THIS_ DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+	STDMETHOD(EnumDevicesW)(THIS_ DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
 	STDMETHOD(GetDeviceStatus)(THIS_ REFGUID);
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
 	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD);
-	template <typename T>
-	HRESULT FindDevice(THIS_ REFGUID, T, LPGUID);
+
+	/*** IDirectInput2 methods ***/
+	STDMETHOD(FindDeviceA)(THIS_ REFGUID, LPCSTR, LPGUID);
+	STDMETHOD(FindDeviceW)(THIS_ REFGUID, LPCWSTR, LPGUID);
 
 	/*** IDirectInput7 methods ***/
-	template <typename T>
-	HRESULT CreateDeviceEx(REFGUID rguid, REFIID riid, T *ppvObj, LPUNKNOWN pUnkOuter);
+	STDMETHOD(CreateDeviceExA)(THIS_ REFGUID, REFIID, LPDIRECTINPUTDEVICE8A *, LPUNKNOWN);
+	STDMETHOD(CreateDeviceExW)(THIS_ REFGUID, REFIID, LPDIRECTINPUTDEVICE8W *, LPUNKNOWN);
+
+	// Helper functions
+	void IncRef() { InterlockedIncrement(&RefCount); }
+	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
+	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
 };
