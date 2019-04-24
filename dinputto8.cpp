@@ -116,7 +116,7 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 		return E_FAIL;
 	}
 
-	HRESULT hr = m_pDllGetClassObject(rclsid, ConvertREFIID(riid), ppv);
+	HRESULT hr = m_pDllGetClassObject(ConvertCLSID(rclsid), ConvertREFIID(riid), ppv);
 
 	if (SUCCEEDED(hr))
 	{
