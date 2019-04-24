@@ -35,6 +35,8 @@ typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 namespace dinputto8
 {
 	DWORD GetStringType(REFIID riid);
+	REFCLSID ConvertCLSID(REFCLSID rclsid);
+	REFIID ConvertREFIID(REFIID riid);
 	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
 	void WINAPI genericQueryInterface(REFIID riid, LPVOID * ppvObj);
 }

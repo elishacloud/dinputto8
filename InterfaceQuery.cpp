@@ -16,17 +16,26 @@
 
 #include "dinputto8.h"
 
-namespace dinputto8
-{
-	REFIID ConvertREFIID(REFIID riid);
-}
-
 DWORD dinputto8::GetStringType(REFIID riid)
 {
 	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A ||
 		riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? ANSI_CHARSET :
 		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W ||
 		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? DEFAULT_CHARSET : DIERR_UNSUPPORTED;
+}
+
+REFCLSID dinputto8::ConvertCLSID(REFCLSID rclsid)
+{
+	if (rclsid == CLSID_DirectInput)
+	{
+		return CLSID_DirectInput8;
+	}
+	if (rclsid == CLSID_DirectInputDevice)
+	{
+		return CLSID_DirectInputDevice8;
+	}
+
+	return rclsid;
 }
 
 REFIID dinputto8::ConvertREFIID(REFIID riid)
