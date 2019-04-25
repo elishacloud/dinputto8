@@ -52,6 +52,11 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
+	if (!lpCallback)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
 	ENUMDEVICE CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
@@ -62,6 +67,11 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 HRESULT m_IDirectInputX::EnumDevicesW(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
+
+	if (!lpCallback)
+	{
+		return DIERR_INVALIDPARAM;
+	}
 
 	ENUMDEVICE CallbackContext;
 	CallbackContext.pvRef = pvRef;
@@ -111,7 +121,7 @@ HRESULT m_IDirectInputX::CreateDeviceExA(REFGUID rguid, REFIID riid, LPDIRECTINP
 
 	HRESULT hr = GetProxyInterfaceA()->CreateDevice(rguid, ppvObj, pUnkOuter);
 
-	if (SUCCEEDED(hr))
+	if (SUCCEEDED(hr) && ppvObj)
 	{
 		genericQueryInterface(riid, (LPVOID *)ppvObj);
 	}
@@ -125,7 +135,7 @@ HRESULT m_IDirectInputX::CreateDeviceExW(REFGUID rguid, REFIID riid, LPDIRECTINP
 
 	HRESULT hr = GetProxyInterfaceW()->CreateDevice(rguid, ppvObj, pUnkOuter);
 
-	if (SUCCEEDED(hr))
+	if (SUCCEEDED(hr) && ppvObj)
 	{
 		genericQueryInterface(riid, (LPVOID *)ppvObj);
 	}

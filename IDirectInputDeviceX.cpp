@@ -108,7 +108,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (*pdwInOut == (DWORD)-1)
+	if (pdwInOut && *pdwInOut == (DWORD)-1)
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -118,7 +118,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	dodThreadFlag = true;
 
 	// Check the size of the array
-	if (rgdod && *pdwInOut && *pdwInOut != dodSize)
+	if (rgdod && pdwInOut && *pdwInOut != dodSize)
 	{
 		if (pdod)
 		{
@@ -134,7 +134,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? pdod : nullptr, pdwInOut, dwFlags);
 
 	// Copy array
-	if (SUCCEEDED(hr) && rgdod && cbObjectData)
+	if (SUCCEEDED(hr) && rgdod && pdwInOut && cbObjectData)
 	{
 		for (UINT x = 0; x < *pdwInOut; x++)
 		{
@@ -284,6 +284,11 @@ HRESULT m_IDirectInputDeviceX::EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
+	if (!lpCallback)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
 	ENUMEFFECT CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
@@ -309,7 +314,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (*pdwInOut == (DWORD)-1)
+	if (pdwInOut && *pdwInOut == (DWORD)-1)
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -319,7 +324,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	dodThreadFlag = true;
 
 	// Check the size of the array
-	if (rgdod && *pdwInOut && *pdwInOut != dodSize)
+	if (rgdod && pdwInOut && *pdwInOut != dodSize)
 	{
 		if (pdod)
 		{
@@ -333,7 +338,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	}
 
 	// Copy array
-	if (rgdod && cbObjectData)
+	if (rgdod && pdwInOut && cbObjectData)
 	{
 		ZeroMemory(pdod, sizeof(DIDEVICEOBJECTDATA) * dodSize);
 		for (UINT x = 0; x < *pdwInOut; x++)
@@ -342,7 +347,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 		}
 	}
 
-	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), pdod, pdwInOut, fl);
+	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? pdod : nullptr, pdwInOut, fl);
 
 	dodThreadFlag = false;
 

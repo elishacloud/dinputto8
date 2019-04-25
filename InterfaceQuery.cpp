@@ -64,7 +64,7 @@ HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOI
 {
 	if (!ppvObj)
 	{
-		return E_FAIL;
+		return DIERR_GENERIC;
 	}
 
 	if (riid == WrapperID || riid == IID_IUnknown)
