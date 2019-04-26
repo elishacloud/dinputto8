@@ -24,7 +24,7 @@ DWORD dinputto8::GetStringType(REFIID riid)
 		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? DEFAULT_CHARSET : DIERR_UNSUPPORTED;
 }
 
-REFCLSID dinputto8::ConvertCLSID(REFCLSID rclsid)
+REFCLSID dinputto8::ConvertREFCLSID(REFCLSID rclsid)
 {
 	if (rclsid == CLSID_DirectInput)
 	{

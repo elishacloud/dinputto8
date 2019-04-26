@@ -50,6 +50,7 @@ void InitDinput8()
 	Logging::LogComputerManufacturer();
 	Logging::LogOSVersion();
 	Logging::LogProcessNameAndPID();
+	Logging::LogGameType();
 #endif
 
 	// Load dll
@@ -116,7 +117,7 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 		return DIERR_GENERIC;
 	}
 
-	HRESULT hr = m_pDllGetClassObject(ConvertCLSID(rclsid), ConvertREFIID(riid), ppv);
+	HRESULT hr = m_pDllGetClassObject(ConvertREFCLSID(rclsid), ConvertREFIID(riid), ppv);
 
 	if (SUCCEEDED(hr) && ppv)
 	{
