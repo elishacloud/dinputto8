@@ -16,36 +16,36 @@
 
 #include "dinputto8.h"
 
-BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT a, LPVOID pvRef)
+BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT pdeff, LPVOID pvRef)
 {
 	ENUMEFFECT *lpCallbackContext = (ENUMEFFECT*)pvRef;
 
-	if (a)
+	if (pdeff)
 	{
-		a = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(a);
+		pdeff = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(pdeff);
 	}
 
-	return lpCallbackContext->lpCallback(a, lpCallbackContext->pvRef);
+	return lpCallbackContext->lpCallback(pdeff, lpCallbackContext->pvRef);
 }
 
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA a, LPVOID pvRef)
+BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
 {
 	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
 
 	DIDEVICEINSTANCEA DI;
-	CopyMemory(&DI, a, a->dwSize);
-	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(a->dwDevType));
+	CopyMemory(&DI, lpddi, lpddi->dwSize);
+	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(lpddi->dwDevType));
 
 	return ((LPDIENUMDEVICESCALLBACKA)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }
 
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW a, LPVOID pvRef)
+BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef)
 {
 	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
 
 	DIDEVICEINSTANCEW DI;
-	CopyMemory(&DI, a, a->dwSize);
-	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(a->dwDevType));
+	CopyMemory(&DI, lpddi, lpddi->dwSize);
+	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(lpddi->dwDevType));
 
 	return ((LPDIENUMDEVICESCALLBACKW)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }

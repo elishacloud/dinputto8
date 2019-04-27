@@ -62,12 +62,7 @@ REFIID dinputto8::ConvertREFIID(REFIID riid)
 
 HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
 {
-	if (!ppvObj)
-	{
-		return DIERR_GENERIC;
-	}
-
-	if (riid == WrapperID || riid == IID_IUnknown)
+	if ((riid == WrapperID || riid == IID_IUnknown) && ppvObj)
 	{
 		((IUnknown*)ProxyInterface)->AddRef();
 
