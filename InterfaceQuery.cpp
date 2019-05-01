@@ -64,7 +64,7 @@ HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOI
 {
 	if ((riid == WrapperID || riid == IID_IUnknown) && ppvObj)
 	{
-		((IUnknown*)ProxyInterface)->AddRef();
+		((IUnknown*)WrapperInterface)->AddRef();
 
 		*ppvObj = WrapperInterface;
 
