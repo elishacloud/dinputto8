@@ -12,7 +12,7 @@ public:
 	{
 		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 
-		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")";
+		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")");
 	}
 	~m_IDirectInputEffect()
 	{

@@ -15,11 +15,11 @@ public:
 	{
 		StringType = GetStringType(WrapperID);
 
-		Logging::LogDebug() << "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == DEFAULT_CHARSET) ? "UNICODE" : "ANSI");
+		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == DEFAULT_CHARSET) ? "UNICODE" : "ANSI"));
 	}
 	~m_IDirectInputX()
 	{
-		Logging::LogDebug() << __FUNCTION__ << "(" << this << ")" << " deleting device!";
+		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
 	}
 
 	/*** IUnknown methods ***/

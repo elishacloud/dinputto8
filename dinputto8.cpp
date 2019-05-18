@@ -66,11 +66,15 @@ void InitDinput8()
 
 HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN punkOuter)
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputA, (LPVOID*)lplpDirectInput, punkOuter);
 }
 
 HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN punkOuter)
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputW, (LPVOID*)lplpDirectInput, punkOuter);
 }
 
@@ -83,7 +87,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 		return DIERR_GENERIC;
 	}
 
-	Logging::Log() << "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'";
+	LOG_LIMIT(3, "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'");
 
 	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, ConvertREFIID(riid), lplpDD, punkOuter);
 
@@ -98,6 +102,8 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 HRESULT WINAPI DllCanUnloadNow()
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	InitDinput8();
 
 	if (!m_pDllCanUnloadNow)
@@ -110,6 +116,8 @@ HRESULT WINAPI DllCanUnloadNow()
 
 HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID FAR* ppv)
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	InitDinput8();
 
 	if (!m_pDllGetClassObject)
@@ -129,6 +137,8 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 
 HRESULT WINAPI DllRegisterServer()
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	InitDinput8();
 
 	if (!m_pDllRegisterServer)
@@ -141,6 +151,8 @@ HRESULT WINAPI DllRegisterServer()
 
 HRESULT WINAPI DllUnregisterServer()
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	InitDinput8();
 
 	if (!m_pDllUnregisterServer)
