@@ -12,6 +12,30 @@ _Note: Do not attempt to overwrite any .dll in a Windows system directory as it 
 
 Delete the `dinput.dll` files from the game's directory. You can also delete the associated log file, if there is one.
 
+### Supported Games
+
+ * Call To Power 2
+ * Conquest Frontier Wars
+ * DOSBox
+ * Dungeon Keeper 2
+ * FA-18E Super Hornet
+ * Gangsters Organized Crime
+ * Interstate 76
+ * Interstate 82
+ * Jazz Jackrabbit 2
+ * Knight Rider
+ * Knight Rider 2
+ * Lionheart Legacy of the Crusader
+ * Might and Magic IX
+ * Moto Racer
+ * Moto Racer 2
+ * Myst III Exile
+ * NOX
+ * Populous: The Beginning
+ * Raymond 2
+ * Simon the Sorcerer 3D
+ * Shogo
+
 ### Configuration
 
 There are no configuration options for dinputto8.
