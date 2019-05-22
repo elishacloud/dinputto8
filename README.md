@@ -14,8 +14,16 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
 
 ### Supported Games
 
+ * 8th Wonder of the World
+ * Beyond Atlantis
  * Call To Power 2
+ * Castle Adventure
+ * Codemasters Colin McRae Rally 2
+ * Commandos 2
+ * Commandos 3
  * Conquest Frontier Wars
+ * Chris Sawyer's Locomotion
+ * Dark Reign
  * DOSBox
  * Dungeon Keeper 2
  * FA-18E Super Hornet
@@ -35,6 +43,9 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Raymond 2
  * Simon the Sorcerer 3D
  * Shogo
+ * Warrior Kings
+ * Warrior Kings Battles
+ * X-COM Interceptor
 
 ### Configuration
 

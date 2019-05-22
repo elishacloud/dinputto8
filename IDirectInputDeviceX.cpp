@@ -151,6 +151,31 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
+	// Fix unsupported flags
+	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == 16)
+	{
+		std::vector<DIOBJECTDATAFORMAT> rgodf;
+		rgodf.resize(lpdf->dwNumObjs);
+
+		DIDATAFORMAT df = {
+			sizeof(DIDATAFORMAT),
+			lpdf->dwObjSize,
+			lpdf->dwFlags,
+			lpdf->dwDataSize,
+			lpdf->dwNumObjs,
+			&rgodf[0] };
+
+		for (DWORD x = 0; x < df.dwNumObjs; x++)
+		{
+			rgodf[x].pguid = lpdf->rgodf[x].pguid;
+			rgodf[x].dwOfs = lpdf->rgodf[x].dwOfs;
+			rgodf[x].dwType = ((lpdf->rgodf[x].dwType & DIDFT_ANYINSTANCE) == 0xFF00) ? lpdf->rgodf[x].dwType | DIDFT_ANYINSTANCE : lpdf->rgodf[x].dwType;
+			rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
+		}
+
+		return ProxyInterface->SetDataFormat(&df);
+	}
+
 	return ProxyInterface->SetDataFormat(lpdf);
 }
 
