@@ -162,3 +162,20 @@ HRESULT WINAPI DllUnregisterServer()
 
 	return m_pDllUnregisterServer();
 }
+
+void dinputto8::SetCriticalSection(bool &ThreadSyncFlag)
+{
+	if (ThreadSyncFlag)
+	{
+		do {
+			Sleep(0);
+		} while (ThreadSyncFlag);
+	}
+
+	ThreadSyncFlag = true;
+}
+
+void dinputto8::ReleaseCriticalSection(bool &ThreadSyncFlag)
+{
+	ThreadSyncFlag = false;
+}

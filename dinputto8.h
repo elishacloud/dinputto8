@@ -39,6 +39,8 @@ namespace dinputto8
 	REFIID ConvertREFIID(REFIID riid);
 	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
 	void WINAPI genericQueryInterface(REFIID riid, LPVOID * ppvObj);
+	void SetCriticalSection(bool &ThreadSyncFlag);
+	void ReleaseCriticalSection(bool &ThreadSyncFlag);
 }
 
 extern AddressLookupTableDinput<void> ProxyAddressLookupTable;

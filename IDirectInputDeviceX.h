@@ -12,8 +12,7 @@ private:
 
 	// For DeviceData
 	bool dodThreadFlag = false;
-	DIDEVICEOBJECTDATA *pdod = nullptr;
-	DWORD dodSize = 0;
+	std::vector<DIDEVICEOBJECTDATA> pdod;
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, DWORD Version, REFIID riid, m_IDirectInputDevice7W *Interface) : ProxyInterface(aOriginal), DirectXVersion(Version), WrapperID(riid), WrapperInterface(Interface)
@@ -25,11 +24,6 @@ public:
 	~m_IDirectInputDeviceX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
-
-		if (pdod)
-		{
-			delete pdod;
-		}
 	}
 
 	/*** IUnknown methods ***/

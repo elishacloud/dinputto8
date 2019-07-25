@@ -114,24 +114,17 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	}
 
 	// Verify that only one thrad can use the varable at a time
-	while (dodThreadFlag) {}
-	dodThreadFlag = true;
+	SetCriticalSection(dodThreadFlag);
 
 	// Check the size of the array
-	if (rgdod && pdwInOut && *pdwInOut != dodSize)
+	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
 	{
-		if (pdod)
-		{
-			delete pdod;
-		}
+		pdod.resize(*pdwInOut);
 
-		dodSize = *pdwInOut;
-		pdod = new DIDEVICEOBJECTDATA[dodSize];
-
-		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << dodSize;
+		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << *pdwInOut;
 	}
 
-	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? pdod : nullptr, pdwInOut, dwFlags);
+	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, dwFlags);
 
 	// Copy array
 	if (SUCCEEDED(hr) && rgdod && pdwInOut && cbObjectData)
@@ -142,7 +135,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 		}
 	}
 
-	dodThreadFlag = false;
+	ReleaseCriticalSection(dodThreadFlag);
 
 	return hr;
 }
@@ -345,36 +338,29 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	}
 
 	// Verify that only one thrad can use the varable at a time
-	while (dodThreadFlag) {}
-	dodThreadFlag = true;
+	SetCriticalSection(dodThreadFlag);
 
 	// Check the size of the array
-	if (rgdod && pdwInOut && *pdwInOut != dodSize)
+	if (rgdod && pdwInOut && *pdwInOut != pdod.size())
 	{
-		if (pdod)
-		{
-			delete pdod;
-		}
+		pdod.resize(*pdwInOut);
 
-		dodSize = *pdwInOut;
-		pdod = new DIDEVICEOBJECTDATA[dodSize];
-
-		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << dodSize;
+		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << *pdwInOut;
 	}
 
 	// Copy array
 	if (rgdod && pdwInOut && cbObjectData)
 	{
-		ZeroMemory(pdod, sizeof(DIDEVICEOBJECTDATA) * dodSize);
+		ZeroMemory(&pdod[0], sizeof(DIDEVICEOBJECTDATA) * pdod.size());
 		for (UINT x = 0; x < *pdwInOut; x++)
 		{
 			CopyMemory(&pdod[x], (void*)((DWORD)rgdod + (cbObjectData * x)), cbObjectData);
 		}
 	}
 
-	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? pdod : nullptr, pdwInOut, fl);
+	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, fl);
 
-	dodThreadFlag = false;
+	ReleaseCriticalSection(dodThreadFlag);
 
 	return hr;
 }
