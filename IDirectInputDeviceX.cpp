@@ -118,7 +118,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 		return DIERR_INVALIDPARAM;
 	}
 
-	// Verify that only one thrad can use the varable at a time
+	// Verify that only one thread can use the variable at a time
 	SetCriticalSection(dodThreadFlag);
 
 	// Check the size of the array
@@ -126,7 +126,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	{
 		pdod.resize(*pdwInOut);
 
-		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << *pdwInOut;
+		Logging::LogDebug() << __FUNCTION__ << " Update dod memory! " << *pdwInOut;
 	}
 
 	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, dwFlags);
@@ -351,15 +351,15 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 		return DIERR_INVALIDPARAM;
 	}
 
-	// Verify that only one thrad can use the varable at a time
+	// Verify that only one thread can use the variable at a time
 	SetCriticalSection(dodThreadFlag);
 
 	// Check the size of the array
-	if (rgdod && pdwInOut && *pdwInOut != pdod.size())
+	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
 	{
 		pdod.resize(*pdwInOut);
 
-		Logging::LogDebug() << __FUNCTION__ << " Created dod memory! " << *pdwInOut;
+		Logging::LogDebug() << __FUNCTION__ << " Update dod memory! " << *pdwInOut;
 	}
 
 	// Copy array
