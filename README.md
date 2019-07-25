@@ -14,7 +14,10 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
 
 ### Supported Games
 
+ * 1NSANE
  * 8th Wonder of the World
+ * Arcanum
+ * Atlantis 3 The New World
  * Beyond Atlantis
  * Call To Power 2
  * Castle Adventure
@@ -24,16 +27,21 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Conquest Frontier Wars
  * Chris Sawyer's Locomotion
  * Dark Reign
+ * Digger XP
  * DOSBox
  * Dungeon Keeper 2
+ * Enclave
  * FA-18E Super Hornet
  * Gangsters Organized Crime
+ * Geneforge Saga 1-4
+ * Hogs of War
  * Interstate 76
  * Interstate 82
  * Jazz Jackrabbit 2
  * Knight Rider
  * Knight Rider 2
  * Lionheart Legacy of the Crusader
+ * MegaRace 3
  * Might and Magic IX
  * Moto Racer
  * Moto Racer 2
@@ -43,6 +51,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Raymond 2
  * Simon the Sorcerer 3D
  * Shogo
+ * Vampire The Masquerade Redemption
  * Warrior Kings
  * Warrior Kings Battles
  * X-COM Interceptor
