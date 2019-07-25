@@ -10,9 +10,16 @@ private:
 	DWORD StringType;
 	ULONG RefCount = 1;
 
+	// For CooperativeLevel
+	bool CanAquireDevice = false;
+
 	// For DeviceData
 	bool dodThreadFlag = false;
 	std::vector<DIDEVICEOBJECTDATA> pdod;
+
+	// For DataFormat
+	DIDATAFORMAT df;
+	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, DWORD Version, REFIID riid, m_IDirectInputDevice7W *Interface) : ProxyInterface(aOriginal), DirectXVersion(Version), WrapperID(riid), WrapperInterface(Interface)

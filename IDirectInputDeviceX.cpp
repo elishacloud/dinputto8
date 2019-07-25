@@ -87,6 +87,11 @@ HRESULT m_IDirectInputDeviceX::Acquire()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
+	if (!CanAquireDevice)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+
 	return ProxyInterface->Acquire();
 }
 
@@ -147,10 +152,12 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 	// Fix unsupported flags
 	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == 16)
 	{
-		std::vector<DIOBJECTDATAFORMAT> rgodf;
-		rgodf.resize(lpdf->dwNumObjs);
+		if (rgodf.size() < lpdf->dwNumObjs)
+		{
+			rgodf.resize(lpdf->dwNumObjs);
+		}
 
-		DIDATAFORMAT df = {
+		df = {
 			sizeof(DIDATAFORMAT),
 			lpdf->dwObjSize,
 			lpdf->dwFlags,
@@ -183,7 +190,14 @@ HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
+	HRESULT hr = ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
+
+	if (SUCCEEDED(hr))
+	{
+		CanAquireDevice = true;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::GetObjectInfoA(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
