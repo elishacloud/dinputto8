@@ -17,11 +17,12 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * 1NSANE
  * 8th Wonder of the World
  * Arcanum
- * Atlantis 3 The New World
+ * Atlantis 3: The New World
+ * B-17: Flying Fortress
  * Beyond Atlantis
  * Call To Power 2
  * Castle Adventure
- * Codemasters Colin McRae Rally 2
+ * Codemaster's Colin McRae Rally 2
  * Commandos 2
  * Commandos 3
  * Conquest Frontier Wars
@@ -31,7 +32,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * DOSBox
  * Dungeon Keeper 2
  * Enclave
- * FA-18E Super Hornet
+ * FA-18E: Super Hornet
  * Gangsters Organized Crime
  * Geneforge Saga 1-4
  * Hogs of War
@@ -40,7 +41,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Jazz Jackrabbit 2
  * Knight Rider
  * Knight Rider 2
- * Lionheart Legacy of the Crusader
+ * Lionheart: Legacy of the Crusader
  * MegaRace 3
  * Might and Magic IX
  * Moto Racer
@@ -49,12 +50,16 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * NOX
  * Populous: The Beginning
  * Raymond 2
+ * Requiem: Avenging Angel
  * Simon the Sorcerer 3D
  * Shogo
- * Vampire The Masquerade Redemption
+ * Slave Zero
+ * Uprising: Join or Die
+ * Uprising 2: Lead and Destroy
+ * Vampire: The Masquerade Redemption
  * Warrior Kings
- * Warrior Kings Battles
- * X-COM Interceptor
+ * Warrior Kings: Battles
+ * X-COM: Interceptor
 
 ### Configuration
 
