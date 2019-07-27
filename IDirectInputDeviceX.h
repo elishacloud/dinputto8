@@ -13,8 +13,10 @@ private:
 	// For CooperativeLevel
 	bool CanAquireDevice = false;
 
+	// Critical section for shared memory
+	CRITICAL_SECTION dics;
+
 	// For DeviceData
-	bool dodThreadFlag = false;
 	std::vector<DIDEVICEOBJECTDATA> pdod;
 
 	// For DataFormat
@@ -27,10 +29,16 @@ public:
 		StringType = GetStringType(WrapperID);
 
 		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == DEFAULT_CHARSET) ? "UNICODE" : "ANSI"));
+
+		// Initialize Critical Section
+		InitializeCriticalSection(&dics);
 	}
 	~m_IDirectInputDeviceX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
+
+		// Delete Critical Section
+		DeleteCriticalSection(&dics);
 	}
 
 	/*** IUnknown methods ***/

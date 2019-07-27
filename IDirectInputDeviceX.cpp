@@ -118,8 +118,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 		return DIERR_INVALIDPARAM;
 	}
 
-	// Verify that only one thread can use the variable at a time
-	SetCriticalSection(dodThreadFlag);
+	EnterCriticalSection(&dics);
 
 	// Check the size of the array
 	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
@@ -140,7 +139,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 		}
 	}
 
-	ReleaseCriticalSection(dodThreadFlag);
+	LeaveCriticalSection(&dics);
 
 	return hr;
 }
@@ -152,6 +151,8 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 	// Fix unsupported flags
 	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == 16)
 	{
+		EnterCriticalSection(&dics);
+
 		if (rgodf.size() < lpdf->dwNumObjs)
 		{
 			rgodf.resize(lpdf->dwNumObjs);
@@ -173,7 +174,11 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 			rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
 		}
 
-		return ProxyInterface->SetDataFormat(&df);
+		HRESULT hr = ProxyInterface->SetDataFormat(&df);
+
+		LeaveCriticalSection(&dics);
+
+		return hr;
 	}
 
 	return ProxyInterface->SetDataFormat(lpdf);
@@ -351,8 +356,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 		return DIERR_INVALIDPARAM;
 	}
 
-	// Verify that only one thread can use the variable at a time
-	SetCriticalSection(dodThreadFlag);
+	EnterCriticalSection(&dics);
 
 	// Check the size of the array
 	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
@@ -374,7 +378,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 
 	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, fl);
 
-	ReleaseCriticalSection(dodThreadFlag);
+	LeaveCriticalSection(&dics);
 
 	return hr;
 }
