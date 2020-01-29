@@ -80,6 +80,8 @@ HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 
 HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN punkOuter)
 {
+	LOG_LIMIT(1, __FUNCTION__);
+
 	InitDinput8();
 
 	if (!m_pDirectInput8Create)

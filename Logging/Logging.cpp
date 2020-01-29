@@ -48,6 +48,39 @@ std::ostream& operator<<(std::ostream& os, REFIID riid)
 	CHECK_REFIID(IID, IDirectInputDevice8A);
 	CHECK_REFIID(IID, IDirectInputDevice8W);
 	CHECK_REFIID(IID, IDirectInputEffect);
+	// Predefined object types
+	CHECK_REFIID(GUID, XAxis);
+	CHECK_REFIID(GUID, YAxis);
+	CHECK_REFIID(GUID, ZAxis);
+	CHECK_REFIID(GUID, RxAxis);
+	CHECK_REFIID(GUID, RyAxis);
+	CHECK_REFIID(GUID, RzAxis);
+	CHECK_REFIID(GUID, Slider);
+	CHECK_REFIID(GUID, Button);
+	CHECK_REFIID(GUID, Key);
+	CHECK_REFIID(GUID, POV);
+	CHECK_REFIID(GUID, Unknown);
+	// Predefined product GUIDs
+	CHECK_REFIID(GUID, SysMouse);
+	CHECK_REFIID(GUID, SysKeyboard);
+	CHECK_REFIID(GUID, Joystick);
+	CHECK_REFIID(GUID, SysMouseEm);
+	CHECK_REFIID(GUID, SysMouseEm2);
+	CHECK_REFIID(GUID, SysKeyboardEm);
+	CHECK_REFIID(GUID, SysKeyboardEm2);
+	// Predefined force feedback effects
+	CHECK_REFIID(GUID, ConstantForce);
+	CHECK_REFIID(GUID, RampForce);
+	CHECK_REFIID(GUID, Square);
+	CHECK_REFIID(GUID, Sine);
+	CHECK_REFIID(GUID, Triangle);
+	CHECK_REFIID(GUID, SawtoothUp);
+	CHECK_REFIID(GUID, SawtoothDown);
+	CHECK_REFIID(GUID, Spring);
+	CHECK_REFIID(GUID, Damper);
+	CHECK_REFIID(GUID, Inertia);
+	CHECK_REFIID(GUID, Friction);
+	CHECK_REFIID(GUID, CustomForce);
 
 	return Logging::LogStruct(os)
 		<< Logging::hex(riid.Data1)
