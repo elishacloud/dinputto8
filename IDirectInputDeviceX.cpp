@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2019 Elisha Riedlinger
+* Copyright (C) 2020 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -114,13 +114,13 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	//  If just peeking at data
-	if (dwFlags == DIGDD_PEEK)
+	if (dwFlags == DIGDD_PEEK || !rgdod)
 	{
 		return ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), rgdod, pdwInOut, dwFlags);
 	}
 
 	// Check for valid parameters
-	if (!pdwInOut || *pdwInOut == (DWORD)-1)
+	if (!pdwInOut || !*pdwInOut || *pdwInOut == (DWORD)-1 || !cbObjectData)
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -128,17 +128,17 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	EnterCriticalSection(&dics);
 
 	// Check the size of the array
-	if (rgdod && *pdwInOut > pdod.size())
+	if (*pdwInOut > pdod.size())
 	{
 		pdod.resize(*pdwInOut);
 
 		Logging::LogDebug() << __FUNCTION__ << " Update dod memory! " << *pdwInOut;
 	}
 
-	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, dwFlags);
+	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &pdod[0], pdwInOut, dwFlags);
 
 	// Copy array
-	if (SUCCEEDED(hr) && rgdod && pdwInOut && cbObjectData)
+	if (SUCCEEDED(hr))
 	{
 		for (UINT x = 0; x < *pdwInOut; x++)
 		{
