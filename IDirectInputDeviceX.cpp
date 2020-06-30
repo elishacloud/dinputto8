@@ -113,7 +113,14 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (pdwInOut && *pdwInOut == (DWORD)-1)
+	//  If just peeking at data
+	if (dwFlags == DIGDD_PEEK)
+	{
+		return ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), rgdod, pdwInOut, dwFlags);
+	}
+
+	// Check for valid parameters
+	if (!pdwInOut || *pdwInOut == (DWORD)-1)
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -121,7 +128,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	EnterCriticalSection(&dics);
 
 	// Check the size of the array
-	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
+	if (rgdod && *pdwInOut > pdod.size())
 	{
 		pdod.resize(*pdwInOut);
 
