@@ -87,11 +87,6 @@ HRESULT m_IDirectInputDeviceX::Acquire()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (!CanAquireDevice)
-	{
-		return DIERR_NOTINITIALIZED;
-	}
-
 	return ProxyInterface->Acquire();
 }
 
@@ -202,14 +197,7 @@ HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	HRESULT hr = ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
-
-	if (SUCCEEDED(hr))
-	{
-		CanAquireDevice = true;
-	}
-
-	return hr;
+	return ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
 }
 
 HRESULT m_IDirectInputDeviceX::GetObjectInfoA(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
@@ -358,7 +346,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	if (pdwInOut && *pdwInOut == (DWORD)-1)
+	if (!pdwInOut || !rgdod || !cbObjectData)
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -366,7 +354,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	EnterCriticalSection(&dics);
 
 	// Check the size of the array
-	if (rgdod && pdwInOut && *pdwInOut > pdod.size())
+	if (*pdwInOut > pdod.size())
 	{
 		pdod.resize(*pdwInOut);
 
@@ -374,16 +362,13 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	}
 
 	// Copy array
-	if (rgdod && pdwInOut && cbObjectData)
+	ZeroMemory(&pdod[0], sizeof(DIDEVICEOBJECTDATA) * pdod.size());
+	for (UINT x = 0; x < *pdwInOut; x++)
 	{
-		ZeroMemory(&pdod[0], sizeof(DIDEVICEOBJECTDATA) * pdod.size());
-		for (UINT x = 0; x < *pdwInOut; x++)
-		{
-			CopyMemory(&pdod[x], (void*)((DWORD)rgdod + (cbObjectData * x)), cbObjectData);
-		}
+		CopyMemory(&pdod[x], (void*)((DWORD)rgdod + (cbObjectData * x)), cbObjectData);
 	}
 
-	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), (rgdod) ? &pdod[0] : nullptr, pdwInOut, fl);
+	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), &pdod[0], pdwInOut, fl);
 
 	LeaveCriticalSection(&dics);
 

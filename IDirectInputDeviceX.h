@@ -10,9 +10,6 @@ private:
 	DWORD StringType;
 	ULONG RefCount = 1;
 
-	// For CooperativeLevel
-	bool CanAquireDevice = false;
-
 	// Critical section for shared memory
 	CRITICAL_SECTION dics;
 

@@ -22,10 +22,10 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Beyond Atlantis
  * Call To Power 2
  * Castle Adventure
- * Codemaster's Colin McRae Rally 2
+ * Colin McRae Rally 2
  * Commandos 2
  * Commandos 3
- * Conquest Frontier Wars
+ * Conquest: Frontier Wars
  * Chris Sawyer's Locomotion
  * Dark Reign
  * Digger XP
@@ -33,7 +33,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Dungeon Keeper 2
  * Enclave
  * FA-18E: Super Hornet
- * Gangsters Organized Crime
+ * Gangsters: Organized Crime
  * Geneforge Saga 1-4
  * Hogs of War
  * Interstate 76
@@ -41,12 +41,13 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Jazz Jackrabbit 2
  * Knight Rider
  * Knight Rider 2
+ * Legacy of Kain: Soul Reaver
  * Lionheart: Legacy of the Crusader
  * MegaRace 3
  * Might and Magic IX
  * Moto Racer
  * Moto Racer 2
- * Myst III Exile
+ * Myst III: Exile
  * NOX
  * Populous: The Beginning
  * Raymond 2
