@@ -101,6 +101,26 @@ HRESULT m_IDirectInputDeviceX::GetDeviceState(DWORD cbData, LPVOID lpvData)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
+	// Handle data format offset
+	if (Offset)
+	{
+		UCHAR tmp[MAX_KEYBAORD] = {};
+
+		HRESULT hr = ProxyInterface->GetDeviceState(MAX_KEYBAORD, tmp);
+
+		if (SUCCEEDED(hr))
+		{
+			ZeroMemory(lpvData, cbData);
+
+			for (DWORD x = Offset; x < min(cbData, Offset + MAX_KEYBAORD); x++)
+			{
+				((UCHAR*)lpvData)[x] = tmp[x - Offset];
+			}
+		}
+
+		return hr;
+	}
+
 	return ProxyInterface->GetDeviceState(cbData, lpvData);
 }
 
@@ -151,8 +171,19 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
 	// Fix unsupported flags
-	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == 16)
+	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == sizeof(DIOBJECTDATAFORMAT))
 	{
+		// Handle data format offset
+		if (lpdf->dwNumObjs < MAX_KEYBAORD && (lpdf->rgodf[0].dwType & DIDFT_BUTTON) && lpdf->rgodf[0].dwOfs != 0 && *lpdf->rgodf[0].pguid == GUID_Key)
+		{
+			Offset = lpdf->rgodf[0].dwOfs - 1;
+
+			if (SUCCEEDED(ProxyInterface->SetDataFormat(&c_dfDIKeyboard)))
+			{
+				return DI_OK;
+			}
+		}
+
 		EnterCriticalSection(&dics);
 
 		if (rgodf.size() < lpdf->dwNumObjs)
@@ -175,6 +206,8 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 			rgodf[x].dwType = ((lpdf->rgodf[x].dwType & DIDFT_ANYINSTANCE) == 0xFF00) ? lpdf->rgodf[x].dwType | DIDFT_ANYINSTANCE : lpdf->rgodf[x].dwType;
 			rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
 		}
+
+		Offset = 0;
 
 		HRESULT hr = ProxyInterface->SetDataFormat(&df);
 

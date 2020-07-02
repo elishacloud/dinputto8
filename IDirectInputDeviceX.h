@@ -10,6 +10,9 @@ private:
 	DWORD StringType;
 	ULONG RefCount = 1;
 
+	// Format memory
+	DWORD Offset = 0;
+
 	// Critical section for shared memory
 	CRITICAL_SECTION dics;
 

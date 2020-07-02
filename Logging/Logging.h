@@ -60,4 +60,9 @@ extern std::ofstream LOG;
 
 #endif
 
+void LogDataFormat(LPCDIDATAFORMAT lpdf);
+std::ostream& operator<<(std::ostream& os, DIDATAFORMAT df);
+std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf);
+std::ostream& operator<<(std::ostream& os, DIOBJECTDATAFORMAT odf);
+std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf);
 std::ostream& operator<<(std::ostream& os, REFIID riid);

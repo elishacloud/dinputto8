@@ -16,6 +16,58 @@
 
 #include "..\dinputto8.h"
 
+void LogDataFormat(LPCDIDATAFORMAT lpdf)
+{
+	if (lpdf && lpdf->dwNumObjs)
+	{
+		Logging::Log() << "DIDATAFORMAT " << lpdf;
+
+		for (DWORD x = 0; x < lpdf->dwNumObjs; x++)
+		{
+			Logging::Log() << "DIOBJECTDATAFORMAT " << x << " " << lpdf->rgodf[x];
+		}
+	}
+}
+
+std::ostream& operator<<(std::ostream& os, DIDATAFORMAT df)
+{
+	return Logging::LogStruct(os) <<
+		" ObjSize: " << df.dwObjSize <<
+		" Flags: " << df.dwFlags <<
+		" DataSize: " << df.dwDataSize <<
+		" NumObj: " << df.dwNumObjs <<
+		" Addr: " << Logging::hex((void*)df.rgodf);
+}
+
+std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf)
+{
+	if (!lpdf)
+	{
+		return os << (void*)lpdf;
+	}
+
+	return os << *lpdf;
+}
+
+std::ostream& operator<<(std::ostream& os, DIOBJECTDATAFORMAT odf)
+{
+	return Logging::LogStruct(os) <<
+		" GUID: " << odf.pguid <<
+		" Offset: " << odf.dwOfs <<
+		" Type: " << Logging::hex(odf.dwType) <<
+		" Flags: " << odf.dwFlags;
+}
+
+std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf)
+{
+	if (!rgodf)
+	{
+		return os << (void*)rgodf;
+	}
+
+	return os << *rgodf;
+}
+
 std::ostream& operator<<(std::ostream& os, REFIID riid)
 {
 #define CHECK_REFIID(riidPrefix, riidName) \
