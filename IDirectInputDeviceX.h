@@ -10,6 +10,9 @@ private:
 	DWORD StringType;
 	ULONG RefCount = 1;
 
+	// For CooperativeLevel
+	bool CanAquireDevice = false;
+
 	// Format memory
 	DWORD Offset = 0;
 
