@@ -17,15 +17,6 @@
 #include "resource.h"
 #include "dinputto8.h"
 
-const DIDATAFORMAT c_dfDIKeyboard = {
-	sizeof(DIDATAFORMAT),
-	sizeof(DIOBJECTDATAFORMAT),
-	DIDF_RELAXIS,
-	MAX_KEYBAORD,
-	sizeof(dfDIKeyboard) / sizeof(*dfDIKeyboard),
-	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
-};
-
 std::ofstream LOG;
 
 bool InitFlag = false;

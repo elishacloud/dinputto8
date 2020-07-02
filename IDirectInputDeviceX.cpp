@@ -16,6 +16,15 @@
 
 #include "dinputto8.h"
 
+const DIDATAFORMAT c_dfDIKeyboard = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_RELAXIS,
+	MAX_KEYBAORD,
+	sizeof(dfDIKeyboard) / sizeof(*dfDIKeyboard),
+	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
+};
+
 HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID* ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
