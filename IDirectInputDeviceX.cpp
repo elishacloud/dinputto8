@@ -98,6 +98,7 @@ HRESULT m_IDirectInputDeviceX::Acquire()
 
 	if (!CanAquireDevice)
 	{
+		CanAquireDevice = true;
 		return DIERR_NOTINITIALIZED;
 	}
 

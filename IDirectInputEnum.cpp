@@ -34,7 +34,10 @@ BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA
 
 	DIDEVICEINSTANCEA DI;
 	CopyMemory(&DI, lpddi, lpddi->dwSize);
-	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(lpddi->dwDevType));
+
+	DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
+		ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
+		ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
 
 	return ((LPDIENUMDEVICESCALLBACKA)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }
@@ -45,7 +48,10 @@ BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW
 
 	DIDEVICEINSTANCEW DI;
 	CopyMemory(&DI, lpddi, lpddi->dwSize);
-	DI.dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(lpddi->dwDevType));
+
+	DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
+		ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
+		ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
 
 	return ((LPDIENUMDEVICESCALLBACKW)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }
