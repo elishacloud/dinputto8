@@ -394,7 +394,9 @@ HRESULT m_IDirectInputDeviceX::Poll()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyInterface->Poll();
+	HRESULT hr = ProxyInterface->Poll();
+
+	return (hr == DI_NOEFFECT) ? DI_OK : hr;
 }
 
 HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJECTDATA rgdod, LPDWORD pdwInOut, DWORD fl)
