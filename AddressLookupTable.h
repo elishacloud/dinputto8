@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "dinputto8.h"
 
-constexpr UINT MaxIndex = 14;
+constexpr UINT MaxIndex = 16;
 
 template <typename D>
 class AddressLookupTableDinput
@@ -14,9 +14,9 @@ public:
 	~AddressLookupTableDinput()
 	{
 		ConstructorFlag = true;
-		for (const auto& cache : g_map)
+		for (const auto& x : { 13, 14, 15 })
 		{
-			for (const auto& entry : cache)
+			for (const auto& entry : g_map[x])
 			{
 				entry.second->DeleteMe();
 			}
@@ -65,6 +65,10 @@ public:
 	struct AddressCacheIndex<m_IDirectInputDevice7W> { static constexpr UINT CacheIndex = 12; };
 	template <>
 	struct AddressCacheIndex<m_IDirectInputEffect> { static constexpr UINT CacheIndex = 13; };
+	template <>
+	struct AddressCacheIndex<m_IDirectInputX> { static constexpr UINT CacheIndex = 14; };
+	template <>
+	struct AddressCacheIndex<m_IDirectInputDeviceX> { static constexpr UINT CacheIndex = 15; };
 
 	template <typename T>
 	T *FindAddress(void *Proxy, DWORD Version, DWORD Type)
@@ -85,7 +89,7 @@ public:
 				return nullptr;
 			}
 		}
-		case UNICODE:
+		case UNICODE_CHARSET:
 		{
 			switch (Version)
 			{
@@ -118,11 +122,10 @@ public:
 		if (it != std::end(g_map[CacheIndex]))
 		{
 			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
-			(static_cast<T *>(it->second))->GetWrapperInterface()->IncRef();
 			return static_cast<T *>(it->second);
 		}
 
-		return new T(static_cast<T *>(Proxy));
+		return nullptr;
 	}
 
 	template <typename T>

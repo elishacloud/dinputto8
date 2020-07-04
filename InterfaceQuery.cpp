@@ -21,43 +21,28 @@ DWORD dinputto8::GetStringType(REFIID riid)
 	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A ||
 		riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? ANSI_CHARSET :
 		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W ||
-		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? DEFAULT_CHARSET : DIERR_UNSUPPORTED;
+		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? UNICODE_CHARSET : DIERR_UNSUPPORTED;
+}
+
+DWORD dinputto8::GetGUIDVersion(REFIID riid)
+{
+	return (riid == IID_IDirectInputA || riid == IID_IDirectInputW || riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDeviceW) ? 1 :
+		(riid == IID_IDirectInput2A || riid == IID_IDirectInput2W || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice2W) ? 2 :
+		(riid == IID_IDirectInput7A || riid == IID_IDirectInput7W || riid == IID_IDirectInputDevice7A || riid == IID_IDirectInputDevice7W) ? 7 : 0;
 }
 
 REFCLSID dinputto8::ConvertREFCLSID(REFCLSID rclsid)
 {
-	if (rclsid == CLSID_DirectInput)
-	{
-		return CLSID_DirectInput8;
-	}
-	if (rclsid == CLSID_DirectInputDevice)
-	{
-		return CLSID_DirectInputDevice8;
-	}
-
-	return rclsid;
+	return (rclsid == CLSID_DirectInput) ? CLSID_DirectInput8 :
+		(rclsid == CLSID_DirectInputDevice) ? CLSID_DirectInputDevice8 : rclsid;
 }
 
 REFIID dinputto8::ConvertREFIID(REFIID riid)
 {
-	if (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A)
-	{
-		return IID_IDirectInput8A;
-	}
-	else if (riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W)
-	{
-		return IID_IDirectInput8W;
-	}
-	else if (riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A)
-	{
-		return IID_IDirectInputDevice8A;
-	}
-	else if (riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W)
-	{
-		return IID_IDirectInputDevice8W;
-	}
-
-	return riid;
+	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A) ? IID_IDirectInput8A :
+		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W) ? IID_IDirectInput8W :
+		(riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? IID_IDirectInputDevice8A :
+		(riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? IID_IDirectInputDevice8W : riid;
 }
 
 HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
@@ -90,24 +75,56 @@ void WINAPI dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 		return;
 	}
 
-#define QUERYINTERFACE(x) \
+#define QUERYINTERFACEDI(x) \
 	if (riid == IID_ ## x) \
+	{ \
+		Logging::LogDebug() << "Getting device for: m_" ## #x; \
+		m_IDirectInputX *Interface = (m_IDirectInputX*)ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
+		if (Interface) \
 		{ \
-			Logging::LogDebug() << "Getting device for: m_" ## #x; \
-			*ppvObj = ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
-		}
+			*ppvObj = Interface; \
+		} \
+		else \
+		{ \
+			Interface = new m_IDirectInputX((IDirectInput8W*)*ppvObj, riid); \
+			*ppvObj = Interface->GetWrapperInterface(dinputto8::GetGUIDVersion(riid)); \
+		} \
+	}
 
-	QUERYINTERFACE(IDirectInputA);
-	QUERYINTERFACE(IDirectInputW);
-	QUERYINTERFACE(IDirectInput2A);
-	QUERYINTERFACE(IDirectInput2W);
-	QUERYINTERFACE(IDirectInput7A);
-	QUERYINTERFACE(IDirectInput7W);
-	QUERYINTERFACE(IDirectInputDeviceA);
-	QUERYINTERFACE(IDirectInputDeviceW);
-	QUERYINTERFACE(IDirectInputDevice2A);
-	QUERYINTERFACE(IDirectInputDevice2W);
-	QUERYINTERFACE(IDirectInputDevice7A);
-	QUERYINTERFACE(IDirectInputDevice7W);
-	QUERYINTERFACE(IDirectInputEffect);
+	QUERYINTERFACEDI(IDirectInputA);
+	QUERYINTERFACEDI(IDirectInputW);
+	QUERYINTERFACEDI(IDirectInput2A);
+	QUERYINTERFACEDI(IDirectInput2W);
+	QUERYINTERFACEDI(IDirectInput7A);
+	QUERYINTERFACEDI(IDirectInput7W);
+
+#define QUERYINTERFACEDID(x) \
+	if (riid == IID_ ## x) \
+	{ \
+		Logging::LogDebug() << "Getting device for: m_" ## #x; \
+		m_IDirectInputDeviceX *Interface = (m_IDirectInputDeviceX*)ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
+		if (Interface) \
+		{ \
+			*ppvObj = Interface; \
+		} \
+		else \
+		{ \
+			Interface = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid); \
+			*ppvObj = Interface->GetWrapperInterface(dinputto8::GetGUIDVersion(riid)); \
+		} \
+	}
+
+	QUERYINTERFACEDID(IDirectInputDeviceA);
+	QUERYINTERFACEDID(IDirectInputDeviceW);
+	QUERYINTERFACEDID(IDirectInputDevice2A);
+	QUERYINTERFACEDID(IDirectInputDevice2W);
+	QUERYINTERFACEDID(IDirectInputDevice7A);
+	QUERYINTERFACEDID(IDirectInputDevice7W);
+
+	if (riid == IID_IDirectInputEffect)
+	{
+		Logging::LogDebug() << "Getting device for: m_IDirectInputEffect";
+		m_IDirectInputEffect *Interface = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(*ppvObj);
+		*ppvObj = (Interface) ? Interface : new m_IDirectInputEffect((IDirectInputEffect*)*ppvObj);
+	}
 }

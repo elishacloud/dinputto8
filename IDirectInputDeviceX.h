@@ -1,14 +1,16 @@
 #pragma once
 
-class m_IDirectInputDeviceX
+class m_IDirectInputDeviceX : public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputDevice8W *ProxyInterface;
-	m_IDirectInputDevice7W *WrapperInterface;
-	DWORD DirectXVersion;
 	REFIID WrapperID;
 	DWORD StringType;
-	ULONG RefCount = 1;
+
+	// Version Interfaces
+	void *WrapperInterface;
+	void *WrapperInterface2;
+	void *WrapperInterface7;
 
 	// For CooperativeLevel
 	bool CanAquireDevice = false;
@@ -27,21 +29,49 @@ private:
 	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
 public:
-	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, DWORD Version, REFIID riid, m_IDirectInputDevice7W *Interface) : ProxyInterface(aOriginal), DirectXVersion(Version), WrapperID(riid), WrapperInterface(Interface)
+	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
-		StringType = GetStringType(WrapperID);
+		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << dinputto8::GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
 
-		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << Version << " to v8 using " << ((StringType == DEFAULT_CHARSET) ? "UNICODE" : "ANSI"));
+		if (StringType == ANSI_CHARSET)
+		{
+			WrapperInterface = new m_IDirectInputDeviceA((LPDIRECTINPUTDEVICEA)ProxyInterface, this);
+			WrapperInterface2 = new m_IDirectInputDevice2A((LPDIRECTINPUTDEVICE2A)ProxyInterface, this);
+			WrapperInterface7 = new m_IDirectInputDevice7A((LPDIRECTINPUTDEVICE7A)ProxyInterface, this);
+		}
+		else
+		{
+			WrapperInterface = new m_IDirectInputDeviceW((LPDIRECTINPUTDEVICEW)ProxyInterface, this);
+			WrapperInterface2 = new m_IDirectInputDevice2W((LPDIRECTINPUTDEVICE2W)ProxyInterface, this);
+			WrapperInterface7 = new m_IDirectInputDevice7W((LPDIRECTINPUTDEVICE7W)ProxyInterface, this);
+		}
 
 		// Initialize Critical Section
 		InitializeCriticalSection(&dics);
+
+		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputDeviceX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
 
+		if (StringType == ANSI_CHARSET)
+		{
+			((m_IDirectInputA*)WrapperInterface)->DeleteMe();
+			((m_IDirectInput2A*)WrapperInterface2)->DeleteMe();
+			((m_IDirectInput7A*)WrapperInterface7)->DeleteMe();
+		}
+		else
+		{
+			((m_IDirectInputW*)WrapperInterface)->DeleteMe();
+			((m_IDirectInput2W*)WrapperInterface2)->DeleteMe();
+			((m_IDirectInput7W*)WrapperInterface7)->DeleteMe();
+		}
+
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
+
+		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/
@@ -89,7 +119,7 @@ public:
 	STDMETHOD(WriteEffectToFileW)(THIS_ LPCWSTR, DWORD, LPDIFILEEFFECT, DWORD);
 
 	// Helper functions
-	void IncRef() { InterlockedIncrement(&RefCount); }
+	LPVOID GetWrapperInterface(DWORD DXVersion);
 	IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
 	IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
 };

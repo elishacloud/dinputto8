@@ -3,14 +3,14 @@
 class m_IDirectInputDevice7A : public IDirectInputDevice7A, public AddressLookupTableDinputObject
 {
 private:
-	std::unique_ptr<m_IDirectInputDeviceX> ProxyInterface;
+	m_IDirectInputDeviceX *ProxyInterface;
 	IDirectInputDevice7A *RealInterface;
 	REFIID WrapperID = IID_IDirectInputDevice7A;
+	const DWORD DirectXVersion = 7;
 
 public:
-	m_IDirectInputDevice7A(IDirectInputDevice7A *aOriginal) : RealInterface(aOriginal)
+	m_IDirectInputDevice7A(IDirectInputDevice7A *aOriginal, m_IDirectInputDeviceX *Interface) : RealInterface(aOriginal), ProxyInterface(Interface)
 	{
-		ProxyInterface = std::make_unique<m_IDirectInputDeviceX>((IDirectInputDevice8W*)RealInterface, 7, WrapperID, (m_IDirectInputDevice7W*)this);
 		ProxyAddressLookupTable.SaveAddress(this, RealInterface);
 	}
 	~m_IDirectInputDevice7A()
@@ -21,7 +21,7 @@ public:
 	DWORD GetDirectXVersion() { return 7; }
 	REFIID GetWrapperType() { return WrapperID; }
 	IDirectInputDevice7A *GetProxyInterface() { return RealInterface; }
-	m_IDirectInputDeviceX *GetWrapperInterface() { return ProxyInterface.get(); }
+	m_IDirectInputDeviceX *GetWrapperInterface() { return ProxyInterface; }
 
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);

@@ -20,29 +20,40 @@ HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
+	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterface(dinputto8::GetGUIDVersion(riid)));
+}
+
+LPVOID m_IDirectInputX::GetWrapperInterface(DWORD DirectXVersion)
+{
+	switch (DirectXVersion)
+	{
+	case 1:
+		return WrapperInterface;
+	case 2:
+		return WrapperInterface2;
+	case 7:
+		return WrapperInterface7;
+	default:
+		return nullptr;
+	}
 }
 
 ULONG m_IDirectInputX::AddRef()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	ProxyInterface->AddRef();
-
-	return InterlockedIncrement(&RefCount);
+	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInputX::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	ProxyInterface->Release();
-	
-	ULONG ref = InterlockedDecrement(&RefCount);
+	ULONG ref = ProxyInterface->Release();
 
 	if (ref == 0)
 	{
-		WrapperInterface->DeleteMe();
+		delete this;
 	}
 
 	return ref;
@@ -123,7 +134,9 @@ HRESULT m_IDirectInputX::CreateDeviceExA(REFGUID rguid, REFIID riid, LPDIRECTINP
 
 	if (SUCCEEDED(hr) && ppvObj)
 	{
-		genericQueryInterface(riid, (LPVOID *)ppvObj);
+		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
+
+		*ppvObj = (LPDIRECTINPUTDEVICE8A)DIDevice->GetWrapperInterface(dinputto8::GetGUIDVersion(riid));
 	}
 
 	return hr;
@@ -137,7 +150,9 @@ HRESULT m_IDirectInputX::CreateDeviceExW(REFGUID rguid, REFIID riid, LPDIRECTINP
 
 	if (SUCCEEDED(hr) && ppvObj)
 	{
-		genericQueryInterface(riid, (LPVOID *)ppvObj);
+		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
+
+		*ppvObj = (LPDIRECTINPUTDEVICE8W)DIDevice->GetWrapperInterface(dinputto8::GetGUIDVersion(riid));
 	}
 
 	return hr;

@@ -29,29 +29,40 @@ HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID* ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
+	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterface(dinputto8::GetGUIDVersion(riid)));
+}
+
+LPVOID m_IDirectInputDeviceX::GetWrapperInterface(DWORD DirectXVersion)
+{
+	switch (DirectXVersion)
+	{
+	case 1:
+		return WrapperInterface;
+	case 2:
+		return WrapperInterface2;
+	case 7:
+		return WrapperInterface7;
+	default:
+		return nullptr;
+	}
 }
 
 ULONG m_IDirectInputDeviceX::AddRef()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	ProxyInterface->AddRef();
-
-	return InterlockedIncrement(&RefCount);
+	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInputDeviceX::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	ProxyInterface->Release();
-
-	ULONG ref = InterlockedDecrement(&RefCount);
+	ULONG ref = ProxyInterface->Release();
 
 	if (ref == 0)
 	{
-		WrapperInterface->DeleteMe();
+		delete this;
 	}
 
 	return ref;
@@ -319,7 +330,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 	if (SUCCEEDED(hr) && ppdeff)
 	{
-		*ppdeff = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(*ppdeff);
+		*ppdeff = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
 	}
 
 	return hr;

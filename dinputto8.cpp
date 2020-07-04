@@ -100,7 +100,10 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 	if (SUCCEEDED(hr) && lplpDD)
 	{
 		diVersion = dwVersion;
-		genericQueryInterface(riid, lplpDD);
+
+		m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+
+		*lplpDD = Interface->GetWrapperInterface(dinputto8::GetGUIDVersion(riid));
 	}
 
 	return hr;

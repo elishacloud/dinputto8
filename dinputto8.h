@@ -3,6 +3,7 @@
 #define INITGUID
 
 #define DIRECTINPUT_VERSION 0x0800
+#define UNICODE_CHARSET DEFAULT_CHARSET
 #include <dinput.h>
 #include "ditypes.h"
 
@@ -36,6 +37,7 @@ typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 namespace dinputto8
 {
 	DWORD GetStringType(REFIID riid);
+	DWORD GetGUIDVersion(REFIID riid);
 	REFCLSID ConvertREFCLSID(REFCLSID rclsid);
 	REFIID ConvertREFIID(REFIID riid);
 	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);
