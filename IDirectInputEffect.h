@@ -21,10 +21,6 @@ public:
 		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
-	IDirectInputEffect *GetProxyInterface() { return ProxyInterface; }
-	m_IDirectInputEffect *GetWrapperInterface() { return this; }
-	void IncRef() { }
-
 	/*** IUnknown methods ***/
 	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);
 	STDMETHOD_(ULONG, AddRef)(THIS);

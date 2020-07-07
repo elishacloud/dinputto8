@@ -103,7 +103,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 		m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
 
-		*lplpDD = Interface->GetWrapperInterface(dinputto8::GetGUIDVersion(riid));
+		*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}
 
 	return hr;

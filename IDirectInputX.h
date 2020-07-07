@@ -15,7 +15,7 @@ private:
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
-		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << dinputto8::GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
+		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
 
 		if (StringType == ANSI_CHARSET)
 		{
@@ -73,7 +73,7 @@ public:
 	STDMETHOD(CreateDeviceExW)(THIS_ REFGUID, REFIID, LPDIRECTINPUTDEVICE8W *, LPUNKNOWN);
 
 	// Helper functions
-	LPVOID GetWrapperInterface(DWORD DXVersion);
+	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
 	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
 	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
 };

@@ -38,6 +38,7 @@ namespace dinputto8
 {
 	DWORD GetStringType(REFIID riid);
 	DWORD GetGUIDVersion(REFIID riid);
+	REFIID ReplaceIIDUnknown(REFIID riid, REFIID guid);
 	REFCLSID ConvertREFCLSID(REFCLSID rclsid);
 	REFIID ConvertREFIID(REFIID riid);
 	HRESULT ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface);

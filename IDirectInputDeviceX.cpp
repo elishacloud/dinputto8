@@ -29,10 +29,10 @@ HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID* ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterface(dinputto8::GetGUIDVersion(riid)));
+	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterfaceX(GetGUIDVersion(riid)));
 }
 
-LPVOID m_IDirectInputDeviceX::GetWrapperInterface(DWORD DirectXVersion)
+LPVOID m_IDirectInputDeviceX::GetWrapperInterfaceX(DWORD DirectXVersion)
 {
 	switch (DirectXVersion)
 	{

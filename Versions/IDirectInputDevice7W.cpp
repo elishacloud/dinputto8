@@ -18,7 +18,7 @@
 
 HRESULT m_IDirectInputDevice7W::QueryInterface(REFIID riid, LPVOID* ppvObj)
 {
-	return ProxyInterface->QueryInterface(riid, ppvObj);
+	return ProxyInterface->QueryInterface(ReplaceIIDUnknown(riid, WrapperID), ppvObj);
 }
 
 ULONG m_IDirectInputDevice7W::AddRef()

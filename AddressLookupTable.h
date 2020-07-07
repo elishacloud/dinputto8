@@ -9,19 +9,9 @@ constexpr UINT MaxIndex = 16;
 template <typename D>
 class AddressLookupTableDinput
 {
-public:
-	explicit AddressLookupTableDinput() {}
-	~AddressLookupTableDinput()
-	{
-		ConstructorFlag = true;
-		for (const auto& x : { 13, 14, 15 })
-		{
-			for (const auto& entry : g_map[x])
-			{
-				entry.second->DeleteMe();
-			}
-		}
-	}
+private:
+	bool ConstructorFlag = false;
+	std::unordered_map<void*, class AddressLookupTableDinputObject*> g_map[MaxIndex];
 
 	template <typename T>
 	struct AddressCacheIndex { static constexpr UINT CacheIndex = 0; };
@@ -70,6 +60,92 @@ public:
 	template <>
 	struct AddressCacheIndex<m_IDirectInputDeviceX> { static constexpr UINT CacheIndex = 15; };
 
+	void DeleteAll()
+	{
+		for (const auto& x : { 13, 14, 15 })
+		{
+			for (const auto& entry : g_map[x])
+			{
+				entry.second->DeleteMe();
+			}
+		}
+	}
+
+	template <typename T, typename X, typename I>
+	T *FindAddressVersion(void *Proxy, REFIID riid)
+	{
+		T *Interface = FindAddressAllInterfaces<T>(Proxy);
+
+		if (!Interface)
+		{
+			X *InterfaceX = new X((I*)Proxy, riid);
+
+			Interface = (T*)InterfaceX->GetWrapperInterfaceX(GetGUIDVersion(riid));
+		}
+
+		return Interface;
+	}
+
+	template <typename T>
+	T *FindAddressPrivate(void *Proxy)
+	{
+		T *Interface = FindAddressAllInterfaces<T>(Proxy);
+
+		if (!Interface)
+		{
+			Interface = new T(static_cast<T *>(Proxy));
+		}
+
+		return Interface;
+	}
+	template <>
+	m_IDirectInputA *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputA, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInputA); }
+	template <>
+	m_IDirectInputW *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputW, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInputW); }
+	template <>
+	m_IDirectInput2A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput2A, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput2A); }
+	template <>
+	m_IDirectInput2W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput2W, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput2W); }
+	template <>
+	m_IDirectInput7A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput7A, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput7A); }
+	template <>
+	m_IDirectInput7W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput7W, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput7W); }
+	template <>
+	m_IDirectInputDeviceA *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDeviceA, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDeviceA); }
+	template <>
+	m_IDirectInputDeviceW *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDeviceW, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDeviceW); }
+	template <>
+	m_IDirectInputDevice2A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice2A, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice2A); }
+	template <>
+	m_IDirectInputDevice2W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice2W, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice2W); }
+	template <>
+	m_IDirectInputDevice7A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice7A, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice7A); }
+	template <>
+	m_IDirectInputDevice7W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice7W, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice7W); }
+
+	template <typename T>
+	T *FindAddressAllInterfaces(void *Proxy)
+	{
+		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
+		auto it = g_map[CacheIndex].find(Proxy);
+
+		if (it != std::end(g_map[CacheIndex]))
+		{
+			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
+			return static_cast<T *>(it->second);
+		}
+
+		return nullptr;
+	}
+
+public:
+	explicit AddressLookupTableDinput() {}
+	~AddressLookupTableDinput()
+	{
+		ConstructorFlag = true;
+		void DeleteAll();
+	}
+
 	template <typename T>
 	T *FindAddress(void *Proxy, DWORD Version, DWORD Type)
 	{
@@ -116,16 +192,7 @@ public:
 			return nullptr;
 		}
 
-		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
-		auto it = g_map[CacheIndex].find(Proxy);
-
-		if (it != std::end(g_map[CacheIndex]))
-		{
-			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
-			return static_cast<T *>(it->second);
-		}
-
-		return nullptr;
+		return FindAddressPrivate<T>(Proxy);
 	}
 
 	template <typename T>
@@ -154,11 +221,16 @@ public:
 		{
 			it = g_map[CacheIndex].erase(it);
 		}
-	}
 
-private:
-	bool ConstructorFlag = false;
-	std::unordered_map<void*, class AddressLookupTableDinputObject*> g_map[MaxIndex];
+#pragma warning (push)
+#pragma warning (disable : 4127)
+		if (CacheIndex == AddressCacheIndex<m_IDirectInputX>::CacheIndex &&
+			g_map[AddressCacheIndex<m_IDirectInputX>::CacheIndex].size() == 0)
+		{
+			DeleteAll();
+		}
+#pragma warning (pop)
+	}
 };
 
 class AddressLookupTableDinputObject
