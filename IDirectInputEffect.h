@@ -10,13 +10,13 @@ private:
 public:
 	m_IDirectInputEffect(IDirectInputEffect *aOriginal) : ProxyInterface(aOriginal), WrapperInterface(this)
 	{
-		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")");
+		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")");
 
 		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputEffect()
 	{
-		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
+		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting interface!");
 
 		ProxyAddressLookupTable.DeleteAddress(this);
 	}

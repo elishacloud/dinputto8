@@ -12,10 +12,14 @@ private:
 	void *WrapperInterface2;
 	void *WrapperInterface7;
 
+	// Private functions
+	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
+	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
+
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
-		LOG_LIMIT(3, "Creating device " << __FUNCTION__ << "(" << this << ")" << " converting device from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
+		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")" << " converting interface from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
 
 		if (StringType == ANSI_CHARSET)
 		{
@@ -34,7 +38,7 @@ public:
 	}
 	~m_IDirectInputX()
 	{
-		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting device!");
+		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting interface!");
 		
 		if (StringType == ANSI_CHARSET)
 		{
@@ -74,6 +78,4 @@ public:
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
-	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
-	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
 };
