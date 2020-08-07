@@ -12,7 +12,27 @@ private:
 	void *WrapperInterface2;
 	void *WrapperInterface7;
 
-	// Private functions
+	// Wrapper interface functions
+	REFIID GetWrapperType(DWORD DirectXVersion)
+	{
+		return (StringType == ANSI_CHARSET) ?
+			((DirectXVersion == 1) ? IID_IDirectInputA :
+			(DirectXVersion == 2) ? IID_IDirectInput2A :
+			(DirectXVersion == 7) ? IID_IDirectInput7A : IID_IUnknown) :
+			((DirectXVersion == 1) ? IID_IDirectInputW :
+			(DirectXVersion == 2) ? IID_IDirectInput2W :
+			(DirectXVersion == 7) ? IID_IDirectInput7W : IID_IUnknown);
+	}
+	bool CheckWrapperType(REFIID IID)
+	{
+		return (StringType == ANSI_CHARSET) ?
+			((IID == IID_IDirectInputA ||
+			IID == IID_IDirectInput2A ||
+			IID == IID_IDirectInput7A) ? true : false) :
+			((IID == IID_IDirectInputW ||
+			IID == IID_IDirectInput2W ||
+			IID == IID_IDirectInput7W) ? true : false);
+	}
 	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
 	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
 
@@ -57,7 +77,8 @@ public:
 	}
 
 	/*** IUnknown methods ***/
-	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);
+	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion);
+	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj) { return QueryInterface(riid, ppvObj, GetGUIDVersion(riid)); }
 	STDMETHOD_(ULONG, AddRef)(THIS);
 	STDMETHOD_(ULONG, Release)(THIS);
 

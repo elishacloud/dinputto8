@@ -25,11 +25,13 @@ const DIDATAFORMAT c_dfDIKeyboard = {
 	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
 };
 
-HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID* ppvObj)
+HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterfaceX(GetGUIDVersion(riid)));
+	DWORD DxVersion = (CheckWrapperType(riid)) ? GetGUIDVersion(riid) : DirectXVersion;
+
+	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, GetWrapperType(DxVersion), GetWrapperInterfaceX(DxVersion));
 }
 
 LPVOID m_IDirectInputDeviceX::GetWrapperInterfaceX(DWORD DirectXVersion)

@@ -16,11 +16,13 @@
 
 #include "dinputto8.h"
 
-HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID * ppvObj)
+HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, GetWrapperInterfaceX(GetGUIDVersion(riid)));
+	DWORD DxVersion = (CheckWrapperType(riid)) ? GetGUIDVersion(riid) : DirectXVersion;
+
+	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, GetWrapperType(DxVersion), GetWrapperInterfaceX(DxVersion));
 }
 
 LPVOID m_IDirectInputX::GetWrapperInterfaceX(DWORD DirectXVersion)

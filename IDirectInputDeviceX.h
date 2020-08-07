@@ -28,7 +28,27 @@ private:
 	DIDATAFORMAT df;
 	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
-	// Private functions
+	// Wrapper interface functions
+	REFIID GetWrapperType(DWORD DirectXVersion)
+	{
+		return (StringType == ANSI_CHARSET) ?
+			((DirectXVersion == 1) ? IID_IDirectInputDeviceA :
+			(DirectXVersion == 2) ? IID_IDirectInputDevice2A :
+			(DirectXVersion == 7) ? IID_IDirectInputDevice7A : IID_IUnknown) :
+			((DirectXVersion == 1) ? IID_IDirectInputDeviceW :
+			(DirectXVersion == 2) ? IID_IDirectInputDevice2W :
+			(DirectXVersion == 7) ? IID_IDirectInputDevice7W : IID_IUnknown);
+	}
+	bool CheckWrapperType(REFIID IID)
+	{
+		return (StringType == ANSI_CHARSET) ?
+			((IID == IID_IDirectInputDeviceA ||
+			IID == IID_IDirectInputDevice2A ||
+			IID == IID_IDirectInputDevice7A) ? true : false) :
+			((IID == IID_IDirectInputDeviceW ||
+			IID == IID_IDirectInputDevice2W ||
+			IID == IID_IDirectInputDevice7W) ? true : false);
+	}
 	IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
 	IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
 
@@ -79,7 +99,8 @@ public:
 	}
 
 	/*** IUnknown methods ***/
-	STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj);
+	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion);
+	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj) { return QueryInterface(riid, ppvObj, GetGUIDVersion(riid)); }
 	STDMETHOD_(ULONG, AddRef)(THIS);
 	STDMETHOD_(ULONG, Release)(THIS);
 

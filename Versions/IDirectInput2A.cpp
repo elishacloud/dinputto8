@@ -16,9 +16,9 @@
 
 #include "..\dinputto8.h"
 
-HRESULT m_IDirectInput2A::QueryInterface(REFIID riid, LPVOID * ppvObj)
+HRESULT m_IDirectInput2A::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 {
-	return ProxyInterface->QueryInterface(ReplaceIIDUnknown(riid, WrapperID), ppvObj);
+	return ProxyInterface->QueryInterface(ReplaceIIDUnknown(riid, WrapperID), ppvObj, DirectXVersion);
 }
 
 ULONG m_IDirectInput2A::AddRef()
