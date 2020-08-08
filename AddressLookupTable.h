@@ -221,15 +221,6 @@ public:
 		{
 			it = g_map[CacheIndex].erase(it);
 		}
-
-#pragma warning (push)
-#pragma warning (disable : 4127)
-		if (CacheIndex == AddressCacheIndex<m_IDirectInputX>::CacheIndex &&
-			g_map[AddressCacheIndex<m_IDirectInputX>::CacheIndex].size() == 0)
-		{
-			DeleteAll();
-		}
-#pragma warning (pop)
 	}
 };
 
