@@ -29,7 +29,7 @@ private:
 	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
 	// Wrapper interface functions
-	REFIID GetWrapperType(DWORD DirectXVersion)
+	inline REFIID GetWrapperType(DWORD DirectXVersion)
 	{
 		return (StringType == ANSI_CHARSET) ?
 			((DirectXVersion == 1) ? IID_IDirectInputDeviceA :
@@ -39,7 +39,7 @@ private:
 			(DirectXVersion == 2) ? IID_IDirectInputDevice2W :
 			(DirectXVersion == 7) ? IID_IDirectInputDevice7W : IID_IUnknown);
 	}
-	bool CheckWrapperType(REFIID IID)
+	inline bool CheckWrapperType(REFIID IID)
 	{
 		return (StringType == ANSI_CHARSET) ?
 			((IID == IID_IDirectInputDeviceA ||
@@ -49,8 +49,8 @@ private:
 			IID == IID_IDirectInputDevice2W ||
 			IID == IID_IDirectInputDevice7W) ? true : false);
 	}
-	IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
-	IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
+	inline IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
+	inline IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))

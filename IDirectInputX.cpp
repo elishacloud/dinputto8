@@ -111,7 +111,14 @@ HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return ProxyInterface->Initialize(hinst, dwVersion);
+	HRESULT hr = ProxyInterface->Initialize(hinst, 0x0800);
+
+	if (SUCCEEDED(hr))
+	{
+		diVersion = dwVersion;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputX::FindDeviceA(REFGUID rguidClass, LPCSTR ptszName, LPGUID pguidInstance)

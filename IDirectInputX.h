@@ -13,7 +13,7 @@ private:
 	void *WrapperInterface7;
 
 	// Wrapper interface functions
-	REFIID GetWrapperType(DWORD DirectXVersion)
+	inline REFIID GetWrapperType(DWORD DirectXVersion)
 	{
 		return (StringType == ANSI_CHARSET) ?
 			((DirectXVersion == 1) ? IID_IDirectInputA :
@@ -23,7 +23,7 @@ private:
 			(DirectXVersion == 2) ? IID_IDirectInput2W :
 			(DirectXVersion == 7) ? IID_IDirectInput7W : IID_IUnknown);
 	}
-	bool CheckWrapperType(REFIID IID)
+	inline bool CheckWrapperType(REFIID IID)
 	{
 		return (StringType == ANSI_CHARSET) ?
 			((IID == IID_IDirectInputA ||
@@ -33,8 +33,8 @@ private:
 			IID == IID_IDirectInput2W ||
 			IID == IID_IDirectInput7W) ? true : false);
 	}
-	IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
-	IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
+	inline IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
+	inline IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
 
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
