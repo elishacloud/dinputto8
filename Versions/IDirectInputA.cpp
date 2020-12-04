@@ -38,7 +38,95 @@ HRESULT m_IDirectInputA::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICEA *lplpD
 
 HRESULT m_IDirectInputA::EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumDevicesA(dwDevType, lpCallback, pvRef, dwFlags);
+	// Instead of directly calling the ProxyInterface here, we are adding some extra code to sort the devices. This is an exclusive fix
+	// for a known bug in Rayman 2 that would prevent any gamepad from working. The fix has been extracted from this old VS 2010 project:
+	// https://code.google.com/archive/p/noser-sandbox/source/default/source
+	// There is only one download link with a zip file containing other projects too. You will find the extracted code in the
+	// Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
+	// Thanks to Nolan Check for the fix!
+
+	// The bug: Rayman 2 expects EnumDevices to give results in a certain
+	// order, where gamepads come before the keyboard. DirectInput makes
+	// no guarantee about the order.
+	// The fix: Call DirectInput's EnumDevices, then sort the results in
+	// an order where gamepads come first, then give them to Rayman 2.
+	HRESULT hr;
+
+	typedef std::list<DIDEVICEINSTANCEA> DeviceInstanceList;
+	struct DeviceEnumerator
+	{
+		DeviceInstanceList devices;
+
+		static BOOL FAR PASCAL Callback(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
+		{
+			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+			self->devices.push_back(*lpddi);
+			return DIENUM_CONTINUE;
+		}
+
+		bool Contains(const GUID& guidInstance)
+		{
+			for (DeviceInstanceList::const_iterator it = devices.begin();
+				it != devices.end(); ++it)
+			{
+				if (it->guidInstance == guidInstance) {
+					return true;
+				}
+			}
+			return false;
+		}
+	};
+
+	DeviceEnumerator joystickDevices;
+	hr = ProxyInterface->EnumDevicesA(DIDEVTYPE_JOYSTICK, DeviceEnumerator::Callback, &joystickDevices, dwFlags);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	DeviceEnumerator allDevices;
+	hr = ProxyInterface->EnumDevicesA(0, DeviceEnumerator::Callback, &allDevices, dwFlags);
+	if (FAILED(hr)) {
+		return hr;
+	}
+
+	DeviceInstanceList sortedDevices;
+
+	if (dwDevType == 0 || dwDevType == DIDEVTYPE_JOYSTICK)
+	{
+		// Add all devices in gameDevices
+		for (DeviceInstanceList::const_iterator it = joystickDevices.devices.begin();
+			it != joystickDevices.devices.end(); ++it)
+		{
+			sortedDevices.push_back(*it);
+		}
+	}
+
+	if (dwDevType == 0)
+	{
+		// Then, add all devices in allDevices that aren't in gameDevices
+		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin();
+			it != allDevices.devices.end(); ++it)
+		{
+			if (!joystickDevices.Contains(it->guidInstance)) {
+				sortedDevices.push_back(*it);
+			}
+		}
+	}
+
+	for (DeviceInstanceList::const_iterator it = sortedDevices.begin();
+		it != sortedDevices.end(); ++it)
+	{
+		OutputDebugStringA("Enumerating Product: ");
+		OutputDebugStringA(it->tszProductName);
+		OutputDebugStringA(" Instance: ");
+		OutputDebugStringA(it->tszInstanceName);
+		OutputDebugStringA("\n");
+		if (lpCallback(&*it, pvRef) == DIENUM_STOP) {
+			break;
+		}
+	}
+
+	return DI_OK;
 }
 
 HRESULT m_IDirectInputA::GetDeviceStatus(REFGUID rguidInstance)

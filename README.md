@@ -50,6 +50,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Myst III: Exile
  * NOX
  * Populous: The Beginning
+ * Rayman 2: The Great Escape
  * Raymond 2
  * Requiem: Avenging Angel
  * Settlers 3
