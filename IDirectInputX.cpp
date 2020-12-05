@@ -70,6 +70,94 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 		return DIERR_INVALIDPARAM;
 	}
 
+	// Reorder to send game devices first
+	if (dwDevType == DI8DEVCLASS_ALL)
+	{
+		// Instead of directly calling the ProxyInterface here, we are adding some extra code to sort the devices. This is an exclusive fix
+		// for a known bug in Rayman 2 that would prevent any gamepad from working. The fix has been extracted from this old VS 2010 project:
+		// https://code.google.com/archive/p/noser-sandbox/source/default/source
+		// There is only one download link with a zip file containing other projects too. You will find the extracted code in the
+		// Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
+		// Thanks to Nolan Check for the fix!
+
+		// The bug: Rayman 2 expects EnumDevices to give results in a certain
+		// order, where gamepads come before the keyboard. DirectInput makes
+		// no guarantee about the order.
+		// The fix: Call DirectInput's EnumDevices, then sort the results in
+		// an order where gamepads come first, then give them to Rayman 2.
+
+		typedef std::list<DIDEVICEINSTANCEA> DeviceInstanceList;
+		struct DeviceEnumerator
+		{
+			DeviceInstanceList devices;
+
+			static BOOL CALLBACK Callback(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
+			{
+				DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+				self->devices.push_back(*lpddi);
+				return DIENUM_CONTINUE;
+			}
+
+			bool Contains(const GUID& guidInstance)
+			{
+				for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
+				{
+					if (it->guidInstance == guidInstance)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+		};
+
+		DeviceEnumerator joystickDevices;
+		HRESULT hr = GetProxyInterfaceA()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &joystickDevices, dwFlags);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		DeviceEnumerator allDevices;
+		hr = GetProxyInterfaceA()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		DeviceInstanceList sortedDevices;
+
+		// Add all devices in gameDevices
+		for (DeviceInstanceList::const_iterator it = joystickDevices.devices.begin(); it != joystickDevices.devices.end(); ++it)
+		{
+			sortedDevices.push_back(*it);
+		}
+
+		// Then, add all devices in allDevices that aren't in gameDevices
+		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
+		{
+			if (!joystickDevices.Contains(it->guidInstance))
+			{
+				sortedDevices.push_back(*it);
+			}
+		}
+
+		ENUMDEVICE CallbackContext;
+		CallbackContext.pvRef = pvRef;
+		CallbackContext.lpCallback = lpCallback;
+
+		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
+		{
+			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
+			if (m_IDirectInputEnumDevice::EnumDeviceCallbackA(&*it, &CallbackContext) == DIENUM_STOP)
+			{
+				break;
+			}
+		}
+
+		return DI_OK;
+	}
+
 	ENUMDEVICE CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
@@ -84,6 +172,94 @@ HRESULT m_IDirectInputX::EnumDevicesW(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW 
 	if (!lpCallback)
 	{
 		return DIERR_INVALIDPARAM;
+	}
+
+	// Reorder to send game devices first
+	if (dwDevType == DI8DEVCLASS_ALL)
+	{
+		// Instead of directly calling the ProxyInterface here, we are adding some extra code to sort the devices. This is an exclusive fix
+		// for a known bug in Rayman 2 that would prevent any gamepad from working. The fix has been extracted from this old VS 2010 project:
+		// https://code.google.com/archive/p/noser-sandbox/source/default/source
+		// There is only one download link with a zip file containing other projects too. You will find the extracted code in the
+		// Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
+		// Thanks to Nolan Check for the fix!
+
+		// The bug: Rayman 2 expects EnumDevices to give results in a certain
+		// order, where gamepads come before the keyboard. DirectInput makes
+		// no guarantee about the order.
+		// The fix: Call DirectInput's EnumDevices, then sort the results in
+		// an order where gamepads come first, then give them to Rayman 2.
+
+		typedef std::list<DIDEVICEINSTANCEW> DeviceInstanceList;
+		struct DeviceEnumerator
+		{
+			DeviceInstanceList devices;
+
+			static BOOL CALLBACK Callback(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef)
+			{
+				DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+				self->devices.push_back(*lpddi);
+				return DIENUM_CONTINUE;
+			}
+
+			bool Contains(const GUID& guidInstance)
+			{
+				for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
+				{
+					if (it->guidInstance == guidInstance)
+					{
+						return true;
+					}
+				}
+				return false;
+			}
+		};
+
+		DeviceEnumerator joystickDevices;
+		HRESULT hr = GetProxyInterfaceW()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &joystickDevices, dwFlags);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		DeviceEnumerator allDevices;
+		hr = GetProxyInterfaceW()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+
+		DeviceInstanceList sortedDevices;
+
+		// Add all devices in gameDevices
+		for (DeviceInstanceList::const_iterator it = joystickDevices.devices.begin(); it != joystickDevices.devices.end(); ++it)
+		{
+			sortedDevices.push_back(*it);
+		}
+
+		// Then, add all devices in allDevices that aren't in gameDevices
+		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
+		{
+			if (!joystickDevices.Contains(it->guidInstance))
+			{
+				sortedDevices.push_back(*it);
+			}
+		}
+
+		ENUMDEVICE CallbackContext;
+		CallbackContext.pvRef = pvRef;
+		CallbackContext.lpCallback = lpCallback;
+
+		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
+		{
+			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
+			if (m_IDirectInputEnumDevice::EnumDeviceCallbackW(&*it, &CallbackContext) == DIENUM_STOP)
+			{
+				break;
+			}
+		}
+
+		return DI_OK;
 	}
 
 	ENUMDEVICE CallbackContext;
