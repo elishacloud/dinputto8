@@ -67,7 +67,7 @@ public:
 	}
 	~m_IDirectInputX()
 	{
-		LOG_LIMIT(3, __FUNCTION__ << "(" << this << ")" << " deleting interface!");
+		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 		
 		if (StringType == ANSI_CHARSET)
 		{
