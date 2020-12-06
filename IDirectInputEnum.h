@@ -27,6 +27,14 @@ public:
 	m_IDirectInputEnumDevice() {}
 	~m_IDirectInputEnumDevice() {}
 
-	static BOOL CALLBACK EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA, LPVOID);
-	static BOOL CALLBACK EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW, LPVOID);
+	static BOOL CALLBACK EnumDeviceCallback(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
+	{
+		return EnumDeviceCallbackX<IDirectInput8A, DIDEVICEINSTANCEA, LPDIENUMDEVICESCALLBACKA>(lpddi, pvRef);
+	}
+	static BOOL CALLBACK EnumDeviceCallback(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef)
+	{
+		return EnumDeviceCallbackX<IDirectInput8W, DIDEVICEINSTANCEW, LPDIENUMDEVICESCALLBACKW>(lpddi, pvRef);
+	}
+	template <class T, class V, class D>
+	static BOOL CALLBACK EnumDeviceCallbackX(const V *lpddi, LPVOID pvRef);
 };

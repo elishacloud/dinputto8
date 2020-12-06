@@ -33,8 +33,17 @@ private:
 			IID == IID_IDirectInput2W ||
 			IID == IID_IDirectInput7W) ? true : false);
 	}
-	inline IDirectInput8A *GetProxyInterfaceA() { return (IDirectInput8A*)ProxyInterface; }
-	inline IDirectInput8W *GetProxyInterfaceW() { return ProxyInterface; }
+	template <class T>
+	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
+
+	template <class T, class V, class D>
+	inline HRESULT EnumDevicesX(DWORD, V, LPVOID, DWORD);
+
+	template <class T, class V>
+	inline HRESULT FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
+
+	template <class T, class V>
+	inline HRESULT CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter);
 
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
@@ -83,19 +92,37 @@ public:
 	STDMETHOD_(ULONG, Release)(THIS);
 
 	/*** IDirectInput methods ***/
-	STDMETHOD(EnumDevicesA)(THIS_ DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
-	STDMETHOD(EnumDevicesW)(THIS_ DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+	STDMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA>(dwDevType, lpCallback, pvRef, dwFlags);
+	}
+	STDMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW>(dwDevType, lpCallback, pvRef, dwFlags);
+	}
 	STDMETHOD(GetDeviceStatus)(THIS_ REFGUID);
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
 	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD);
 
 	/*** IDirectInput2 methods ***/
-	STDMETHOD(FindDeviceA)(THIS_ REFGUID, LPCSTR, LPGUID);
-	STDMETHOD(FindDeviceW)(THIS_ REFGUID, LPCWSTR, LPGUID);
+	STDMETHOD(FindDevice)(THIS_ REFGUID rguidClass, LPCSTR ptszName, LPGUID pguidInstance)
+	{
+		return FindDeviceX<IDirectInput8A, LPCSTR>(rguidClass, ptszName, pguidInstance);
+	}
+	STDMETHOD(FindDevice)(THIS_ REFGUID rguidClass, LPCWSTR ptszName, LPGUID pguidInstance)
+	{
+		return FindDeviceX<IDirectInput8W, LPCWSTR>(rguidClass, ptszName, pguidInstance);
+	}
 
 	/*** IDirectInput7 methods ***/
-	STDMETHOD(CreateDeviceExA)(THIS_ REFGUID, REFIID, LPDIRECTINPUTDEVICE8A *, LPUNKNOWN);
-	STDMETHOD(CreateDeviceExW)(THIS_ REFGUID, REFIID, LPDIRECTINPUTDEVICE8W *, LPUNKNOWN);
+	STDMETHOD(CreateDeviceEx)(THIS_ REFGUID rguid, REFIID riid, LPDIRECTINPUTDEVICE8A *ppvObj, LPUNKNOWN pUnkOuter)
+	{
+		return CreateDeviceExX<IDirectInput8A, LPDIRECTINPUTDEVICE8A>(rguid, riid, ppvObj, pUnkOuter);
+	}
+	STDMETHOD(CreateDeviceEx)(THIS_ REFGUID rguid, REFIID riid, LPDIRECTINPUTDEVICE8W *ppvObj, LPUNKNOWN pUnkOuter)
+	{
+		return CreateDeviceExX<IDirectInput8W, LPDIRECTINPUTDEVICE8W>(rguid, riid, ppvObj, pUnkOuter);
+	}
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);

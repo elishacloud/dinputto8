@@ -38,7 +38,7 @@ HRESULT m_IDirectInputDevice2A::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 
 HRESULT m_IDirectInputDevice2A::EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
-	return ProxyInterface->EnumObjectsA(lpCallback, pvRef, dwFlags);
+	return ProxyInterface->EnumObjects(lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputDevice2A::GetProperty(REFGUID rguidProp, LPDIPROPHEADER pdiph)
@@ -88,12 +88,12 @@ HRESULT m_IDirectInputDevice2A::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 
 HRESULT m_IDirectInputDevice2A::GetObjectInfo(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
 {
-	return ProxyInterface->GetObjectInfoA(pdidoi, dwObj, dwHow);
+	return ProxyInterface->GetObjectInfo(pdidoi, dwObj, dwHow);
 }
 
 HRESULT m_IDirectInputDevice2A::GetDeviceInfo(LPDIDEVICEINSTANCEA pdidi)
 {
-	return ProxyInterface->GetDeviceInfoA(pdidi);
+	return ProxyInterface->GetDeviceInfo(pdidi);
 }
 
 HRESULT m_IDirectInputDevice2A::RunControlPanel(HWND hwndOwner, DWORD dwFlags)
@@ -113,12 +113,12 @@ HRESULT m_IDirectInputDevice2A::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, L
 
 HRESULT m_IDirectInputDevice2A::EnumEffects(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
 {
-	return ProxyInterface->EnumEffectsA(lpCallback, pvRef, dwEffType);
+	return ProxyInterface->EnumEffects(lpCallback, pvRef, dwEffType);
 }
 
 HRESULT m_IDirectInputDevice2A::GetEffectInfo(LPDIEFFECTINFOA pdei, REFGUID rguid)
 {
-	return ProxyInterface->GetEffectInfoA(pdei, rguid);
+	return ProxyInterface->GetEffectInfo(pdei, rguid);
 }
 
 HRESULT m_IDirectInputDevice2A::GetForceFeedbackState(LPDWORD pdwOut)

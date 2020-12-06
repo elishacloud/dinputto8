@@ -49,8 +49,29 @@ private:
 			IID == IID_IDirectInputDevice2W ||
 			IID == IID_IDirectInputDevice7W) ? true : false);
 	}
-	inline IDirectInputDevice8A *GetProxyInterfaceA() { return (IDirectInputDevice8A*)ProxyInterface; }
-	inline IDirectInputDevice8W *GetProxyInterfaceW() { return ProxyInterface; }
+	template <class T>
+	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
+
+	template <class T, class V>
+	inline HRESULT EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags);
+
+	template <class T, class V>
+	inline HRESULT GetObjectInfoX(V pdidoi, DWORD dwObj, DWORD dwHow);
+
+	template <class T, class V>
+	inline HRESULT GetDeviceInfoX(V pdidi);
+
+	template <class T, class V>
+	inline HRESULT EnumEffectsX(V lpCallback, LPVOID pvRef, DWORD dwEffType);
+
+	template <class T, class V>
+	inline HRESULT GetEffectInfoX(V pdei, REFGUID rguid);
+
+	template <class T, class V>
+	inline HRESULT EnumEffectsInFileX(V lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags);
+
+	template <class T, class V>
+	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
@@ -106,8 +127,14 @@ public:
 
 	/*** IDirectInputDevice methods ***/
 	STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS);
-	STDMETHOD(EnumObjectsA)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
-	STDMETHOD(EnumObjectsW)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW, LPVOID, DWORD);
+	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA>(lpCallback, pvRef, dwFlags);
+	}
+	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW>(lpCallback, pvRef, dwFlags);
+	}
 	STDMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER);
 	STDMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER);
 	STDMETHOD(Acquire)(THIS);
@@ -117,19 +144,43 @@ public:
 	STDMETHOD(SetDataFormat)(THIS_ LPCDIDATAFORMAT);
 	STDMETHOD(SetEventNotification)(THIS_ HANDLE);
 	STDMETHOD(SetCooperativeLevel)(THIS_ HWND, DWORD);
-	STDMETHOD(GetObjectInfoA)(THIS_ LPDIDEVICEOBJECTINSTANCEA, DWORD, DWORD);
-	STDMETHOD(GetObjectInfoW)(THIS_ LPDIDEVICEOBJECTINSTANCEW, DWORD, DWORD);
-	STDMETHOD(GetDeviceInfoA)(THIS_ LPDIDEVICEINSTANCEA);
-	STDMETHOD(GetDeviceInfoW)(THIS_ LPDIDEVICEINSTANCEW);
+	STDMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
+	{
+		return GetObjectInfoX<IDirectInputDevice8A, LPDIDEVICEOBJECTINSTANCEA>(pdidoi, dwObj, dwHow);
+	}
+	STDMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
+	{
+		return GetObjectInfoX<IDirectInputDevice8W, LPDIDEVICEOBJECTINSTANCEW>(pdidoi, dwObj, dwHow);
+	}
+	STDMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEA pdidi)
+	{
+		return GetDeviceInfoX<IDirectInputDevice8A, LPDIDEVICEINSTANCEA>(pdidi);
+	}
+	STDMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEW pdidi)
+	{
+		return GetDeviceInfoX<IDirectInputDevice8W, LPDIDEVICEINSTANCEW>(pdidi);
+	}
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
 	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD, REFGUID);
 
 	/*** IDirectInputDevice2 methods ***/
 	STDMETHOD(CreateEffect)(THIS_ REFGUID, LPCDIEFFECT, LPDIRECTINPUTEFFECT *, LPUNKNOWN);
-	STDMETHOD(EnumEffectsA)(THIS_ LPDIENUMEFFECTSCALLBACKA, LPVOID, DWORD);
-	STDMETHOD(EnumEffectsW)(THIS_ LPDIENUMEFFECTSCALLBACKW, LPVOID, DWORD);
-	STDMETHOD(GetEffectInfoA)(THIS_ LPDIEFFECTINFOA, REFGUID);
-	STDMETHOD(GetEffectInfoW)(THIS_ LPDIEFFECTINFOW, REFGUID);
+	STDMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
+	{
+		return EnumEffectsX<IDirectInputDevice8A, LPDIENUMEFFECTSCALLBACKA>(lpCallback, pvRef, dwEffType);
+	}
+	STDMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
+	{
+		return EnumEffectsX<IDirectInputDevice8W, LPDIENUMEFFECTSCALLBACKW>(lpCallback, pvRef, dwEffType);
+	}
+	STDMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOA pdei, REFGUID rguid)
+	{
+		return GetEffectInfoX<IDirectInputDevice8A, LPDIEFFECTINFOA>(pdei, rguid);
+	}
+	STDMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOW pdei, REFGUID rguid)
+	{
+		return GetEffectInfoX<IDirectInputDevice8W, LPDIEFFECTINFOW>(pdei, rguid);
+	}
 	STDMETHOD(GetForceFeedbackState)(THIS_ LPDWORD);
 	STDMETHOD(SendForceFeedbackCommand)(THIS_ DWORD);
 	STDMETHOD(EnumCreatedEffectObjects)(THIS_ LPDIENUMCREATEDEFFECTOBJECTSCALLBACK, LPVOID, DWORD);
@@ -138,10 +189,22 @@ public:
 	STDMETHOD(SendDeviceData)(THIS_ DWORD, LPCDIDEVICEOBJECTDATA, LPDWORD, DWORD);
 
 	/*** IDirectInputDevice7 methods ***/
-	STDMETHOD(EnumEffectsInFileA)(THIS_ LPCSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
-	STDMETHOD(EnumEffectsInFileW)(THIS_ LPCWSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
-	STDMETHOD(WriteEffectToFileA)(THIS_ LPCSTR, DWORD, LPDIFILEEFFECT, DWORD);
-	STDMETHOD(WriteEffectToFileW)(THIS_ LPCWSTR, DWORD, LPDIFILEEFFECT, DWORD);
+	STDMETHOD(EnumEffectsInFile)(THIS_ LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumEffectsInFileX<IDirectInputDevice8A, LPCSTR>(lpszFileName, pec, pvRef, dwFlags);
+	}
+	STDMETHOD(EnumEffectsInFile)(THIS_ LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	{
+		return EnumEffectsInFileX<IDirectInputDevice8W, LPCWSTR>(lpszFileName, pec, pvRef, dwFlags);
+	}
+	STDMETHOD(WriteEffectToFile)(THIS_ LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	{
+		return WriteEffectToFileX<IDirectInputDevice8A, LPCSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+	}
+	STDMETHOD(WriteEffectToFile)(THIS_ LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	{
+		return WriteEffectToFileX<IDirectInputDevice8W, LPCWSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+	}
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);

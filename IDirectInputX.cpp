@@ -61,7 +61,10 @@ ULONG m_IDirectInputX::Release()
 	return ref;
 }
 
-HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+template <class T, class V, class D>
+HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
@@ -86,12 +89,12 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 		// The fix: Call DirectInput's EnumDevices, then sort the results in
 		// an order where gamepads come first, then give them to Rayman 2.
 
-		typedef std::list<DIDEVICEINSTANCEA> DeviceInstanceList;
+		typedef std::list<D> DeviceInstanceList;
 		struct DeviceEnumerator
 		{
 			DeviceInstanceList devices;
 
-			static BOOL CALLBACK Callback(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
+			static BOOL CALLBACK Callback(const D *lpddi, LPVOID pvRef)
 			{
 				DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
 				self->devices.push_back(*lpddi);
@@ -111,15 +114,15 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 			}
 		};
 
-		DeviceEnumerator joystickDevices;
-		HRESULT hr = GetProxyInterfaceA()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &joystickDevices, dwFlags);
+		DeviceEnumerator gameDevices;
+		HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &gameDevices, dwFlags);
 		if (FAILED(hr))
 		{
 			return hr;
 		}
 
 		DeviceEnumerator allDevices;
-		hr = GetProxyInterfaceA()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
+		hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
 		if (FAILED(hr))
 		{
 			return hr;
@@ -128,7 +131,7 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 		DeviceInstanceList sortedDevices;
 
 		// Add all devices in gameDevices
-		for (DeviceInstanceList::const_iterator it = joystickDevices.devices.begin(); it != joystickDevices.devices.end(); ++it)
+		for (DeviceInstanceList::const_iterator it = gameDevices.devices.begin(); it != gameDevices.devices.end(); ++it)
 		{
 			sortedDevices.push_back(*it);
 		}
@@ -136,7 +139,7 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 		// Then, add all devices in allDevices that aren't in gameDevices
 		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
 		{
-			if (!joystickDevices.Contains(it->guidInstance))
+			if (!gameDevices.Contains(it->guidInstance))
 			{
 				sortedDevices.push_back(*it);
 			}
@@ -149,7 +152,7 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
 		{
 			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
-			if (m_IDirectInputEnumDevice::EnumDeviceCallbackA(&*it, &CallbackContext) == DIENUM_STOP)
+			if (m_IDirectInputEnumDevice::EnumDeviceCallback(&*it, &CallbackContext) == DIENUM_STOP)
 			{
 				break;
 			}
@@ -162,111 +165,7 @@ HRESULT m_IDirectInputX::EnumDevicesA(DWORD dwDevType, LPDIENUMDEVICESCALLBACKA 
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
 
-	return GetProxyInterfaceA()->EnumDevices(dwDevType, m_IDirectInputEnumDevice::EnumDeviceCallbackA, &CallbackContext, dwFlags);
-}
-
-HRESULT m_IDirectInputX::EnumDevicesW(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	if (!lpCallback)
-	{
-		return DIERR_INVALIDPARAM;
-	}
-
-	// Reorder to send game devices first
-	if (dwDevType == DI8DEVCLASS_ALL)
-	{
-		// Instead of directly calling the ProxyInterface here, we are adding some extra code to sort the devices. This is an exclusive fix
-		// for a known bug in Rayman 2 that would prevent any gamepad from working. The fix has been extracted from this old VS 2010 project:
-		// https://code.google.com/archive/p/noser-sandbox/source/default/source
-		// There is only one download link with a zip file containing other projects too. You will find the extracted code in the
-		// Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
-		// Thanks to Nolan Check for the fix!
-
-		// The bug: Rayman 2 expects EnumDevices to give results in a certain
-		// order, where gamepads come before the keyboard. DirectInput makes
-		// no guarantee about the order.
-		// The fix: Call DirectInput's EnumDevices, then sort the results in
-		// an order where gamepads come first, then give them to Rayman 2.
-
-		typedef std::list<DIDEVICEINSTANCEW> DeviceInstanceList;
-		struct DeviceEnumerator
-		{
-			DeviceInstanceList devices;
-
-			static BOOL CALLBACK Callback(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef)
-			{
-				DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
-				self->devices.push_back(*lpddi);
-				return DIENUM_CONTINUE;
-			}
-
-			bool Contains(const GUID& guidInstance)
-			{
-				for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
-				{
-					if (it->guidInstance == guidInstance)
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-		};
-
-		DeviceEnumerator joystickDevices;
-		HRESULT hr = GetProxyInterfaceW()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &joystickDevices, dwFlags);
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
-		DeviceEnumerator allDevices;
-		hr = GetProxyInterfaceW()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
-		DeviceInstanceList sortedDevices;
-
-		// Add all devices in gameDevices
-		for (DeviceInstanceList::const_iterator it = joystickDevices.devices.begin(); it != joystickDevices.devices.end(); ++it)
-		{
-			sortedDevices.push_back(*it);
-		}
-
-		// Then, add all devices in allDevices that aren't in gameDevices
-		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
-		{
-			if (!joystickDevices.Contains(it->guidInstance))
-			{
-				sortedDevices.push_back(*it);
-			}
-		}
-
-		ENUMDEVICE CallbackContext;
-		CallbackContext.pvRef = pvRef;
-		CallbackContext.lpCallback = lpCallback;
-
-		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
-		{
-			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
-			if (m_IDirectInputEnumDevice::EnumDeviceCallbackW(&*it, &CallbackContext) == DIENUM_STOP)
-			{
-				break;
-			}
-		}
-
-		return DI_OK;
-	}
-
-	ENUMDEVICE CallbackContext;
-	CallbackContext.pvRef = pvRef;
-	CallbackContext.lpCallback = lpCallback;
-
-	return GetProxyInterfaceW()->EnumDevices(dwDevType, m_IDirectInputEnumDevice::EnumDeviceCallbackW, &CallbackContext, dwFlags);
+	return GetProxyInterface<T>()->EnumDevices(dwDevType, m_IDirectInputEnumDevice::EnumDeviceCallback, &CallbackContext, dwFlags);
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)
@@ -297,47 +196,30 @@ HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 	return hr;
 }
 
-HRESULT m_IDirectInputX::FindDeviceA(REFGUID rguidClass, LPCSTR ptszName, LPGUID pguidInstance)
+template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8A, LPCSTR>(REFGUID, LPCSTR, LPGUID);
+template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8W, LPCWSTR>(REFGUID, LPCWSTR, LPGUID);
+template <class T, class V>
+HRESULT m_IDirectInputX::FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceA()->FindDevice(rguidClass, ptszName, pguidInstance);
+	return GetProxyInterface<T>()->FindDevice(rguidClass, ptszName, pguidInstance);
 }
 
-HRESULT m_IDirectInputX::FindDeviceW(REFGUID rguidClass, LPCWSTR ptszName, LPGUID pguidInstance)
+template HRESULT m_IDirectInputX::CreateDeviceExX<IDirectInput8A, LPDIRECTINPUTDEVICE8A>(REFGUID, REFIID, LPDIRECTINPUTDEVICE8A*, LPUNKNOWN);
+template HRESULT m_IDirectInputX::CreateDeviceExX<IDirectInput8W, LPDIRECTINPUTDEVICE8W>(REFGUID, REFIID, LPDIRECTINPUTDEVICE8W*, LPUNKNOWN);
+template <class T, class V>
+HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceW()->FindDevice(rguidClass, ptszName, pguidInstance);
-}
-
-HRESULT m_IDirectInputX::CreateDeviceExA(REFGUID rguid, REFIID riid, LPDIRECTINPUTDEVICE8A *ppvObj, LPUNKNOWN pUnkOuter)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	HRESULT hr = GetProxyInterfaceA()->CreateDevice(rguid, ppvObj, pUnkOuter);
+	HRESULT hr = GetProxyInterface<T>()->CreateDevice(rguid, ppvObj, pUnkOuter);
 
 	if (SUCCEEDED(hr) && ppvObj)
 	{
 		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
 
-		*ppvObj = (LPDIRECTINPUTDEVICE8A)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
-	}
-
-	return hr;
-}
-
-HRESULT m_IDirectInputX::CreateDeviceExW(REFGUID rguid, REFIID riid, LPDIRECTINPUTDEVICE8W *ppvObj, LPUNKNOWN pUnkOuter)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	HRESULT hr = GetProxyInterfaceW()->CreateDevice(rguid, ppvObj, pUnkOuter);
-
-	if (SUCCEEDED(hr) && ppvObj)
-	{
-		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
-
-		*ppvObj = (LPDIRECTINPUTDEVICE8W)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
+		*ppvObj = (V)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}
 
 	return hr;

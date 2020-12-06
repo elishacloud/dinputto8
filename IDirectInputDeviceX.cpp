@@ -77,18 +77,14 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 	return ProxyInterface->GetCapabilities(lpDIDevCaps);
 }
 
-HRESULT m_IDirectInputDeviceX::EnumObjectsA(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
+template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA>(LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW>(LPDIENUMDEVICEOBJECTSCALLBACKW, LPVOID, DWORD);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceA()->EnumObjects(lpCallback, pvRef, dwFlags);
-}
-
-HRESULT m_IDirectInputDeviceX::EnumObjectsW(LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	return GetProxyInterfaceW()->EnumObjects(lpCallback, pvRef, dwFlags);
+	return GetProxyInterface<T>()->EnumObjects(lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInputDeviceX::GetProperty(REFGUID rguidProp, LPDIPROPHEADER pdiph)
@@ -268,39 +264,24 @@ HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 	return hr;
 }
 
-HRESULT m_IDirectInputDeviceX::GetObjectInfoA(LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
+template HRESULT m_IDirectInputDeviceX::GetObjectInfoX<IDirectInputDevice8A, LPDIDEVICEOBJECTINSTANCEA>(LPDIDEVICEOBJECTINSTANCEA, DWORD, DWORD);
+template HRESULT m_IDirectInputDeviceX::GetObjectInfoX<IDirectInputDevice8W, LPDIDEVICEOBJECTINSTANCEW>(LPDIDEVICEOBJECTINSTANCEW, DWORD, DWORD);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::GetObjectInfoX(V pdidoi, DWORD dwObj, DWORD dwHow)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceA()->GetObjectInfo(pdidoi, dwObj, dwHow);
+	return GetProxyInterface<T>()->GetObjectInfo(pdidoi, dwObj, dwHow);
 }
 
-HRESULT m_IDirectInputDeviceX::GetObjectInfoW(LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
+template HRESULT m_IDirectInputDeviceX::GetDeviceInfoX<IDirectInputDevice8A, LPDIDEVICEINSTANCEA>(LPDIDEVICEINSTANCEA);
+template HRESULT m_IDirectInputDeviceX::GetDeviceInfoX<IDirectInputDevice8W, LPDIDEVICEINSTANCEW>(LPDIDEVICEINSTANCEW);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::GetDeviceInfoX(V pdidi)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceW()->GetObjectInfo(pdidoi, dwObj, dwHow);
-}
-
-HRESULT m_IDirectInputDeviceX::GetDeviceInfoA(LPDIDEVICEINSTANCEA pdidi)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	HRESULT hr = GetProxyInterfaceA()->GetDeviceInfo(pdidi);
-
-	if (SUCCEEDED(hr) && pdidi && pdidi->dwSize)
-	{
-		pdidi->dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(pdidi->dwDevType));
-	}
-
-	return hr;
-}
-
-HRESULT m_IDirectInputDeviceX::GetDeviceInfoW(LPDIDEVICEINSTANCEW pdidi)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	HRESULT hr = GetProxyInterfaceW()->GetDeviceInfo(pdidi);
+	HRESULT hr = GetProxyInterface<T>()->GetDeviceInfo(pdidi);
 
 	if (SUCCEEDED(hr) && pdidi && pdidi->dwSize)
 	{
@@ -338,32 +319,24 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	return hr;
 }
 
-HRESULT m_IDirectInputDeviceX::EnumEffectsA(LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
+template HRESULT m_IDirectInputDeviceX::EnumEffectsX<IDirectInputDevice8A, LPDIENUMEFFECTSCALLBACKA>(LPDIENUMEFFECTSCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputDeviceX::EnumEffectsX<IDirectInputDevice8W, LPDIENUMEFFECTSCALLBACKW>(LPDIENUMEFFECTSCALLBACKW, LPVOID, DWORD);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::EnumEffectsX(V lpCallback, LPVOID pvRef, DWORD dwEffType)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceA()->EnumEffects(lpCallback, pvRef, dwEffType);
+	return GetProxyInterface<T>()->EnumEffects(lpCallback, pvRef, dwEffType);
 }
 
-HRESULT m_IDirectInputDeviceX::EnumEffectsW(LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
+template HRESULT m_IDirectInputDeviceX::GetEffectInfoX<IDirectInputDevice8A, LPDIEFFECTINFOA>(LPDIEFFECTINFOA, REFGUID);
+template HRESULT m_IDirectInputDeviceX::GetEffectInfoX<IDirectInputDevice8W, LPDIEFFECTINFOW>(LPDIEFFECTINFOW, REFGUID);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::GetEffectInfoX(V pdei, REFGUID rguid)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceW()->EnumEffects(lpCallback, pvRef, dwEffType);
-}
-
-HRESULT m_IDirectInputDeviceX::GetEffectInfoA(LPDIEFFECTINFOA pdei, REFGUID rguid)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	return GetProxyInterfaceA()->GetEffectInfo(pdei, rguid);
-}
-
-HRESULT m_IDirectInputDeviceX::GetEffectInfoW(LPDIEFFECTINFOW pdei, REFGUID rguid)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	return GetProxyInterfaceW()->GetEffectInfo(pdei, rguid);
+	return GetProxyInterface<T>()->GetEffectInfo(pdei, rguid);
 }
 
 HRESULT m_IDirectInputDeviceX::GetForceFeedbackState(LPDWORD pdwOut)
@@ -445,30 +418,22 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	return hr;
 }
 
-HRESULT m_IDirectInputDeviceX::EnumEffectsInFileA(LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+template HRESULT m_IDirectInputDeviceX::EnumEffectsInFileX<IDirectInputDevice8A, LPCSTR>(LPCSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
+template HRESULT m_IDirectInputDeviceX::EnumEffectsInFileX<IDirectInputDevice8W, LPCWSTR>(LPCWSTR, LPDIENUMEFFECTSINFILECALLBACK, LPVOID, DWORD);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::EnumEffectsInFileX(V lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceA()->EnumEffectsInFile(lpszFileName, pec, pvRef, dwFlags);
+	return GetProxyInterface<T>()->EnumEffectsInFile(lpszFileName, pec, pvRef, dwFlags);
 }
 
-HRESULT m_IDirectInputDeviceX::EnumEffectsInFileW(LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+template HRESULT m_IDirectInputDeviceX::WriteEffectToFileX<IDirectInputDevice8A, LPCSTR>(LPCSTR, DWORD, LPDIFILEEFFECT, DWORD);
+template HRESULT m_IDirectInputDeviceX::WriteEffectToFileX<IDirectInputDevice8W, LPCWSTR>(LPCWSTR, DWORD, LPDIFILEEFFECT, DWORD);
+template <class T, class V>
+HRESULT m_IDirectInputDeviceX::WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
 
-	return GetProxyInterfaceW()->EnumEffectsInFile(lpszFileName, pec, pvRef, dwFlags);
-}
-
-HRESULT m_IDirectInputDeviceX::WriteEffectToFileA(LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	return GetProxyInterfaceA()->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
-}
-
-HRESULT m_IDirectInputDeviceX::WriteEffectToFileW(LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
-{
-	Logging::LogDebug() << __FUNCTION__ << "(" << this << ")";
-
-	return GetProxyInterfaceW()->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+	return GetProxyInterface<T>()->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
 }

@@ -28,30 +28,19 @@ BOOL CALLBACK m_IDirectInputEnumEffect::EnumEffectCallback(LPDIRECTINPUTEFFECT p
 	return lpCallbackContext->lpCallback(pdeff, lpCallbackContext->pvRef);
 }
 
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackA(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef)
+template BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackX<IDirectInput8A, DIDEVICEINSTANCEA, LPDIENUMDEVICESCALLBACKA>(LPCDIDEVICEINSTANCEA lpddi, LPVOID pvRef);
+template BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackX<IDirectInput8W, DIDEVICEINSTANCEW, LPDIENUMDEVICESCALLBACKW>(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef);
+template <class T, class V, class D>
+BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackX(const V *lpddi, LPVOID pvRef)
 {
 	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
 
-	DIDEVICEINSTANCEA DI;
+	V DI;
 	CopyMemory(&DI, lpddi, lpddi->dwSize);
 
 	DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
 		ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
 		ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
 
-	return ((LPDIENUMDEVICESCALLBACKA)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
-}
-
-BOOL CALLBACK m_IDirectInputEnumDevice::EnumDeviceCallbackW(LPCDIDEVICEINSTANCEW lpddi, LPVOID pvRef)
-{
-	ENUMDEVICE *lpCallbackContext = (ENUMDEVICE*)pvRef;
-
-	DIDEVICEINSTANCEW DI;
-	CopyMemory(&DI, lpddi, lpddi->dwSize);
-
-	DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
-		ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
-		ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
-
-	return ((LPDIENUMDEVICESCALLBACKW)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
+	return ((D)lpCallbackContext->lpCallback)(&DI, lpCallbackContext->pvRef);
 }
