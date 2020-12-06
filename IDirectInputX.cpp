@@ -73,6 +73,50 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		return DIERR_INVALIDPARAM;
 	}
 
+	// Callback structure
+	typedef std::list<D> DeviceInstanceList;
+	struct DeviceEnumerator
+	{
+		DeviceInstanceList devices;
+		V lpCallback;
+		LPVOID pvRef;
+
+		bool Contains(const GUID& guidInstance)
+		{
+			for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
+			{
+				if (it->guidInstance == guidInstance)
+				{
+					return true;
+				}
+			}
+			return false;
+		}
+
+		static BOOL CALLBACK StoreCallback(const D *lpddi, LPVOID pvRef)
+		{
+			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+			self->devices.push_back(*lpddi);
+			return DIENUM_CONTINUE;
+		}
+
+		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
+		{
+			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+
+			D DI;
+			CopyMemory(&DI, lpddi, lpddi->dwSize);
+
+			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
+				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
+				ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
+
+			return self->lpCallback(&DI, self->pvRef);
+		}
+	} CallbackContext;
+	CallbackContext.pvRef = pvRef;
+	CallbackContext.lpCallback = lpCallback;
+
 	// Reorder to send game devices first
 	if (dwDevType == DI8DEVCLASS_ALL)
 	{
@@ -89,70 +133,45 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		// The fix: Call DirectInput's EnumDevices, then sort the results in
 		// an order where gamepads come first, then give them to Rayman 2.
 
-		typedef std::list<D> DeviceInstanceList;
-		struct DeviceEnumerator
-		{
-			DeviceInstanceList devices;
-
-			static BOOL CALLBACK Callback(const D *lpddi, LPVOID pvRef)
-			{
-				DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
-				self->devices.push_back(*lpddi);
-				return DIENUM_CONTINUE;
-			}
-
-			bool Contains(const GUID& guidInstance)
-			{
-				for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
-				{
-					if (it->guidInstance == guidInstance)
-					{
-						return true;
-					}
-				}
-				return false;
-			}
-		};
-
-		DeviceEnumerator gameDevices;
-		HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::Callback, &gameDevices, dwFlags);
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
-		DeviceEnumerator allDevices;
-		hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::Callback, &allDevices, dwFlags);
-		if (FAILED(hr))
-		{
-			return hr;
-		}
-
+		// Get devices and sort them
 		DeviceInstanceList sortedDevices;
-
-		// Add all devices in gameDevices
-		for (DeviceInstanceList::const_iterator it = gameDevices.devices.begin(); it != gameDevices.devices.end(); ++it)
 		{
-			sortedDevices.push_back(*it);
-		}
+			DeviceEnumerator gameDevices;
+			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::StoreCallback, &gameDevices, dwFlags);
+			if (FAILED(hr))
+			{
+				return hr;
+			}
 
-		// Then, add all devices in allDevices that aren't in gameDevices
-		for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
-		{
-			if (!gameDevices.Contains(it->guidInstance))
+			DeviceEnumerator allDevices;
+			hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::StoreCallback, &allDevices, dwFlags);
+			if (FAILED(hr))
+			{
+				return hr;
+			}
+
+			// Add all devices in gameDevices
+			for (DeviceInstanceList::const_iterator it = gameDevices.devices.begin(); it != gameDevices.devices.end(); ++it)
 			{
 				sortedDevices.push_back(*it);
 			}
+
+			// Then, add all devices in allDevices that aren't in gameDevices
+			for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
+			{
+				if (!gameDevices.Contains(it->guidInstance))
+				{
+					sortedDevices.push_back(*it);
+				}
+			}
 		}
 
-		ENUMDEVICE CallbackContext;
-		CallbackContext.pvRef = pvRef;
-		CallbackContext.lpCallback = lpCallback;
-
+		// Execute Callback
 		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
 		{
 			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
-			if (m_IDirectInputEnumDevice::EnumDeviceCallback(&*it, &CallbackContext) == DIENUM_STOP)
+
+			if (DeviceEnumerator::EnumDeviceCallback(&*it, &CallbackContext) == DIENUM_STOP)
 			{
 				break;
 			}
@@ -161,11 +180,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		return DI_OK;
 	}
 
-	ENUMDEVICE CallbackContext;
-	CallbackContext.pvRef = pvRef;
-	CallbackContext.lpCallback = lpCallback;
-
-	return GetProxyInterface<T>()->EnumDevices(dwDevType, m_IDirectInputEnumDevice::EnumDeviceCallback, &CallbackContext, dwFlags);
+	return GetProxyInterface<T>()->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)

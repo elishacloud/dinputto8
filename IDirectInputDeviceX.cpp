@@ -362,11 +362,28 @@ HRESULT m_IDirectInputDeviceX::EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJ
 		return DIERR_INVALIDPARAM;
 	}
 
-	ENUMEFFECT CallbackContext;
+	// Callback structure
+	struct EffectEnumerator
+	{
+		LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback;
+		LPVOID pvRef;
+
+		static BOOL CALLBACK EnumEffectCallback(LPDIRECTINPUTEFFECT pdeff, LPVOID pvRef)
+		{
+			EffectEnumerator* self = (EffectEnumerator*)pvRef;
+
+			if (pdeff)
+			{
+				pdeff = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(pdeff);
+			}
+
+			return self->lpCallback(pdeff, self->pvRef);
+		}
+	} CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
 
-	return ProxyInterface->EnumCreatedEffectObjects(m_IDirectInputEnumEffect::EnumEffectCallback, &CallbackContext, fl);
+	return ProxyInterface->EnumCreatedEffectObjects(EffectEnumerator::EnumEffectCallback, &CallbackContext, fl);
 }
 
 HRESULT m_IDirectInputDeviceX::Escape(LPDIEFFESCAPE pesc)

@@ -20,7 +20,6 @@ class m_IDirectInputDevice2W;
 class m_IDirectInputDevice7A;
 class m_IDirectInputDevice7W;
 class m_IDirectInputEffect;
-class m_IDirectInputEnumEffect;
 class m_IDirectInputX;
 class m_IDirectInputDeviceX;
 
@@ -63,7 +62,6 @@ using namespace dinputto8;
 #include "Versions\IDirectInputDevice7A.h"
 #include "Versions\IDirectInputDevice7W.h"
 #include "IDirectInputEffect.h"
-#include "IDirectInputEnum.h"
 #include "IDirectInputTypes.h"
 #include "IDirectInputX.h"
 #include "IDirectInputDeviceX.h"

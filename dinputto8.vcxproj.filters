@@ -49,7 +49,6 @@
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="IDirectInputTypes.cpp" />
-    <ClCompile Include="IDirectInputEnum.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDirectInputEffect.h" />
@@ -101,7 +100,6 @@
       <Filter>Logging</Filter>
     </ClInclude>
     <ClInclude Include="IDirectInputTypes.h" />
-    <ClInclude Include="IDirectInputEnum.h" />
     <ClInclude Include="ditypes.h" />
   </ItemGroup>
   <ItemGroup>
