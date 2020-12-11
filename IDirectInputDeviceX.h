@@ -93,8 +93,6 @@ public:
 
 		// Initialize Critical Section
 		InitializeCriticalSection(&dics);
-
-		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputDeviceX()
 	{
@@ -115,8 +113,6 @@ public:
 
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
-
-		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/

@@ -62,8 +62,6 @@ public:
 			WrapperInterface2 = new m_IDirectInput2W((LPDIRECTINPUT2W)ProxyInterface, this);
 			WrapperInterface7 = new m_IDirectInput7W((LPDIRECTINPUT7W)ProxyInterface, this);
 		}
-
-		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputX()
 	{
@@ -81,8 +79,6 @@ public:
 			((m_IDirectInput2W*)WrapperInterface2)->DeleteMe();
 			((m_IDirectInput7W*)WrapperInterface7)->DeleteMe();
 		}
-
-		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/
