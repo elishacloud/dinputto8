@@ -55,6 +55,7 @@
       <WarningLevel>Level4</WarningLevel>
       <ObjectFileName>$(SolutionDir)bin\Intermediate\$(Configuration)\Object\%(RelativeDir)</ObjectFileName>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
