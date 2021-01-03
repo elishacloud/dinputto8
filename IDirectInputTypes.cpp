@@ -90,3 +90,33 @@ DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevSubType)
 		return DIDEVTYPEJOYSTICK_UNKNOWN;
 	}
 }
+
+void ConvertEffect(DIEFFECT &eff1, const DIEFFECT &eff2)
+{
+	// Check for supported dwSize
+	if (eff1.dwSize != sizeof(DIEFFECT) || (eff2.dwSize != sizeof(DIEFFECT) && eff2.dwSize != sizeof(DIEFFECT_DX5)))
+	{
+		LOG_LIMIT(100, __FUNCTION__ << " Error: Incorrect Size: " << eff1.dwSize << " " << eff2.dwSize);
+		return;
+	}
+	// Prepare destination structure
+	ZeroMemory(&eff1, sizeof(DIEFFECT));
+	eff1.dwSize = sizeof(DIEFFECT);
+	// Convert varables
+	eff1.dwFlags = eff2.dwFlags;
+	eff1.dwDuration = eff2.dwDuration;
+	eff1.dwSamplePeriod = eff2.dwSamplePeriod;
+	eff1.dwGain = eff2.dwGain;
+	eff1.dwTriggerButton = eff2.dwTriggerButton;
+	eff1.dwTriggerRepeatInterval = eff2.dwTriggerRepeatInterval;
+	eff1.cAxes = eff2.cAxes;
+	eff1.rgdwAxes = eff2.rgdwAxes;
+	eff1.rglDirection = eff2.rglDirection;
+	eff1.lpEnvelope = eff2.lpEnvelope;
+	eff1.cbTypeSpecificParams = eff2.cbTypeSpecificParams;
+	eff1.lpvTypeSpecificParams = eff2.lpvTypeSpecificParams;
+	if (eff2.dwSize == sizeof(DIEFFECT))
+	{
+		eff1.dwStartDelay = eff2.dwStartDelay;
+	}
+}

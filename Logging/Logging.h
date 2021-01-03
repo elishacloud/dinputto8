@@ -8,6 +8,8 @@
 #include "External\Logging\Logging.h"
 #endif
 
+typedef enum _DIERR { } DIERR;
+
 #ifdef DINPUTTO8NOLOG
 
 #define LOG_ONCE(msg)
@@ -61,8 +63,13 @@ extern std::ofstream LOG;
 #endif
 
 void LogDataFormat(LPCDIDATAFORMAT lpdf);
+std::ostream& operator<<(std::ostream& os, DIEFFECT df);
+std::ostream& operator<<(std::ostream& os, LPCDIEFFECT lpdf);
+std::ostream& operator<<(std::ostream& os, DIENVELOPE df);
+std::ostream& operator<<(std::ostream& os, LPDIENVELOPE lpdf);
 std::ostream& operator<<(std::ostream& os, DIDATAFORMAT df);
 std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf);
 std::ostream& operator<<(std::ostream& os, DIOBJECTDATAFORMAT odf);
 std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf);
+std::ostream& operator<<(std::ostream& os, const DIERR& ErrCode);
 std::ostream& operator<<(std::ostream& os, REFIID riid);

@@ -309,6 +309,14 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	DIEFFECT eff;
+	eff.dwSize = sizeof(DIEFFECT);
+	if (lpeff)
+	{
+		ConvertEffect(eff, *lpeff);
+		lpeff = &eff;
+	}
+
 	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, punkOuter);
 
 	if (SUCCEEDED(hr) && ppdeff)

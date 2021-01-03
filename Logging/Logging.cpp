@@ -15,6 +15,56 @@
 */
 
 #include "..\dinputto8.h"
+#include "Logging.h"
+
+std::ostream& operator<<(std::ostream& os, DIEFFECT deff)
+{
+	return Logging::LogStruct(os) <<
+		" dwSize:" << deff.dwSize <<
+		" dwFlags:" << Logging::hex(deff.dwFlags) <<
+		" dwDuration:" << deff.dwDuration <<
+		" dwSamplePeriod:" << deff.dwSamplePeriod <<
+		" dwGain:" << deff.dwGain <<
+		" dwTriggerButton:" << deff.dwTriggerButton <<
+		" dwTriggerRepeatInterval:" << deff.dwTriggerRepeatInterval <<
+		" cAxes:" << deff.cAxes <<
+		" rgdwAxes:" << deff.rgdwAxes <<
+		" rglDirection:" << deff.rglDirection <<
+		" lpEnvelope:" << deff.lpEnvelope <<
+		" cbTypeSpecificParams:" << deff.cbTypeSpecificParams <<
+		" lpvTypeSpecificParams:" << deff.lpvTypeSpecificParams <<
+		((deff.dwSize == sizeof(DIEFFECT)) ? " lpvTypeSpecificParams:" : " ") << ((deff.dwSize == sizeof(DIEFFECT)) ? deff.lpvTypeSpecificParams : nullptr);
+}
+
+std::ostream& operator<<(std::ostream& os, LPCDIEFFECT lpdeff)
+{
+	if (!lpdeff)
+	{
+		return os << (void*)lpdeff;
+	}
+
+	return os << *lpdeff;
+}
+
+std::ostream& operator<<(std::ostream& os, DIENVELOPE de)
+{
+	return Logging::LogStruct(os) <<
+		" dwSize:" << de.dwSize <<
+		" dwAttackLevel:" << de.dwAttackLevel <<
+		" dwAttackTime:" << de.dwAttackTime <<
+		" dwFadeLevel:" << de.dwFadeLevel <<
+		" dwFadeTime:" << de.dwFadeTime;
+}
+
+std::ostream& operator<<(std::ostream& os, LPDIENVELOPE lpde)
+{
+	if (!lpde)
+	{
+		return os << (void*)lpde;
+	}
+
+	return os << *lpde;
+}
 
 void LogDataFormat(LPCDIDATAFORMAT lpdf)
 {
@@ -32,11 +82,11 @@ void LogDataFormat(LPCDIDATAFORMAT lpdf)
 std::ostream& operator<<(std::ostream& os, DIDATAFORMAT df)
 {
 	return Logging::LogStruct(os) <<
-		" ObjSize: " << df.dwObjSize <<
-		" Flags: " << df.dwFlags <<
-		" DataSize: " << df.dwDataSize <<
-		" NumObj: " << df.dwNumObjs <<
-		" Addr: " << Logging::hex((void*)df.rgodf);
+		" ObjSize:" << df.dwObjSize <<
+		" Flags:" << df.dwFlags <<
+		" DataSize:" << df.dwDataSize <<
+		" NumObj:" << df.dwNumObjs <<
+		" Addr:" << Logging::hex((void*)df.rgodf);
 }
 
 std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf)
@@ -52,10 +102,10 @@ std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf)
 std::ostream& operator<<(std::ostream& os, DIOBJECTDATAFORMAT odf)
 {
 	return Logging::LogStruct(os) <<
-		" GUID: " << odf.pguid <<
-		" Offset: " << odf.dwOfs <<
-		" Type: " << Logging::hex(odf.dwType) <<
-		" Flags: " << odf.dwFlags;
+		" GUID:" << odf.pguid <<
+		" Offset:" << odf.dwOfs <<
+		" Type:" << Logging::hex(odf.dwType) <<
+		" Flags:" << odf.dwFlags;
 }
 
 std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf)
@@ -146,4 +196,67 @@ std::ostream& operator<<(std::ostream& os, REFIID riid)
 		<< Logging::hex((UINT)riid.Data4[5])
 		<< Logging::hex((UINT)riid.Data4[6])
 		<< Logging::hex((UINT)riid.Data4[7]);
+}
+
+std::ostream& operator<<(std::ostream& os, const DIERR& ErrCode)
+{
+#define VISIT_DIERR_CODES(visit) \
+	visit(DI_OK) \
+	visit(DI_POLLEDDEVICE) \
+	visit(DI_DOWNLOADSKIPPED) \
+	visit(DI_EFFECTRESTARTED) \
+	visit(DI_TRUNCATED) \
+	visit(DI_SETTINGSNOTSAVED) \
+	visit(DI_TRUNCATEDANDRESTARTED) \
+	visit(DI_WRITEPROTECT) \
+	visit(DIERR_OLDDIRECTINPUTVERSION) \
+	visit(DIERR_BETADIRECTINPUTVERSION) \
+	visit(DIERR_BADDRIVERVER) \
+	visit(DIERR_DEVICENOTREG) \
+	visit(DIERR_NOTFOUND) \
+	visit(DIERR_OBJECTNOTFOUND) \
+	visit(DIERR_INVALIDPARAM) \
+	visit(DIERR_NOINTERFACE) \
+	visit(DIERR_GENERIC) \
+	visit(DIERR_OUTOFMEMORY) \
+	visit(DIERR_UNSUPPORTED) \
+	visit(DIERR_NOTINITIALIZED) \
+	visit(DIERR_ALREADYINITIALIZED) \
+	visit(DIERR_NOAGGREGATION) \
+	visit(DIERR_OTHERAPPHASPRIO) \
+	visit(DIERR_INPUTLOST) \
+	visit(DIERR_ACQUIRED) \
+	visit(DIERR_NOTACQUIRED) \
+	visit(DIERR_READONLY) \
+	visit(DIERR_HANDLEEXISTS) \
+	visit(E_PENDING) \
+	visit(DIERR_INSUFFICIENTPRIVS) \
+	visit(DIERR_DEVICEFULL) \
+	visit(DIERR_MOREDATA) \
+	visit(DIERR_NOTDOWNLOADED) \
+	visit(DIERR_HASEFFECTS) \
+	visit(DIERR_NOTEXCLUSIVEACQUIRED) \
+	visit(DIERR_INCOMPLETEEFFECT) \
+	visit(DIERR_NOTBUFFERED) \
+	visit(DIERR_EFFECTPLAYING) \
+	visit(DIERR_UNPLUGGED) \
+	visit(DIERR_REPORTFULL) \
+	visit(DIERR_MAPFILEFAIL) \
+	visit(E_NOINTERFACE) \
+	visit(E_POINTER)
+
+#define VISIT_DIERR_RETURN(x) \
+	if (ErrCode == x) \
+	{ \
+		return os << #x; \
+	}
+	
+	if (ErrCode == S_FALSE)
+	{
+		return os << "'DI_NOTATTACHED' or 'DI_BUFFEROVERFLOW' or 'DI_PROPNOEFFECT' or 'DI_NOEFFECT'";
+	}
+
+	VISIT_DIERR_CODES(VISIT_DIERR_RETURN);
+
+	return os << Logging::hex((DWORD)ErrCode);
 }

@@ -69,6 +69,14 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	DIEFFECT eff;
+	eff.dwSize = sizeof(DIEFFECT);
+	if (peff)
+	{
+		ConvertEffect(eff, *peff);
+		peff = &eff;
+	}
+
 	return ProxyInterface->SetParameters(peff, dwFlags);
 }
 
