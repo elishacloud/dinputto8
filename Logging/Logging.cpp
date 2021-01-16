@@ -17,6 +17,137 @@
 #include "..\dinputto8.h"
 #include "Logging.h"
 
+void LogDataFormat(const DIDATAFORMAT &df)
+{
+	Logging::Log() << "DIDATAFORMAT " << df;
+
+	for (DWORD x = 0; x < df.dwNumObjs; x++)
+	{
+		Logging::Log() << "DIOBJECTDATAFORMAT " << x << " " << df.rgodf[x];
+	}
+}
+
+void LogDataFormat(LPCDIDATAFORMAT lpdf)
+{
+	if (lpdf)
+	{
+		LogDataFormat(*lpdf);
+	}
+}
+
+void LogEffectFormat(const DIEFFECT &eff, REFGUID rguid)
+{
+	Logging::Log() << "DIEFFECT " << eff;
+
+	if (eff.cAxes && eff.rgdwAxes)
+	{
+		DWORD *pAxes = eff.rgdwAxes;
+
+		for (int x = 0; x < (int)eff.cAxes; x++)
+		{
+			Logging::Log() << "DIEFFECT rgdwAxes " << x << ": " << pAxes[x];
+		}
+	}
+
+	if (eff.cAxes && eff.rglDirection)
+	{
+		LONG *pDirection = (LONG*)eff.rglDirection;
+
+		for (int x = 0; x < (int)eff.cAxes; x++)
+		{
+			Logging::Log() << "DIEFFECT rglDirection " << x << ": " << pDirection[x];
+		}
+	}
+
+	if (eff.cbTypeSpecificParams && eff.lpvTypeSpecificParams)
+	{
+		// DIEFT_CONSTANTFORCE
+		if (rguid == GUID_ConstantForce && eff.cbTypeSpecificParams == sizeof(DICONSTANTFORCE))
+		{
+			DICONSTANTFORCE *lSpecificParams = (DICONSTANTFORCE*)eff.lpvTypeSpecificParams;
+
+			Logging::Log() << "DIEFFECT lpvTypeSpecificParams { lMagnitude: " << lSpecificParams->lMagnitude << " }";
+		}
+		// DIEFT_RAMPFORCE
+		else if (rguid == GUID_RampForce && eff.cbTypeSpecificParams == sizeof(DIRAMPFORCE))
+		{
+			DIRAMPFORCE *lSpecificParams = (DIRAMPFORCE*)eff.lpvTypeSpecificParams;
+
+			Logging::Log() << "DIEFFECT lpvTypeSpecificParams {" <<
+				" lStart: " << lSpecificParams->lStart <<
+				" lEnd: " << lSpecificParams->lEnd <<
+				" }";
+		}
+		// DIEFT_PERIODIC
+		else if ((rguid == GUID_Square || rguid == GUID_Sine || rguid == GUID_Triangle || rguid == GUID_SawtoothUp || rguid == GUID_SawtoothDown) && eff.cbTypeSpecificParams == sizeof(DIPERIODIC))
+		{
+			DIPERIODIC *lSpecificParams = (DIPERIODIC*)eff.lpvTypeSpecificParams;
+
+			Logging::Log() << "DIEFFECT lpvTypeSpecificParams {" <<
+				" dwMagnitude: " << lSpecificParams->dwMagnitude <<
+				" lOffset: " << lSpecificParams->lOffset <<
+				" dwPhase: " << lSpecificParams->dwPhase <<
+				" dwPeriod: " << lSpecificParams->dwPeriod <<
+				" }";
+		}
+		// DIEFT_CONDITION
+		else if ((rguid == GUID_Spring || rguid == GUID_Damper || rguid == GUID_Inertia || rguid == GUID_Friction) && eff.cbTypeSpecificParams == sizeof(DICONDITION))
+		{
+			DICONDITION  *lSpecificParams = (DICONDITION *)eff.lpvTypeSpecificParams;
+
+			Logging::Log() << "DIEFFECT lpvTypeSpecificParams {" <<
+				" lOffset: " << lSpecificParams->lOffset <<
+				" lPositiveCoefficient: " << lSpecificParams->lPositiveCoefficient <<
+				" lNegativeCoefficient: " << lSpecificParams->lNegativeCoefficient <<
+				" dwPositiveSaturation: " << lSpecificParams->dwPositiveSaturation <<
+				" dwNegativeSaturation: " << lSpecificParams->dwNegativeSaturation <<
+				" lDeadBand: " << lSpecificParams->lDeadBand <<
+				" }";
+		}
+		// DIEFT_CUSTOMFORCE
+		else if (rguid == GUID_CustomForce && eff.cbTypeSpecificParams == sizeof(DICUSTOMFORCE))
+		{
+			DICUSTOMFORCE *lSpecificParams = (DICUSTOMFORCE*)eff.lpvTypeSpecificParams;
+
+			Logging::Log() << "DIEFFECT lpvTypeSpecificParams {" <<
+				" cChannels: " << lSpecificParams->cChannels <<
+				" dwSamplePeriod: " << lSpecificParams->dwSamplePeriod <<
+				" cSamples: " << lSpecificParams->cSamples <<
+				" rglForceData: " << lSpecificParams->rglForceData <<
+				" }";
+
+			if (lSpecificParams->rglForceData)
+			{
+				for (int x = 0; x < (int)lSpecificParams->cSamples; x++)
+				{
+					Logging::Log() << "DIEFFECT lpvTypeSpecificParams rglForceData " << x << ": " << lSpecificParams->rglForceData[x];
+				}
+			}
+		}
+		// Unknown device
+		else
+		{
+			if (eff.lpvTypeSpecificParams)
+			{
+				DWORD *lSpecificParams = (DWORD*)eff.lpvTypeSpecificParams;
+
+				for (int x = 0; x < (int)(eff.cbTypeSpecificParams / 4); x++)
+				{
+					Logging::Log() << "DIEFFECT lpvTypeSpecificParams " << x << ": " << lSpecificParams[x];
+				}
+			}
+		}
+	}
+}
+
+void LogEffectFormat(LPCDIEFFECT lpeff, REFGUID rguid)
+{
+	if (lpeff)
+	{
+		LogEffectFormat(*lpeff, rguid);
+	}
+}
+
 std::ostream& operator<<(std::ostream& os, DIEFFECT deff)
 {
 	return Logging::LogStruct(os) <<
@@ -33,7 +164,7 @@ std::ostream& operator<<(std::ostream& os, DIEFFECT deff)
 		" lpEnvelope:" << deff.lpEnvelope <<
 		" cbTypeSpecificParams:" << deff.cbTypeSpecificParams <<
 		" lpvTypeSpecificParams:" << deff.lpvTypeSpecificParams <<
-		((deff.dwSize == sizeof(DIEFFECT)) ? " lpvTypeSpecificParams:" : " ") << ((deff.dwSize == sizeof(DIEFFECT)) ? deff.lpvTypeSpecificParams : nullptr);
+		((deff.dwSize == sizeof(DIEFFECT)) ? " dwStartDelay:" : " ") << ((deff.dwSize == sizeof(DIEFFECT)) ? deff.dwStartDelay : 0) << " ";
 }
 
 std::ostream& operator<<(std::ostream& os, LPCDIEFFECT lpdeff)
@@ -53,7 +184,7 @@ std::ostream& operator<<(std::ostream& os, DIENVELOPE de)
 		" dwAttackLevel:" << de.dwAttackLevel <<
 		" dwAttackTime:" << de.dwAttackTime <<
 		" dwFadeLevel:" << de.dwFadeLevel <<
-		" dwFadeTime:" << de.dwFadeTime;
+		" dwFadeTime:" << de.dwFadeTime << " ";
 }
 
 std::ostream& operator<<(std::ostream& os, LPDIENVELOPE lpde)
@@ -66,27 +197,14 @@ std::ostream& operator<<(std::ostream& os, LPDIENVELOPE lpde)
 	return os << *lpde;
 }
 
-void LogDataFormat(LPCDIDATAFORMAT lpdf)
-{
-	if (lpdf && lpdf->dwNumObjs)
-	{
-		Logging::Log() << "DIDATAFORMAT " << lpdf;
-
-		for (DWORD x = 0; x < lpdf->dwNumObjs; x++)
-		{
-			Logging::Log() << "DIOBJECTDATAFORMAT " << x << " " << lpdf->rgodf[x];
-		}
-	}
-}
-
 std::ostream& operator<<(std::ostream& os, DIDATAFORMAT df)
 {
 	return Logging::LogStruct(os) <<
 		" ObjSize:" << df.dwObjSize <<
-		" Flags:" << df.dwFlags <<
+		" Flags:" << Logging::hex(df.dwFlags) <<
 		" DataSize:" << df.dwDataSize <<
 		" NumObj:" << df.dwNumObjs <<
-		" Addr:" << Logging::hex((void*)df.rgodf);
+		" Addr:" << Logging::hex((void*)df.rgodf) << " ";
 }
 
 std::ostream& operator<<(std::ostream& os, LPCDIDATAFORMAT lpdf)
@@ -105,7 +223,7 @@ std::ostream& operator<<(std::ostream& os, DIOBJECTDATAFORMAT odf)
 		" GUID:" << odf.pguid <<
 		" Offset:" << odf.dwOfs <<
 		" Type:" << Logging::hex(odf.dwType) <<
-		" Flags:" << odf.dwFlags;
+		" Flags:" << Logging::hex(odf.dwFlags) << " ";
 }
 
 std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf)

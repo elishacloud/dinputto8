@@ -62,7 +62,10 @@ extern std::ofstream LOG;
 
 #endif
 
+void LogDataFormat(const DIDATAFORMAT &df);
 void LogDataFormat(LPCDIDATAFORMAT lpdf);
+void LogEffectFormat(const DIEFFECT &eff, REFGUID rguid);
+void LogEffectFormat(LPCDIEFFECT lpeff, REFGUID rguid);
 std::ostream& operator<<(std::ostream& os, DIEFFECT df);
 std::ostream& operator<<(std::ostream& os, LPCDIEFFECT lpdf);
 std::ostream& operator<<(std::ostream& os, DIENVELOPE df);

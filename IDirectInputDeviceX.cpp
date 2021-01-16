@@ -307,7 +307,7 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 
 HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN punkOuter)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << punkOuter;
 
 	DIEFFECT eff;
 	eff.dwSize = sizeof(DIEFFECT);
@@ -322,6 +322,10 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	if (SUCCEEDED(hr) && ppdeff)
 	{
 		*ppdeff = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
+	}
+	else
+	{
+		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
 	}
 
 	return hr;

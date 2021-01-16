@@ -67,7 +67,13 @@ HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT peff, DWORD dwFlags)
 
 HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << Logging::hex(dwFlags);
+
+#ifdef _DEBUG
+	GUID guid;
+	GetEffectGuid(&guid);
+	LogEffectFormat(peff, guid);
+#endif // DEBUG
 
 	DIEFFECT eff;
 	eff.dwSize = sizeof(DIEFFECT);
@@ -77,14 +83,29 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
 		peff = &eff;
 	}
 
-	return ProxyInterface->SetParameters(peff, dwFlags);
+	HRESULT hr = ProxyInterface->SetParameters(peff, dwFlags);
+
+	if (FAILED(hr))
+	{
+		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputEffect::Start(DWORD dwIterations, DWORD dwFlags)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << dwIterations << " " << Logging::hex(dwFlags);
 
-	return ProxyInterface->Start(dwIterations, dwFlags);
+
+	HRESULT hr = ProxyInterface->Start(dwIterations, dwFlags);
+
+	if (FAILED(hr))
+	{
+		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputEffect::Stop()
