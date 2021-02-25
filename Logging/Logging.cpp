@@ -236,6 +236,7 @@ std::ostream& operator<<(std::ostream& os, LPCDIOBJECTDATAFORMAT rgodf)
 	return os << *rgodf;
 }
 
+#ifndef DISABLE_COMMON_LOGGING
 std::ostream& operator<<(std::ostream& os, REFIID riid)
 {
 #define CHECK_REFIID(riidPrefix, riidName) \
@@ -378,3 +379,4 @@ std::ostream& operator<<(std::ostream& os, const DIERR& ErrCode)
 
 	return os << Logging::hex((DWORD)ErrCode);
 }
+#endif // !DISABLE_COMMON_LOGGING
