@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2020 Elisha Riedlinger
+* Copyright (C) 2021 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -348,7 +348,6 @@ std::ostream& operator<<(std::ostream& os, const DIERR& ErrCode)
 	visit(DIERR_NOTACQUIRED) \
 	visit(DIERR_READONLY) \
 	visit(DIERR_HANDLEEXISTS) \
-	visit(E_PENDING) \
 	visit(DIERR_INSUFFICIENTPRIVS) \
 	visit(DIERR_DEVICEFULL) \
 	visit(DIERR_MOREDATA) \
@@ -361,8 +360,10 @@ std::ostream& operator<<(std::ostream& os, const DIERR& ErrCode)
 	visit(DIERR_UNPLUGGED) \
 	visit(DIERR_REPORTFULL) \
 	visit(DIERR_MAPFILEFAIL) \
+	visit(E_PENDING) \
 	visit(E_NOINTERFACE) \
-	visit(E_POINTER)
+	visit(E_POINTER) \
+	visit(E_HANDLE)
 
 #define VISIT_DIERR_RETURN(x) \
 	if (ErrCode == x) \
