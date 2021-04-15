@@ -8,7 +8,10 @@
 #include "External\Logging\Logging.h"
 #endif
 
+#ifndef DIERR_SET
+#define DIERR_SET
 typedef enum _DIERR { } DIERR;
+#endif
 
 #ifdef DINPUTTO8NOLOG
 
