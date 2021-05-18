@@ -102,7 +102,7 @@ void ConvertEffect(DIEFFECT &eff1, const DIEFFECT &eff2)
 	// Prepare destination structure
 	ZeroMemory(&eff1, sizeof(DIEFFECT));
 	eff1.dwSize = sizeof(DIEFFECT);
-	// Convert varables
+	// Convert variables
 	eff1.dwFlags = eff2.dwFlags;
 	eff1.dwDuration = eff2.dwDuration;
 	eff1.dwSamplePeriod = eff2.dwSamplePeriod;

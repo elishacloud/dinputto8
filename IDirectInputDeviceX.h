@@ -19,13 +19,13 @@ private:
 	DWORD Offset = 0;
 
 	// Critical section for shared memory
-	CRITICAL_SECTION dics;
+	CRITICAL_SECTION dics = { NULL };
 
 	// For DeviceData
 	std::vector<DIDEVICEOBJECTDATA> pdod;
 
 	// For DataFormat
-	DIDATAFORMAT df;
+	DIDATAFORMAT df = { NULL };
 	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
 	// Wrapper interface functions

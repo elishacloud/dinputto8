@@ -56,6 +56,7 @@
       <ObjectFileName>$(SolutionDir)bin\Intermediate\$(Configuration)\Object\%(RelativeDir)</ObjectFileName>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
