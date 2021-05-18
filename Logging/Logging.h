@@ -10,6 +10,7 @@
 
 #ifndef DIERR_SET
 #define DIERR_SET
+#pragma warning (disable: 26812)
 typedef enum _DIERR { } DIERR;
 #endif
 

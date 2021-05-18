@@ -78,8 +78,8 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	struct DeviceEnumerator
 	{
 		DeviceInstanceList devices;
-		V lpCallback;
-		LPVOID pvRef;
+		V lpCallback = nullptr;
+		LPVOID pvRef = nullptr;
 
 		bool Contains(const GUID& guidInstance)
 		{
