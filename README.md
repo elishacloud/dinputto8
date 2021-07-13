@@ -57,6 +57,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Simon the Sorcerer 3D
  * Shogo
  * Slave Zero
+ * Star Wars Episode I: Racer
  * Uprising: Join or Die
  * Uprising 2: Lead and Destroy
  * Vampire: The Masquerade Redemption
