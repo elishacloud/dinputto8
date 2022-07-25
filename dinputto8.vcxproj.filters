@@ -101,6 +101,12 @@
     </ClInclude>
     <ClInclude Include="IDirectInputTypes.h" />
     <ClInclude Include="ditypes.h" />
+    <ClInclude Include="Include\VersionHelpers.h">
+      <Filter>Include</Filter>
+    </ClInclude>
+    <ClInclude Include="Include\winapifamily.h">
+      <Filter>Include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput.def" />
@@ -117,6 +123,9 @@
     </Filter>
     <Filter Include="Logging">
       <UniqueIdentifier>{f892643b-ec23-4837-8688-9750b30498f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Include">
+      <UniqueIdentifier>{52ed0387-73ab-49d1-9885-a27bcea3d8c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
