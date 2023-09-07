@@ -45,7 +45,6 @@ namespace dinputto8
 }
 
 extern AddressLookupTableDinput<void> ProxyAddressLookupTable;
-extern DWORD diVersion;
 
 using namespace dinputto8;
 

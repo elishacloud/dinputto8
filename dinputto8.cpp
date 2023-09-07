@@ -20,7 +20,6 @@
 std::ofstream LOG;
 
 bool InitFlag = false;
-DWORD diVersion = 0;
 
 AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
@@ -99,9 +98,8 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 	if (SUCCEEDED(hr) && lplpDD)
 	{
-		diVersion = dwVersion;
-
 		m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+		Interface->SetVersion(dwVersion);
 
 		*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}

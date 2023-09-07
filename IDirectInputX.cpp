@@ -233,6 +233,7 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 	if (SUCCEEDED(hr) && ppvObj)
 	{
 		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
+		DIDevice->SetVersion(diVersion);
 
 		*ppvObj = (V)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}

@@ -48,7 +48,14 @@ HRESULT m_IDirectInputEffect::Initialize(HINSTANCE hinst, DWORD dwVersion, REFGU
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->Initialize(hinst, dwVersion, rguid);
+	HRESULT hr = ProxyInterface->Initialize(hinst, 0x0800, rguid);
+
+	if (SUCCEEDED(hr))
+	{
+		diVersion = dwVersion;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputEffect::GetEffectGuid(LPGUID pguid)

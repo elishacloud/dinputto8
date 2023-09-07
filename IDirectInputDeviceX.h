@@ -7,6 +7,9 @@ private:
 	REFIID WrapperID;
 	DWORD StringType;
 
+	// Requested DirectInput version - used to alter behaviour by requested version
+	DWORD diVersion = 0;
+
 	// Version Interfaces
 	void *WrapperInterface;
 	void *WrapperInterface2;
@@ -204,4 +207,9 @@ public:
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
+
+	void SetVersion(DWORD dwVersion)
+	{
+		diVersion = dwVersion;
+	}
 };

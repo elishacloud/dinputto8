@@ -302,7 +302,14 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->Initialize(hinst, dwVersion, rguid);
+	HRESULT hr = ProxyInterface->Initialize(hinst, 0x0800, rguid);
+
+	if (SUCCEEDED(hr))
+	{
+		diVersion = dwVersion;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN punkOuter)
@@ -321,7 +328,10 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 	if (SUCCEEDED(hr) && ppdeff)
 	{
-		*ppdeff = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
+		m_IDirectInputEffect* DIEffect = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
+		DIEffect->SetVersion(diVersion);
+
+		*ppdeff = DIEffect;
 	}
 	else
 	{
