@@ -74,36 +74,15 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	}
 
 	// Callback structure
-	typedef std::list<D> DeviceInstanceList;
 	struct DeviceEnumerator
 	{
-		DeviceInstanceList devices;
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
 		bool bEnumerateGameControllers = true;
 
-		bool Contains(const GUID& guidInstance)
-		{
-			for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
-			{
-				if (it->guidInstance == guidInstance)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
-		static BOOL CALLBACK StoreCallback(const D *lpddi, LPVOID pvRef)
-		{
-			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
-			self->devices.push_back(*lpddi);
-			return DIENUM_CONTINUE;
-		}
-
 		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
 		{
-			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+			const DeviceEnumerator* self = static_cast<DeviceEnumerator*>(pvRef);
 			const DWORD dwConvertedDevType = ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);
 
 			if (dwConvertedDevType == DIDEVTYPE_JOYSTICK && !self->bEnumerateGameControllers)
@@ -143,49 +122,61 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		// an order where gamepads come first, then give them to Rayman 2.
 
 		// Get devices and sort them
-		DeviceInstanceList sortedDevices;
+		using DeviceInstanceList = std::list<D>;
+
+		DeviceInstanceList gameDevices;
+		DeviceInstanceList allDevices;
+
+		std::list<std::reference_wrapper<const D>> sortedDevices;
 		{
-			DeviceEnumerator gameDevices;
+			auto StoreCallback = [](const D *lpddi, LPVOID pvRef) -> BOOL
+				{
+					DeviceInstanceList* self = static_cast<DeviceInstanceList*>(pvRef);
+					self->emplace_back(*lpddi);
+					return DIENUM_CONTINUE;
+				};
 
 			// DirectInput 0x300 and earlier do not enumerate any game controllers
 			if (diVersion > 0x300)
 			{
-				HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::StoreCallback, &gameDevices, dwFlags);
+				HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
 				if (FAILED(hr))
 				{
 					return hr;
 				}
 			}
 
-			DeviceEnumerator allDevices;
-			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::StoreCallback, &allDevices, dwFlags);
+			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
 			if (FAILED(hr))
 			{
 				return hr;
 			}
 
 			// Add all devices in gameDevices
-			for (DeviceInstanceList::const_iterator it = gameDevices.devices.begin(); it != gameDevices.devices.end(); ++it)
+			for (const D& device : gameDevices)
 			{
-				sortedDevices.push_back(*it);
+				sortedDevices.emplace_back(device);
 			}
 
 			// Then, add all devices in allDevices that aren't in gameDevices
-			for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
+			for (const D& device : allDevices)
 			{
-				if (!gameDevices.Contains(it->guidInstance))
+				if (std::find_if(gameDevices.begin(), gameDevices.end(), [&guidInstance = device.guidInstance](const D& e)
+					{
+						return e.guidInstance == guidInstance;
+					}) == gameDevices.end())
 				{
-					sortedDevices.push_back(*it);
+					sortedDevices.emplace_back(device);
 				}
 			}
 		}
 
 		// Execute Callback
-		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
+		for (const D& sortedDevice : sortedDevices)
 		{
-			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
+			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << sortedDevice.tszProductName << " Instance: " << sortedDevice.tszInstanceName;
 
-			if (DeviceEnumerator::EnumDeviceCallback(&*it, &CallbackContext) == DIENUM_STOP)
+			if (DeviceEnumerator::EnumDeviceCallback(&sortedDevice, &CallbackContext) == DIENUM_STOP)
 			{
 				break;
 			}
