@@ -80,6 +80,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		DeviceInstanceList devices;
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
+		bool bEnumerateGameControllers = true;
 
 		bool Contains(const GUID& guidInstance)
 		{
@@ -103,19 +104,27 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
 		{
 			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+			const DWORD dwConvertedDevType = ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);
+
+			if (dwConvertedDevType == DIDEVTYPE_JOYSTICK && !self->bEnumerateGameControllers)
+			{
+				return DIENUM_CONTINUE;
+			}
 
 			D DI;
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
 
 			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
 				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
-				ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
+				dwConvertedDevType;																			// Add converted device type
 
 			return self->lpCallback(&DI, self->pvRef);
 		}
 	} CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
+	// DirectInput 0x300 and earlier do not enumerate any game controllers
+	CallbackContext.bEnumerateGameControllers = diVersion > 0x300;
 
 	// Reorder to send game devices first
 	if (dwDevType == DI8DEVCLASS_ALL)
@@ -137,14 +146,19 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		DeviceInstanceList sortedDevices;
 		{
 			DeviceEnumerator gameDevices;
-			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::StoreCallback, &gameDevices, dwFlags);
-			if (FAILED(hr))
+
+			// DirectInput 0x300 and earlier do not enumerate any game controllers
+			if (diVersion > 0x300)
 			{
-				return hr;
+				HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::StoreCallback, &gameDevices, dwFlags);
+				if (FAILED(hr))
+				{
+					return hr;
+				}
 			}
 
 			DeviceEnumerator allDevices;
-			hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::StoreCallback, &allDevices, dwFlags);
+			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::StoreCallback, &allDevices, dwFlags);
 			if (FAILED(hr))
 			{
 				return hr;
