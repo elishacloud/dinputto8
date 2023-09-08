@@ -22,14 +22,10 @@ private:
 	DWORD Offset = 0;
 
 	// Critical section for shared memory
-	CRITICAL_SECTION dics = { NULL };
+	CRITICAL_SECTION dics = {};
 
 	// For DeviceData
 	std::vector<DIDEVICEOBJECTDATA> pdod;
-
-	// For DataFormat
-	DIDATAFORMAT df = { NULL };
-	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
 	// Wrapper interface functions
 	inline REFIID GetWrapperType(DWORD DirectXVersion)

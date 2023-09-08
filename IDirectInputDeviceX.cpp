@@ -208,20 +208,15 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 			}
 		}
 
-		EnterCriticalSection(&dics);
+		std::vector<DIOBJECTDATAFORMAT> rgodf(lpdf->dwNumObjs);
 
-		if (rgodf.size() < lpdf->dwNumObjs)
-		{
-			rgodf.resize(lpdf->dwNumObjs);
-		}
-
-		df = {
-			sizeof(DIDATAFORMAT),
+		const DIDATAFORMAT df {
+			sizeof(df),
 			lpdf->dwObjSize,
 			lpdf->dwFlags,
 			lpdf->dwDataSize,
 			lpdf->dwNumObjs,
-			&rgodf[0] };
+			rgodf.data() };
 
 		for (DWORD x = 0; x < df.dwNumObjs; x++)
 		{
@@ -233,11 +228,7 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 
 		Offset = 0;
 
-		HRESULT hr = ProxyInterface->SetDataFormat(&df);
-
-		LeaveCriticalSection(&dics);
-
-		return hr;
+		return ProxyInterface->SetDataFormat(&df);
 	}
 
 	return ProxyInterface->SetDataFormat(lpdf);
