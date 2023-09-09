@@ -70,7 +70,7 @@ private:
 	template <class T>
 	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
 
-	template <class T, class V, class D>
+	template <class T, class V, class D, class D_Old>
 	inline HRESULT EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags);
 
 	template <class T, class V>
@@ -145,11 +145,11 @@ public:
 	STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS);
 	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW, DIDEVICEOBJECTINSTANCE_DX3W>(lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER);
 	STDMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER);

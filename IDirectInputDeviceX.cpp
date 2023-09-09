@@ -270,9 +270,9 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 	return ProxyInterface->GetCapabilities(lpDIDevCaps);
 }
 
-template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA>(LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
-template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW>(LPDIENUMDEVICEOBJECTSCALLBACKW, LPVOID, DWORD);
-template <class T, class V, class D>
+template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW, DIDEVICEOBJECTINSTANCE_DX3W>(LPDIENUMDEVICEOBJECTSCALLBACKW, LPVOID, DWORD);
+template <class T, class V, class D, class D_Old>
 HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -298,6 +298,7 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dw
 		DWORD dwDefaultOffset = 0;
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
+		DWORD dwStructSize = sizeof(D);
 		bool bOldDInputEnumerationBehaviour = false;
 
 		static BOOL CALLBACK StoreObjectsCallback(const D* lpddoi, LPVOID pvRef)
@@ -348,6 +349,8 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dw
 
 			D DOI;
 			CopyMemory(&DOI, lpddoi, lpddoi->dwSize);
+			// Prevent DInput3 games from encountering a structure bigger than they might expect.
+			DOI.dwSize = self->dwStructSize;
 
 			return self->lpCallback(&DOI, self->pvRef);
 		}
@@ -358,6 +361,7 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dw
 	CallbackContext.bOldDInputEnumerationBehaviour = diVersion < 0x700 && diVersion != 0x5B2;
 	CallbackContext.pObjectDataMap = &EnumObjectDataLUT;
 	CallbackContext.dwDefaultOffset = OffsetForMissingObjects;
+	CallbackContext.dwStructSize = diVersion >= 0x500 ? sizeof(D) : sizeof(D_Old);
 
 	HRESULT hr = GetProxyInterface<T>()->EnumObjects(ObjectEnumerator::StoreObjectsCallback, &CallbackContext, dwFlags);
 	if (FAILED(hr))

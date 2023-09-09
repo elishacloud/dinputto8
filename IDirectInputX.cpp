@@ -61,9 +61,9 @@ ULONG m_IDirectInputX::Release()
 	return ref;
 }
 
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
-template <class T, class V, class D>
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+template <class T, class V, class D, class D_Old>
 HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -78,6 +78,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	{
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
+		DWORD dwStructSize = sizeof(D);
 		bool bEnumerateGameControllers = true;
 
 		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
@@ -92,6 +93,8 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 
 			D DI;
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
+			// Prevent DInput3 games from encountering a structure bigger than they might expect.
+			DI.dwSize = self->dwStructSize;
 
 			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
 				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
@@ -104,6 +107,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	CallbackContext.lpCallback = lpCallback;
 	// DirectInput 0x300 and earlier do not enumerate any game controllers
 	CallbackContext.bEnumerateGameControllers = diVersion > 0x300;
+	CallbackContext.dwStructSize = diVersion >= 0x500 ? sizeof(D) : sizeof(D_Old);
 
 	// Reorder to send game devices first
 	if (dwDevType == DI8DEVCLASS_ALL)
