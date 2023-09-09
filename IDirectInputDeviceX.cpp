@@ -575,7 +575,40 @@ HRESULT m_IDirectInputDeviceX::GetObjectInfoX(V pdidoi, DWORD dwObj, DWORD dwHow
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return GetProxyInterface<T>()->GetObjectInfo(pdidoi, dwObj, dwHow);
+	HRESULT hr = GetProxyInterface<T>()->GetObjectInfo(pdidoi, dwObj, dwHow);
+
+	if (SUCCEEDED(hr) && pdidoi && pdidoi->dwSize)
+	{
+		if (!EnumObjectDataLUT.empty())
+		{
+			const bool bOldDInputEnumerationBehaviour = diVersion < 0x700 && diVersion != 0x5B2;
+
+			// For DInput versions that reorder elements, overwrite the offset unconditionally.
+			// Otherwise, only overwrite it if it's -1 or not in the format at all.	
+			auto it = FindByDITypeAndInstance(EnumObjectDataLUT, pdidoi->dwType);
+			if (bOldDInputEnumerationBehaviour)
+			{
+				pdidoi->dwOfs = it != EnumObjectDataLUT.end() ? it->second.dwOfs : OffsetForMissingObjects;
+			}
+			else
+			{
+				if (it != EnumObjectDataLUT.end())
+				{
+					// If default offset is not 0, then it means we have set the data format
+					if (OffsetForMissingObjects != 0)
+					{
+						pdidoi->dwOfs = it->second.dwOfs;
+					}
+				}
+				else
+				{
+					pdidoi->dwOfs = OffsetForMissingObjects;
+				}
+			}
+		}
+	}
+
+	return hr;
 }
 
 template HRESULT m_IDirectInputDeviceX::GetDeviceInfoX<IDirectInputDevice8A, LPDIDEVICEINSTANCEA>(LPDIDEVICEINSTANCEA);
