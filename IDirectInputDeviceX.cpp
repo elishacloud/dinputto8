@@ -129,7 +129,7 @@ void m_IDirectInputDeviceX::SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf)
 	// Mixing specific instances and DIDFT_ANYINSTANCE for the same type is not permitted,
 	// so we don't need to worry about aliasing.
 	std::map<DWORD, DWORD> InstanceNumbersByType {
-		{ DIDFT_AXIS, 0, }, { DIDFT_BUTTON, 0 }, { DIDFT_POV, 0 },
+		{ DIDFT_AXIS, 0 }, { DIDFT_BUTTON, 0 }, { DIDFT_POV, 0 },
 	};
 
 	// To support proper relocation of axes with specific GUIDs, we need to "remember" their respective instance numbers.

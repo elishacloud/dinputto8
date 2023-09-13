@@ -68,7 +68,7 @@ private:
 			IID == IID_IDirectInputDevice7W) ? true : false);
 	}
 	template <class T>
-	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
+	inline auto *GetProxyInterface() { return (T*)ProxyInterface; }
 
 	template <class T, class V, class D, class D_Old>
 	inline HRESULT EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags);
