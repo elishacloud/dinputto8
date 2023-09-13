@@ -61,9 +61,9 @@ ULONG m_IDirectInputX::Release()
 	return ref;
 }
 
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
-template <class T, class V, class D>
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+template <class T, class V, class D, class D_Old>
 HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -74,48 +74,40 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	}
 
 	// Callback structure
-	typedef std::list<D> DeviceInstanceList;
 	struct DeviceEnumerator
 	{
-		DeviceInstanceList devices;
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
-
-		bool Contains(const GUID& guidInstance)
-		{
-			for (DeviceInstanceList::const_iterator it = devices.begin(); it != devices.end(); ++it)
-			{
-				if (it->guidInstance == guidInstance)
-				{
-					return true;
-				}
-			}
-			return false;
-		}
-
-		static BOOL CALLBACK StoreCallback(const D *lpddi, LPVOID pvRef)
-		{
-			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
-			self->devices.push_back(*lpddi);
-			return DIENUM_CONTINUE;
-		}
+		DWORD dwStructSize = sizeof(D);
+		bool bEnumerateGameControllers = true;
 
 		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
 		{
-			DeviceEnumerator* self = (DeviceEnumerator*)pvRef;
+			const DeviceEnumerator* self = static_cast<DeviceEnumerator*>(pvRef);
+			const DWORD dwConvertedDevType = ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);
+
+			if (dwConvertedDevType == DIDEVTYPE_JOYSTICK && !self->bEnumerateGameControllers)
+			{
+				return DIENUM_CONTINUE;
+			}
 
 			D DI;
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
+			// Prevent DInput3 games from encountering a structure bigger than they might expect.
+			DI.dwSize = self->dwStructSize;
 
 			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
 				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
-				ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);													// Add converted device type
+				dwConvertedDevType;																			// Add converted device type
 
 			return self->lpCallback(&DI, self->pvRef);
 		}
 	} CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
+	// DirectInput 0x300 and earlier do not enumerate any game controllers
+	CallbackContext.bEnumerateGameControllers = diVersion > 0x300;
+	CallbackContext.dwStructSize = diVersion >= 0x500 ? sizeof(D) : sizeof(D_Old);
 
 	// Reorder to send game devices first
 	if (dwDevType == DI8DEVCLASS_ALL)
@@ -134,44 +126,61 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		// an order where gamepads come first, then give them to Rayman 2.
 
 		// Get devices and sort them
-		DeviceInstanceList sortedDevices;
+		using DeviceInstanceList = std::list<D>;
+
+		DeviceInstanceList gameDevices;
+		DeviceInstanceList allDevices;
+
+		std::list<std::reference_wrapper<const D>> sortedDevices;
 		{
-			DeviceEnumerator gameDevices;
-			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, DeviceEnumerator::StoreCallback, &gameDevices, dwFlags);
-			if (FAILED(hr))
+			auto StoreCallback = [](const D *lpddi, LPVOID pvRef) -> BOOL
+				{
+					DeviceInstanceList* self = static_cast<DeviceInstanceList*>(pvRef);
+					self->emplace_back(*lpddi);
+					return DIENUM_CONTINUE;
+				};
+
+			// DirectInput 0x300 and earlier do not enumerate any game controllers
+			if (diVersion > 0x300)
 			{
-				return hr;
+				HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
+				if (FAILED(hr))
+				{
+					return hr;
+				}
 			}
 
-			DeviceEnumerator allDevices;
-			hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, DeviceEnumerator::StoreCallback, &allDevices, dwFlags);
+			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
 			if (FAILED(hr))
 			{
 				return hr;
 			}
 
 			// Add all devices in gameDevices
-			for (DeviceInstanceList::const_iterator it = gameDevices.devices.begin(); it != gameDevices.devices.end(); ++it)
+			for (const D& device : gameDevices)
 			{
-				sortedDevices.push_back(*it);
+				sortedDevices.emplace_back(device);
 			}
 
 			// Then, add all devices in allDevices that aren't in gameDevices
-			for (DeviceInstanceList::const_iterator it = allDevices.devices.begin(); it != allDevices.devices.end(); ++it)
+			for (const D& device : allDevices)
 			{
-				if (!gameDevices.Contains(it->guidInstance))
+				if (std::find_if(gameDevices.begin(), gameDevices.end(), [&guidInstance = device.guidInstance](const D& e)
+					{
+						return e.guidInstance == guidInstance;
+					}) == gameDevices.end())
 				{
-					sortedDevices.push_back(*it);
+					sortedDevices.emplace_back(device);
 				}
 			}
 		}
 
 		// Execute Callback
-		for (DeviceInstanceList::const_iterator it = sortedDevices.begin(); it != sortedDevices.end(); ++it)
+		for (const D& sortedDevice : sortedDevices)
 		{
-			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << it->tszProductName << " Instance: " << it->tszInstanceName;
+			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << sortedDevice.tszProductName << " Instance: " << sortedDevice.tszInstanceName;
 
-			if (DeviceEnumerator::EnumDeviceCallback(&*it, &CallbackContext) == DIENUM_STOP)
+			if (DeviceEnumerator::EnumDeviceCallback(&sortedDevice, &CallbackContext) == DIENUM_STOP)
 			{
 				break;
 			}
@@ -201,11 +210,15 @@ HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	HRESULT hr = ProxyInterface->Initialize(hinst, 0x0800);
-
+	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
 	if (SUCCEEDED(hr))
 	{
-		diVersion = dwVersion;
+		hr = ProxyInterface->Initialize(hinst, 0x0800);
+
+		if (SUCCEEDED(hr))
+		{
+			diVersion = dwVersion;
+		}
 	}
 
 	return hr;
@@ -233,6 +246,7 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 	if (SUCCEEDED(hr) && ppvObj)
 	{
 		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
+		DIDevice->SetVersion(diVersion);
 
 		*ppvObj = (V)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}

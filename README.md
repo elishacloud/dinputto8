@@ -22,11 +22,11 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Beyond Atlantis
  * Call To Power 2
  * Castle Adventure
- * Colin McRae Rally 2
+ * Chris Sawyer's Locomotion
+ * Colin McRae Rally 2.0
  * Commandos 2
  * Commandos 3
  * Conquest: Frontier Wars
- * Chris Sawyer's Locomotion
  * Dark Reign
  * Digger XP
  * DOSBox
@@ -44,6 +44,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Legacy of Kain: Soul Reaver
  * Lionheart: Legacy of the Crusader
  * MegaRace 3
+ * Michelin Rally Masters: Race of Champions
  * Might and Magic IX
  * Moto Racer
  * Moto Racer 2
@@ -54,12 +55,15 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Raymond 2
  * Requiem: Avenging Angel
  * Settlers 3
- * Simon the Sorcerer 3D
  * Shogo
+ * Simon the Sorcerer 3D
  * Slave Zero
  * Star Wars Episode I: Racer
- * Uprising: Join or Die
+ * Swedish Touring Car Championship
+ * Swedish Touring Car Championship 2
  * Uprising 2: Lead and Destroy
+ * Uprising: Join or Die
+ * V8 Challenge
  * Vampire: The Masquerade Redemption
  * Warrior Kings
  * Warrior Kings: Battles

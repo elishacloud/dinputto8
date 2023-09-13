@@ -20,7 +20,6 @@
 std::ofstream LOG;
 
 bool InitFlag = false;
-DWORD diVersion = 0;
 
 AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
@@ -95,15 +94,18 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 	LOG_LIMIT(3, "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'");
 
-	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, ConvertREFIID(riid), lplpDD, punkOuter);
-
-	if (SUCCEEDED(hr) && lplpDD)
+	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
+	if (SUCCEEDED(hr))
 	{
-		diVersion = dwVersion;
+		hr = m_pDirectInput8Create(hinst, 0x0800, ConvertREFIID(riid), lplpDD, punkOuter);
 
-		m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+		if (SUCCEEDED(hr) && lplpDD)
+		{
+			m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+			Interface->SetVersion(dwVersion);
 
-		*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
+			*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
+		}
 	}
 
 	return hr;
@@ -170,4 +172,41 @@ HRESULT WINAPI DllUnregisterServer()
 	}
 
 	return m_pDllUnregisterServer();
+}
+
+HRESULT dinputto8::hresValidInstanceAndVersion(HINSTANCE& hinst, DWORD dwVersion)
+{
+	bool bValidInstance;
+	if (hinst != nullptr)
+	{
+		wchar_t path[4];
+		bValidInstance = GetModuleFileNameW(hinst, path, std::size(path) - 1) != 0;
+	}
+	else
+	{
+		// DInput version 0x300 permits no instance...
+		bValidInstance = dwVersion == 0x300;
+	}
+
+	if (!bValidInstance)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	// ...but DInput8 does not, so if the instance is empty, give it one or else it'll fail.
+	if (hinst == nullptr && dwVersion == 0x300)
+	{
+		hinst = ::GetModuleHandle(nullptr);
+	}
+
+	if (dwVersion == 0x300 || dwVersion == 0x500 || dwVersion == 0x50A || dwVersion == 0x5B2 || dwVersion == 0x602 || dwVersion == 0x61A || dwVersion == 0x700)
+	{
+		return DI_OK;
+	}
+
+	if (dwVersion == 0)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+	return dwVersion < 0x700 ? DIERR_BETADIRECTINPUTVERSION : DIERR_OLDDIRECTINPUTVERSION;
 }

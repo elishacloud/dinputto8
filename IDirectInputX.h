@@ -7,6 +7,9 @@ private:
 	REFIID WrapperID;
 	DWORD StringType;
 
+	// Requested DirectInput version - used to alter behaviour by requested version
+	DWORD diVersion = 0;
+
 	// Version Interfaces
 	void *WrapperInterface;
 	void *WrapperInterface2;
@@ -36,7 +39,7 @@ private:
 	template <class T>
 	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
 
-	template <class T, class V, class D>
+	template <class T, class V, class D, class D_Old>
 	inline HRESULT EnumDevicesX(DWORD, V, LPVOID, DWORD);
 
 	template <class T, class V>
@@ -90,11 +93,11 @@ public:
 	/*** IDirectInput methods ***/
 	STDMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA>(dwDevType, lpCallback, pvRef, dwFlags);
+		return EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(dwDevType, lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW>(dwDevType, lpCallback, pvRef, dwFlags);
+		return EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(dwDevType, lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(GetDeviceStatus)(THIS_ REFGUID);
 	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
@@ -122,4 +125,9 @@ public:
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
+
+	void SetVersion(DWORD dwVersion)
+	{
+		diVersion = dwVersion;
+	}
 };
