@@ -44,7 +44,7 @@ static auto FindByDITypeAndInstance(T& collection, DWORD dwType)
 
 void m_IDirectInputDeviceX::InitializeEnumObjectData()
 {
-	DIDEVICEINSTANCE didi { sizeof(didi) };
+	DIDEVICEINSTANCEW didi { sizeof(didi) };
 	if (SUCCEEDED(ProxyInterface->GetDeviceInfo(&didi)))
 	{
 		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType));
