@@ -1,11 +1,17 @@
 #pragma once
 
+#include <map>
+#include <vector>
+
 class m_IDirectInputDeviceX : public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputDevice8W *ProxyInterface;
 	REFIID WrapperID;
 	DWORD StringType;
+
+	// Requested DirectInput version - used to alter behaviour by requested version
+	DWORD diVersion = 0;
 
 	// Version Interfaces
 	void *WrapperInterface;
@@ -18,15 +24,27 @@ private:
 	// Format memory
 	DWORD Offset = 0;
 
+	// For data format fixups
+	DWORD DevType7 = 0;
+
 	// Critical section for shared memory
-	CRITICAL_SECTION dics = { NULL };
+	CRITICAL_SECTION dics = {};
 
 	// For DeviceData
 	std::vector<DIDEVICEOBJECTDATA> pdod;
 
-	// For DataFormat
-	DIDATAFORMAT df = { NULL };
-	std::vector<DIOBJECTDATAFORMAT> rgodf;
+	// For EnumObjects
+	struct ObjectOrderValue
+	{
+		DWORD dwOfs = 0;
+		DWORD dwSortOrder = MAXDWORD;
+	};
+	using EnumObjectDataMap = std::map<DWORD, ObjectOrderValue>;
+	EnumObjectDataMap EnumObjectDataLUT;
+	DWORD OffsetForMissingObjects = 0; // -1 after the data format is set
+
+	void InitializeEnumObjectData();
+	void SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf);
 
 	// Wrapper interface functions
 	inline REFIID GetWrapperType(DWORD DirectXVersion)
@@ -50,9 +68,9 @@ private:
 			IID == IID_IDirectInputDevice7W) ? true : false);
 	}
 	template <class T>
-	inline T *GetProxyInterface() { return (T*)ProxyInterface; }
+	inline auto *GetProxyInterface() { return (T*)ProxyInterface; }
 
-	template <class T, class V>
+	template <class T, class V, class D, class D_Old>
 	inline HRESULT EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags);
 
 	template <class T, class V>
@@ -93,6 +111,8 @@ public:
 
 		// Initialize Critical Section
 		InitializeCriticalSection(&dics);
+
+		InitializeEnumObjectData();
 	}
 	~m_IDirectInputDeviceX()
 	{
@@ -125,11 +145,11 @@ public:
 	STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS);
 	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
-		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW, DIDEVICEOBJECTINSTANCE_DX3W>(lpCallback, pvRef, dwFlags);
 	}
 	STDMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER);
 	STDMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER);
@@ -204,4 +224,9 @@ public:
 
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
+
+	void SetVersion(DWORD dwVersion)
+	{
+		diVersion = dwVersion;
+	}
 };

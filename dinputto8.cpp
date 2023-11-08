@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2022 Elisha Riedlinger
+* Copyright (C) 2023 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -20,7 +20,6 @@
 std::ofstream LOG;
 
 bool InitFlag = false;
-DWORD diVersion = 0;
 
 AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
 
@@ -95,15 +94,18 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 	LOG_LIMIT(3, "Redirecting 'DirectInputCreate' " << riid << " version " << Logging::hex(dwVersion) << " to --> 'DirectInput8Create'");
 
-	HRESULT hr = m_pDirectInput8Create(hinst, 0x0800, ConvertREFIID(riid), lplpDD, punkOuter);
-
-	if (SUCCEEDED(hr) && lplpDD)
+	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
+	if (SUCCEEDED(hr))
 	{
-		diVersion = dwVersion;
+		hr = m_pDirectInput8Create(hinst, 0x0800, ConvertREFIID(riid), lplpDD, punkOuter);
 
-		m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+		if (SUCCEEDED(hr) && lplpDD)
+		{
+			m_IDirectInputX *Interface = new m_IDirectInputX((IDirectInput8W*)*lplpDD, riid);
+			Interface->SetVersion(dwVersion);
 
-		*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
+			*lplpDD = Interface->GetWrapperInterfaceX(GetGUIDVersion(riid));
+		}
 	}
 
 	return hr;

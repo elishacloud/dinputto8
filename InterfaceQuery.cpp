@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2022 Elisha Riedlinger
+* Copyright (C) 2023 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -107,4 +107,41 @@ void WINAPI dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
 	QUERYINTERFACE(IDirectInputDevice7A);
 	QUERYINTERFACE(IDirectInputDevice7W);
 	QUERYINTERFACE(IDirectInputEffect);
+}
+
+HRESULT dinputto8::hresValidInstanceAndVersion(HINSTANCE& hinst, DWORD dwVersion)
+{
+	bool bValidInstance;
+	if (hinst != nullptr)
+	{
+		wchar_t path[4];
+		bValidInstance = GetModuleFileNameW(hinst, path, std::size(path) - 1) != 0;
+	}
+	else
+	{
+		// DInput version 0x300 permits no instance...
+		bValidInstance = dwVersion == 0x300;
+	}
+
+	if (!bValidInstance)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	// ...but DInput8 does not, so if the instance is empty, give it one or else it'll fail.
+	if (hinst == nullptr && dwVersion == 0x300)
+	{
+		hinst = ::GetModuleHandle(nullptr);
+	}
+
+	if (dwVersion == 0x300 || dwVersion == 0x500 || dwVersion == 0x50A || dwVersion == 0x5B2 || dwVersion == 0x602 || dwVersion == 0x61A || dwVersion == 0x700)
+	{
+		return DI_OK;
+	}
+
+	if (dwVersion == 0)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+	return dwVersion < 0x700 ? DIERR_BETADIRECTINPUTVERSION : DIERR_OLDDIRECTINPUTVERSION;
 }

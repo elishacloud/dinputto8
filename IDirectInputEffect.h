@@ -7,6 +7,9 @@ private:
 	m_IDirectInputEffect *WrapperInterface;
 	REFIID WrapperID = IID_IDirectInputEffect;
 
+	// Requested DirectInput version - used to alter behaviour by requested version
+	DWORD diVersion = 0;
+
 public:
 	m_IDirectInputEffect(IDirectInputEffect *aOriginal) : ProxyInterface(aOriginal), WrapperInterface(this)
 	{
@@ -37,4 +40,10 @@ public:
 	STDMETHOD(Download)(THIS);
 	STDMETHOD(Unload)(THIS);
 	STDMETHOD(Escape)(THIS_ LPDIEFFESCAPE);
+
+	// Helper functions
+	void SetVersion(DWORD dwVersion)
+	{
+		diVersion = dwVersion;
+	}
 };
