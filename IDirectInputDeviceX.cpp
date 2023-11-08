@@ -347,8 +347,8 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dw
 		{
 			const ObjectEnumerator* self = static_cast<ObjectEnumerator*>(pvRef);
 
-			D DOI;
-			CopyMemory(&DOI, lpddoi, lpddoi->dwSize);
+			D DOI = {};
+			CopyMemory(&DOI, lpddoi, min(lpddoi->dwSize, sizeof(D)));
 			// Prevent DInput3 games from encountering a structure bigger than they might expect.
 			DOI.dwSize = self->dwStructSize;
 
@@ -657,11 +657,11 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << punkOuter;
 
-	DIEFFECT eff;
-	eff.dwSize = sizeof(DIEFFECT);
-	if (lpeff)
+	DIEFFECT eff = {};
+	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
 	{
-		ConvertEffect(eff, *lpeff);
+		*(DIEFFECT_DX5*)&eff = *(DIEFFECT_DX5*)lpeff;
+		eff.dwSize = sizeof(DIEFFECT);
 		lpeff = &eff;
 	}
 
@@ -728,8 +728,8 @@ HRESULT m_IDirectInputDeviceX::EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJ
 	// Callback structure
 	struct EffectEnumerator
 	{
-		LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback;
-		LPVOID pvRef;
+		LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback = nullptr;
+		LPVOID pvRef = nullptr;
 
 		static BOOL CALLBACK EnumEffectCallback(LPDIRECTINPUTEFFECT pdeff, LPVOID pvRef)
 		{

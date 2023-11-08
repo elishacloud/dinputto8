@@ -91,7 +91,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 				return DIENUM_CONTINUE;
 			}
 
-			D DI;
+			D DI = {};
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
 			// Prevent DInput3 games from encountering a structure bigger than they might expect.
 			DI.dwSize = self->dwStructSize;

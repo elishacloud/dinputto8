@@ -69,14 +69,29 @@ HRESULT m_IDirectInputEffect::GetEffectGuid(LPGUID pguid)
 	return ProxyInterface->GetEffectGuid(pguid);
 }
 
-HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT peff, DWORD dwFlags)
+HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT lpeff, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->GetParameters(peff, dwFlags);
+	if (!lpeff || !lpeff->dwSize)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	DIEFFECT eff = {};
+	eff.dwSize = sizeof(DIEFFECT);
+
+	HRESULT hr = ProxyInterface->GetParameters(&eff, dwFlags);
+
+	if (SUCCEEDED(hr))
+	{
+		CopyMemory(lpeff, &eff, min(lpeff->dwSize, sizeof(DIEFFECT)));
+	}
+
+	return hr;
 }
 
-HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
+HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << Logging::hex(dwFlags);
 
@@ -86,15 +101,15 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT peff, DWORD dwFlags)
 	LogEffectFormat(peff, guid);
 #endif // DEBUG
 
-	DIEFFECT eff;
-	eff.dwSize = sizeof(DIEFFECT);
-	if (peff)
+	DIEFFECT eff = {};
+	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
 	{
-		ConvertEffect(eff, *peff);
-		peff = &eff;
+		*(DIEFFECT_DX5*)&eff = *(DIEFFECT_DX5*)lpeff;
+		eff.dwSize = sizeof(DIEFFECT);
+		lpeff = &eff;
 	}
 
-	HRESULT hr = ProxyInterface->SetParameters(peff, dwFlags);
+	HRESULT hr = ProxyInterface->SetParameters(lpeff, dwFlags);
 
 	if (FAILED(hr))
 	{
