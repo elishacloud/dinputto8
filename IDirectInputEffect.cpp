@@ -98,7 +98,7 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 #ifdef _DEBUG
 	GUID guid;
 	GetEffectGuid(&guid);
-	LogEffectFormat(peff, guid);
+	LogEffectFormat(lpeff, guid);
 #endif // DEBUG
 
 	DIEFFECT eff = {};
