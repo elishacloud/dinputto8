@@ -267,7 +267,23 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->GetCapabilities(lpDIDevCaps);
+	if (!lpDIDevCaps || !lpDIDevCaps->dwSize)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
+	HRESULT hr = ProxyInterface->GetCapabilities(lpDIDevCaps);
+
+	if (SUCCEEDED(hr))
+	{
+		DWORD devType = GET_DIDEVICE_TYPE(lpDIDevCaps->dwDevType);
+		DWORD devSubType = GET_DIDEVICE_SUBTYPE(lpDIDevCaps->dwDevType);
+		DWORD devType7 = ConvertDevTypeTo7(devType);
+		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
+		lpDIDevCaps->dwDevType = devType7 | (devSubType7 << 8);
+	}
+
+	return hr;
 }
 
 template HRESULT m_IDirectInputDeviceX::EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(LPDIENUMDEVICEOBJECTSCALLBACKA, LPVOID, DWORD);
@@ -618,11 +634,20 @@ HRESULT m_IDirectInputDeviceX::GetDeviceInfoX(V pdidi)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!pdidi || !pdidi->dwSize)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
 	HRESULT hr = GetProxyInterface<T>()->GetDeviceInfo(pdidi);
 
-	if (SUCCEEDED(hr) && pdidi && pdidi->dwSize)
+	if (SUCCEEDED(hr))
 	{
-		pdidi->dwDevType = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(pdidi->dwDevType));
+		DWORD devType = GET_DIDEVICE_TYPE(pdidi->dwDevType);
+		DWORD devSubType = GET_DIDEVICE_SUBTYPE(pdidi->dwDevType);
+		DWORD devType7 = ConvertDevTypeTo7(devType);
+		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
+		pdidi->dwDevType = devType7 | (devSubType7 << 8);
 	}
 
 	return hr;
@@ -640,6 +665,7 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
 	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
+
 	if (SUCCEEDED(hr))
 	{
 		hr = ProxyInterface->Initialize(hinst, 0x0800, rguid);
