@@ -278,9 +278,10 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 	{
 		DWORD devType = GET_DIDEVICE_TYPE(lpDIDevCaps->dwDevType);
 		DWORD devSubType = GET_DIDEVICE_SUBTYPE(lpDIDevCaps->dwDevType);
+		DWORD hidDevice = lpDIDevCaps->dwDevType & DIDEVTYPE_HID;
 		DWORD devType7 = ConvertDevTypeTo7(devType);
 		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
-		lpDIDevCaps->dwDevType = devType7 | (devSubType7 << 8);
+		lpDIDevCaps->dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 	}
 
 	return hr;
@@ -645,9 +646,10 @@ HRESULT m_IDirectInputDeviceX::GetDeviceInfoX(V pdidi)
 	{
 		DWORD devType = GET_DIDEVICE_TYPE(pdidi->dwDevType);
 		DWORD devSubType = GET_DIDEVICE_SUBTYPE(pdidi->dwDevType);
+		DWORD hidDevice = pdidi->dwDevType & DIDEVTYPE_HID;
 		DWORD devType7 = ConvertDevTypeTo7(devType);
 		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
-		pdidi->dwDevType = devType7 | (devSubType7 << 8);
+		pdidi->dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 	}
 
 	return hr;
