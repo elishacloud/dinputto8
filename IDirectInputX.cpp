@@ -93,12 +93,33 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 
 			D DI = {};
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
+
 			// Prevent DInput3 games from encountering a structure bigger than they might expect.
 			DI.dwSize = self->dwStructSize;
 
 			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
 				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
 				dwConvertedDevType;																			// Add converted device type
+
+			if ((DI.dwDevType & DIDEVTYPE_DEVICE) && (DI.dwDevType & DIDEVTYPE_HID) && DI.wUsagePage == 0x01)
+			{
+				// For usage see here: https://github.com/MysteriousJ/Joystick-Input-Examples?tab=readme-ov-file#hid
+				switch (DI.wUsage)
+				{
+				case 0x02: // Mouse
+					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_MOUSE;
+					break;
+				case 0x04: // Joystick
+				case 0x05: // Game pad
+					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_JOYSTICK;
+					break;
+				case 0x06: // Keyboard
+					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_KEYBOARD;
+					break;
+				default:
+					break;
+				}
+			}
 
 			return self->lpCallback(&DI, self->pvRef);
 		}
