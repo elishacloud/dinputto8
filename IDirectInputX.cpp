@@ -15,6 +15,7 @@
 */
 
 #include "dinputto8.h"
+#include <hidusage.h>
 
 HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
 {
@@ -101,23 +102,24 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
 				dwConvertedDevType;																			// Add converted device type
 
-			if ((DI.dwDevType & DIDEVTYPE_DEVICE) && (DI.dwDevType & DIDEVTYPE_HID) && DI.wUsagePage == 0x01)
+			if ((DI.dwDevType & DIDEVTYPE_DEVICE) && (DI.dwDevType & DIDEVTYPE_HID))
 			{
-				// For usage see here: https://github.com/MysteriousJ/Joystick-Input-Examples?tab=readme-ov-file#hid
-				switch (DI.wUsage)
+				// Check if the device is a mouse
+				if (DI.wUsagePage == HID_USAGE_PAGE_GENERIC && DI.wUsage == HID_USAGE_GENERIC_MOUSE)
 				{
-				case 0x02: // Mouse
 					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_MOUSE;
-					break;
-				case 0x04: // Joystick
-				case 0x05: // Game pad
+				}
+				// Check if the device is a joystick or gamepad
+				else if (DI.wUsagePage == HID_USAGE_PAGE_GENERIC &&
+					(DI.wUsage == HID_USAGE_GENERIC_JOYSTICK || DI.wUsage == HID_USAGE_GENERIC_GAMEPAD))
+				{
 					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_JOYSTICK;
-					break;
-				case 0x06: // Keyboard
+				}
+				// Check if the device is a keyboard
+				else if ((DI.wUsagePage == HID_USAGE_PAGE_GENERIC && DI.wUsage == HID_USAGE_GENERIC_KEYBOARD) ||
+					DI.wUsagePage == HID_USAGE_PAGE_KEYBOARD)
+				{
 					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_KEYBOARD;
-					break;
-				default:
-					break;
 				}
 			}
 
