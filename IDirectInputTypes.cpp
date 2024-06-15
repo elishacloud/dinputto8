@@ -17,8 +17,9 @@
 #include "dinputto8.h"
 #include <hidusage.h>
 
-DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHID)
+DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHID, BOOL& IsGamepad)
 {
+	IsGamepad = FALSE;
 	switch (dwDevType)
 	{
 	case DIDEVTYPE_DEVICE:
@@ -31,8 +32,13 @@ DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHI
 			{
 				return DIDEVTYPE_MOUSE;
 			}
-			else if (wUsage == HID_USAGE_GENERIC_JOYSTICK || wUsage == HID_USAGE_GENERIC_GAMEPAD)
+			else if (wUsage == HID_USAGE_GENERIC_JOYSTICK)
 			{
+				return DIDEVTYPE_JOYSTICK;
+			}
+			else if (wUsage == HID_USAGE_GENERIC_GAMEPAD)
+			{
+				IsGamepad = TRUE;
 				return DIDEVTYPE_JOYSTICK;
 			}
 			else if (wUsage == HID_USAGE_GENERIC_KEYBOARD)
@@ -51,9 +57,11 @@ DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHI
 	case DIDEVTYPE_KEYBOARD:
 	case DI8DEVTYPE_KEYBOARD:
 		return DIDEVTYPE_KEYBOARD;
+	case DI8DEVTYPE_GAMEPAD:
+		IsGamepad = TRUE;
+		[[fallthrough]];
 	case DIDEVTYPE_JOYSTICK:
 	case DI8DEVTYPE_JOYSTICK:
-	case DI8DEVTYPE_GAMEPAD:
 	case DI8DEVTYPE_DRIVING:
 	case DI8DEVTYPE_FLIGHT:
 	case DI8DEVTYPE_SUPPLEMENTAL:
@@ -64,7 +72,7 @@ DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHI
 	}
 }
 
-DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevSubType)
+DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevType7, DWORD dwDevSubType, BOOL IsGamepad)
 {
 	switch (dwDevType)
 	{
@@ -72,6 +80,29 @@ DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevSubType)
 	case DI8DEVTYPE_DEVICE:
 	case DI8DEVTYPE_DEVICECTRL:
 	default:
+		switch (dwDevType7)
+		{
+		case DIDEVTYPE_MOUSE:
+			switch (dwDevSubType)
+			{
+			case DIDEVTYPEMOUSE_TRADITIONAL:
+			case DIDEVTYPEMOUSE_FINGERSTICK:
+			case DIDEVTYPEMOUSE_TOUCHPAD:
+			case DIDEVTYPEMOUSE_TRACKBALL:
+				return dwDevSubType;
+			case DI8DEVTYPEMOUSE_ABSOLUTE:
+				return DIDEVTYPEMOUSE_TOUCHPAD;
+			default:
+				return DIDEVTYPEMOUSE_UNKNOWN;
+			}
+		case DIDEVTYPE_KEYBOARD:
+			return DIDEVTYPEKEYBOARD_UNKNOWN;
+		case DIDEVTYPE_JOYSTICK:
+			if (IsGamepad)
+				return DIDEVTYPEJOYSTICK_GAMEPAD;
+			else
+				return DIDEVTYPEJOYSTICK_TRADITIONAL;
+		}
 		return 0;
 	case DIDEVTYPE_MOUSE:
 	case DI8DEVTYPE_MOUSE:

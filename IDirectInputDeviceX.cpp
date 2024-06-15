@@ -47,7 +47,8 @@ void m_IDirectInputDeviceX::InitializeEnumObjectData()
 	DIDEVICEINSTANCEW didi { sizeof(didi) };
 	if (SUCCEEDED(ProxyInterface->GetDeviceInfo(&didi)))
 	{
-		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType), didi.wUsagePage, didi.wUsage, didi.dwDevType & DIDEVTYPE_HID);
+		BOOL IsGamepad = FALSE;
+		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType), didi.wUsagePage, didi.wUsage, didi.dwDevType & DIDEVTYPE_HID, IsGamepad);
 
 		// We only need to do this trickery for game controllers - keyboard/mice should be sorted fine
 		// If this is ever proven to be false, just add code here for other DIDEVTYPE_*
@@ -652,8 +653,9 @@ HRESULT m_IDirectInputDeviceX::GetDeviceInfoX(V pdidi)
 		DWORD devType = GET_DIDEVICE_TYPE(pdidi->dwDevType);
 		DWORD devSubType = GET_DIDEVICE_SUBTYPE(pdidi->dwDevType);
 		DWORD hidDevice = pdidi->dwDevType & DIDEVTYPE_HID;
-		DWORD devType7 = ConvertDevTypeTo7(devType, pdidi->wUsagePage, pdidi->wUsage, hidDevice);
-		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
+		BOOL IsGamepad = FALSE;
+		DWORD devType7 = ConvertDevTypeTo7(devType, pdidi->wUsagePage, pdidi->wUsage, hidDevice, IsGamepad);
+		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devType7, devSubType, IsGamepad);
 		pdidi->dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 	}
 

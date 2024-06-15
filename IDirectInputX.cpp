@@ -86,8 +86,9 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 			DWORD devType = GET_DIDEVICE_TYPE(lpddi->dwDevType);
 			DWORD devSubType = GET_DIDEVICE_SUBTYPE(lpddi->dwDevType);
 			DWORD hidDevice = lpddi->dwDevType & DIDEVTYPE_HID;
-			DWORD devType7 = ConvertDevTypeTo7(devType, lpddi->wUsagePage, lpddi->wUsage, hidDevice);
-			DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
+			BOOL IsGamepad = FALSE;
+			DWORD devType7 = ConvertDevTypeTo7(devType, lpddi->wUsagePage, lpddi->wUsage, hidDevice, IsGamepad);
+			DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devType7, devSubType, IsGamepad);
 
 			// DirectInput 0x300 and earlier do not enumerate any game controllers
 			if (devType7 == DIDEVTYPE_JOYSTICK && self->diVersion <= 0x300)
