@@ -99,7 +99,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
 
 			// Prevent DInput3 games from encountering a structure bigger than they might expect.
-			DI.dwSize = self->diVersion <= 0x300 ? sizeof(D) : sizeof(D_Old);
+			DI.dwSize = self->diVersion >= 0x0500 ? sizeof(D) : sizeof(D_Old);
 
 			DI.dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 
