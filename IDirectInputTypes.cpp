@@ -15,8 +15,9 @@
 */
 
 #include "dinputto8.h"
+#include <hidusage.h>
 
-DWORD ConvertDevTypeTo7(DWORD dwDevType)
+DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHID)
 {
 	switch (dwDevType)
 	{
@@ -24,6 +25,25 @@ DWORD ConvertDevTypeTo7(DWORD dwDevType)
 	case DI8DEVTYPE_DEVICE:
 	case DI8DEVTYPE_DEVICECTRL:
 	default:
+		if (isHID && wUsagePage == HID_USAGE_PAGE_GENERIC)
+		{
+			if (wUsage == HID_USAGE_GENERIC_MOUSE)
+			{
+				return DIDEVTYPE_MOUSE;
+			}
+			else if (wUsage == HID_USAGE_GENERIC_JOYSTICK || wUsage == HID_USAGE_GENERIC_GAMEPAD)
+			{
+				return DIDEVTYPE_JOYSTICK;
+			}
+			else if (wUsage == HID_USAGE_GENERIC_KEYBOARD)
+			{
+				return DIDEVTYPE_KEYBOARD;
+			}
+		}
+		if (isHID && wUsagePage == HID_USAGE_PAGE_KEYBOARD)
+		{
+			return DIDEVTYPE_KEYBOARD;
+		}
 		return DIDEVTYPE_DEVICE;
 	case DIDEVTYPE_MOUSE:
 	case DI8DEVTYPE_MOUSE:

@@ -47,7 +47,7 @@ void m_IDirectInputDeviceX::InitializeEnumObjectData()
 	DIDEVICEINSTANCEW didi { sizeof(didi) };
 	if (SUCCEEDED(ProxyInterface->GetDeviceInfo(&didi)))
 	{
-		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType));
+		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType), didi.wUsagePage, didi.wUsage, didi.dwDevType & DIDEVTYPE_HID);
 
 		// We only need to do this trickery for game controllers - keyboard/mice should be sorted fine
 		// If this is ever proven to be false, just add code here for other DIDEVTYPE_*
@@ -276,12 +276,15 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 
 	if (SUCCEEDED(hr))
 	{
-		DWORD devType = GET_DIDEVICE_TYPE(lpDIDevCaps->dwDevType);
-		DWORD devSubType = GET_DIDEVICE_SUBTYPE(lpDIDevCaps->dwDevType);
-		DWORD hidDevice = lpDIDevCaps->dwDevType & DIDEVTYPE_HID;
-		DWORD devType7 = ConvertDevTypeTo7(devType);
-		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
-		lpDIDevCaps->dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
+		DIDEVICEINSTANCE didi;
+		ZeroMemory(&didi, sizeof(didi));
+		didi.dwSize = sizeof(DIDEVICEINSTANCE);
+
+		hr = GetDeviceInfo(&didi);
+		if (SUCCEEDED(hr))
+		{
+			lpDIDevCaps->dwDevType = didi.dwDevType;
+		}
 	}
 
 	return hr;
@@ -647,7 +650,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceInfoX(V pdidi)
 		DWORD devType = GET_DIDEVICE_TYPE(pdidi->dwDevType);
 		DWORD devSubType = GET_DIDEVICE_SUBTYPE(pdidi->dwDevType);
 		DWORD hidDevice = pdidi->dwDevType & DIDEVTYPE_HID;
-		DWORD devType7 = ConvertDevTypeTo7(devType);
+		DWORD devType7 = ConvertDevTypeTo7(devType, pdidi->wUsagePage, pdidi->wUsage, hidDevice);
 		DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
 		pdidi->dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 	}

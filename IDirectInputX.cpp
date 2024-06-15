@@ -15,7 +15,6 @@
 */
 
 #include "dinputto8.h"
-#include <hidusage.h>
 
 HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
 {
@@ -79,15 +78,19 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	{
 		V lpCallback = nullptr;
 		LPVOID pvRef = nullptr;
-		DWORD dwStructSize = sizeof(D);
-		bool bEnumerateGameControllers = true;
+		DWORD diVersion = 0;
 
 		static BOOL CALLBACK EnumDeviceCallback(const D *lpddi, LPVOID pvRef)
 		{
 			const DeviceEnumerator* self = static_cast<DeviceEnumerator*>(pvRef);
-			const DWORD dwConvertedDevType = ConvertDevTypeTo7(lpddi->dwDevType & 0xFF);
+			DWORD devType = GET_DIDEVICE_TYPE(lpddi->dwDevType);
+			DWORD devSubType = GET_DIDEVICE_SUBTYPE(lpddi->dwDevType);
+			DWORD hidDevice = lpddi->dwDevType & DIDEVTYPE_HID;
+			DWORD devType7 = ConvertDevTypeTo7(devType, lpddi->wUsagePage, lpddi->wUsage, hidDevice);
+			DWORD devSubType7 = ConvertDevSubTypeTo7(devType, devSubType);
 
-			if (dwConvertedDevType == DIDEVTYPE_JOYSTICK && !self->bEnumerateGameControllers)
+			// DirectInput 0x300 and earlier do not enumerate any game controllers
+			if (devType7 == DIDEVTYPE_JOYSTICK && self->diVersion <= 0x300)
 			{
 				return DIENUM_CONTINUE;
 			}
@@ -96,41 +99,16 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 			CopyMemory(&DI, lpddi, lpddi->dwSize);
 
 			// Prevent DInput3 games from encountering a structure bigger than they might expect.
-			DI.dwSize = self->dwStructSize;
+			DI.dwSize = self->diVersion <= 0x300 ? sizeof(D) : sizeof(D_Old);
 
-			DI.dwDevType = (lpddi->dwDevType & ~0xFFFF) |													// Remove device type and sub type
-				ConvertDevSubTypeTo7(lpddi->dwDevType & 0xFF, (lpddi->dwDevType & 0xFF00) >> 8) << 8 |		// Add converted sub type
-				dwConvertedDevType;																			// Add converted device type
-
-			if ((DI.dwDevType & DIDEVTYPE_DEVICE) && (DI.dwDevType & DIDEVTYPE_HID))
-			{
-				// Check if the device is a mouse
-				if (DI.wUsagePage == HID_USAGE_PAGE_GENERIC && DI.wUsage == HID_USAGE_GENERIC_MOUSE)
-				{
-					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_MOUSE;
-				}
-				// Check if the device is a joystick or gamepad
-				else if (DI.wUsagePage == HID_USAGE_PAGE_GENERIC &&
-					(DI.wUsage == HID_USAGE_GENERIC_JOYSTICK || DI.wUsage == HID_USAGE_GENERIC_GAMEPAD))
-				{
-					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_JOYSTICK;
-				}
-				// Check if the device is a keyboard
-				else if ((DI.wUsagePage == HID_USAGE_PAGE_GENERIC && DI.wUsage == HID_USAGE_GENERIC_KEYBOARD) ||
-					DI.wUsagePage == HID_USAGE_PAGE_KEYBOARD)
-				{
-					DI.dwDevType = (DI.dwDevType & ~DIDEVTYPE_DEVICE) | DIDEVTYPE_KEYBOARD;
-				}
-			}
+			DI.dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 
 			return self->lpCallback(&DI, self->pvRef);
 		}
 	} CallbackContext;
 	CallbackContext.pvRef = pvRef;
 	CallbackContext.lpCallback = lpCallback;
-	// DirectInput 0x300 and earlier do not enumerate any game controllers
-	CallbackContext.bEnumerateGameControllers = diVersion > 0x300;
-	CallbackContext.dwStructSize = diVersion >= 0x500 ? sizeof(D) : sizeof(D_Old);
+	CallbackContext.diVersion = diVersion;
 
 	// Reorder to send game devices first
 	if (dwDevType == DI8DEVCLASS_ALL)
