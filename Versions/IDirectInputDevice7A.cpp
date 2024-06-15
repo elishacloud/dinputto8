@@ -33,7 +33,7 @@ ULONG m_IDirectInputDevice7A::Release()
 
 HRESULT m_IDirectInputDevice7A::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 {
-	return ProxyInterface->GetCapabilities(lpDIDevCaps);
+	return ProxyInterface->GetCapabilities<LPDIDEVCAPS, DIDEVICEINSTANCEA>(lpDIDevCaps);
 }
 
 HRESULT m_IDirectInputDevice7A::EnumObjects(LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)

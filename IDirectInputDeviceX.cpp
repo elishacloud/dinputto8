@@ -263,7 +263,10 @@ ULONG m_IDirectInputDeviceX::Release()
 	return ref;
 }
 
-HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
+template HRESULT m_IDirectInputDeviceX::GetCapabilities<LPDIDEVCAPS, DIDEVICEINSTANCEA>(LPDIDEVCAPS);
+template HRESULT m_IDirectInputDeviceX::GetCapabilities<LPDIDEVCAPS, DIDEVICEINSTANCEW>(LPDIDEVCAPS);
+template <class T, class D>
+HRESULT m_IDirectInputDeviceX::GetCapabilities(T lpDIDevCaps)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
@@ -276,8 +279,7 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 
 	if (SUCCEEDED(hr))
 	{
-		DIDEVICEINSTANCE didi;
-		ZeroMemory(&didi, sizeof(didi));
+		D didi = {};
 		didi.dwSize = sizeof(DIDEVICEINSTANCE);
 
 		hr = GetDeviceInfo(&didi);

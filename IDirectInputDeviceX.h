@@ -142,7 +142,8 @@ public:
 	STDMETHOD_(ULONG, Release)(THIS);
 
 	/*** IDirectInputDevice methods ***/
-	STDMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS);
+	template <class T, class D>
+	HRESULT GetCapabilities(T lpDIDevCaps);
 	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
 	{
 		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(lpCallback, pvRef, dwFlags);
