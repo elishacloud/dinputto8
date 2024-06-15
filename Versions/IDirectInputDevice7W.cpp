@@ -133,9 +133,7 @@ HRESULT m_IDirectInputDevice7W::SendForceFeedbackCommand(DWORD dwFlags)
 
 HRESULT m_IDirectInputDevice7W::EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJECTSCALLBACK lpCallback, LPVOID pvRef, DWORD fl)
 {
-	UNREFERENCED_PARAMETER(pvRef);
-
-	return ProxyInterface->EnumCreatedEffectObjects(lpCallback, lpCallback, fl);
+	return ProxyInterface->EnumCreatedEffectObjects(lpCallback, pvRef, fl);
 }
 
 HRESULT m_IDirectInputDevice7W::Escape(LPDIEFFESCAPE pesc)
