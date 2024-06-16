@@ -281,7 +281,7 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(T lpDIDevCaps)
 	if (SUCCEEDED(hr))
 	{
 		D didi = {};
-		didi.dwSize = sizeof(DIDEVICEINSTANCE);
+		didi.dwSize = sizeof(D);
 
 		hr = GetDeviceInfo(&didi);
 		if (SUCCEEDED(hr))
