@@ -83,18 +83,7 @@ DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevType7, DWORD dwDevSubType
 		switch (dwDevType7)
 		{
 		case DIDEVTYPE_MOUSE:
-			switch (dwDevSubType)
-			{
-			case DIDEVTYPEMOUSE_TRADITIONAL:
-			case DIDEVTYPEMOUSE_FINGERSTICK:
-			case DIDEVTYPEMOUSE_TOUCHPAD:
-			case DIDEVTYPEMOUSE_TRACKBALL:
-				return dwDevSubType;
-			case DI8DEVTYPEMOUSE_ABSOLUTE:
-				return DIDEVTYPEMOUSE_TOUCHPAD;
-			default:
-				return DIDEVTYPEMOUSE_UNKNOWN;
-			}
+			return DIDEVTYPEMOUSE_UNKNOWN;
 		case DIDEVTYPE_KEYBOARD:
 			return DIDEVTYPEKEYBOARD_UNKNOWN;
 		case DIDEVTYPE_JOYSTICK:
