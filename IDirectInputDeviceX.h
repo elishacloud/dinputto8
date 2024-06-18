@@ -21,6 +21,9 @@ private:
 	// For CooperativeLevel
 	bool CanAquireDevice = false;
 
+	// For GetDeviceData
+	bool IsMouse = false;
+
 	// Format memory
 	DWORD Offset = 0;
 
@@ -226,8 +229,6 @@ public:
 	// Helper functions
 	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
 
-	void SetVersion(DWORD dwVersion)
-	{
-		diVersion = dwVersion;
-	}
+	void SetVersion(DWORD dwVersion) { diVersion = dwVersion; }
+	void SetAsMouse() { IsMouse = true; }
 };

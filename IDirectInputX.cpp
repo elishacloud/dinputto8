@@ -250,6 +250,11 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
 		DIDevice->SetVersion(diVersion);
 
+		if (IsEqualIID(GUID_SysMouse, rguid) || IsEqualIID(GUID_SysMouseEm, rguid) || IsEqualIID(GUID_SysMouseEm2, rguid))
+		{
+			DIDevice->SetAsMouse();
+		}
+
 		*ppvObj = (V)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
 	}
 
