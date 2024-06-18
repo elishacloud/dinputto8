@@ -476,14 +476,14 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	//  If just peeking at data
-	if (dwFlags == DIGDD_PEEK || !rgdod)
+	//  If just peeking or clearing data
+	if (dwFlags == DIGDD_PEEK || !rgdod || (pdwInOut && *pdwInOut == INFINITE))
 	{
 		return ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), rgdod, pdwInOut, dwFlags);
 	}
 
 	// Check for valid parameters
-	if (!pdwInOut || !*pdwInOut || *pdwInOut == (DWORD)-1 || !cbObjectData)
+	if (!pdwInOut || !*pdwInOut || (cbObjectData != sizeof(DIDEVICEOBJECTDATA_DX3) && cbObjectData != sizeof(DIDEVICEOBJECTDATA)))
 	{
 		return DIERR_INVALIDPARAM;
 	}
@@ -805,7 +805,7 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!pdwInOut || !rgdod || !cbObjectData)
+	if (!pdwInOut || !rgdod || (cbObjectData != sizeof(DIDEVICEOBJECTDATA_DX3) && cbObjectData != sizeof(DIDEVICEOBJECTDATA)))
 	{
 		return DIERR_INVALIDPARAM;
 	}
