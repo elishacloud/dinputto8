@@ -511,8 +511,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 
 	LeaveCriticalSection(&dics);
 
-	// Several games handle DI_BUFFEROVERFLOW as failure
-	return IsMouse && hr == DI_BUFFEROVERFLOW && rgdod && pdwInOut && *pdwInOut > 0 ? DI_OK : hr;
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
