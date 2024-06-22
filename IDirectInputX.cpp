@@ -180,7 +180,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		// Execute Callback
 		for (const D& sortedDevice : sortedDevices)
 		{
-			Logging::Log() << __FUNCTION__ << " Enumerating Product: " << sortedDevice.tszProductName << " Instance: " << sortedDevice.tszInstanceName;
+			Logging::LogDebug() << __FUNCTION__ << " Enumerating Product: " << sortedDevice.tszProductName << " Instance: " << sortedDevice.tszInstanceName;
 
 			if (DeviceEnumerator::EnumDeviceCallback(&sortedDevice, &CallbackContext) == DIENUM_STOP)
 			{
