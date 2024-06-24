@@ -493,9 +493,7 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	// Check the size of the array
 	if (*pdwInOut > pdod.size())
 	{
-		pdod.resize(*pdwInOut);
-
-		Logging::LogDebug() << __FUNCTION__ << " Update dod memory! " << *pdwInOut;
+		pdod.resize((*pdwInOut / 100 + 1) * 100);	// Increase buffer by factors of 100
 	}
 
 	HRESULT hr = ProxyInterface->GetDeviceData(sizeof(DIDEVICEOBJECTDATA), &pdod[0], pdwInOut, dwFlags);
@@ -503,9 +501,13 @@ HRESULT m_IDirectInputDeviceX::GetDeviceData(DWORD cbObjectData, LPDIDEVICEOBJEC
 	// Copy array
 	if (SUCCEEDED(hr))
 	{
-		for (UINT x = 0; x < *pdwInOut; x++)
+		if (cbObjectData == sizeof(DIDEVICEOBJECTDATA_DX3))
 		{
-			CopyMemory((void*)((DWORD)rgdod + (cbObjectData * x)), &pdod[x], cbObjectData);
+			CopyDeviceData((DIDEVICEOBJECTDATA_DX3*)rgdod, pdod.data(), *pdwInOut);
+		}
+		else
+		{
+			CopyDeviceData((DIDEVICEOBJECTDATA*)rgdod, pdod.data(), *pdwInOut);
 		}
 	}
 
@@ -814,16 +816,17 @@ HRESULT m_IDirectInputDeviceX::SendDeviceData(DWORD cbObjectData, LPCDIDEVICEOBJ
 	// Check the size of the array
 	if (*pdwInOut > pdod.size())
 	{
-		pdod.resize(*pdwInOut);
-
-		Logging::LogDebug() << __FUNCTION__ << " Update dod memory! " << *pdwInOut;
+		pdod.resize((*pdwInOut / 100 + 1) * 100);	// Increase buffer by factors of 100
 	}
 
 	// Copy array
-	ZeroMemory(&pdod[0], sizeof(DIDEVICEOBJECTDATA) * pdod.size());
-	for (UINT x = 0; x < *pdwInOut; x++)
+	if (cbObjectData == sizeof(DIDEVICEOBJECTDATA_DX3))
 	{
-		CopyMemory(&pdod[x], (void*)((DWORD)rgdod + (cbObjectData * x)), cbObjectData);
+		CopyDeviceData(pdod.data(), (DIDEVICEOBJECTDATA_DX3*)rgdod, *pdwInOut);
+	}
+	else
+	{
+		CopyDeviceData(pdod.data(), (DIDEVICEOBJECTDATA*)rgdod, *pdwInOut);
 	}
 
 	HRESULT hr = ProxyInterface->SendDeviceData(sizeof(DIDEVICEOBJECTDATA), &pdod[0], pdwInOut, fl);

@@ -49,6 +49,27 @@ private:
 	void InitializeEnumObjectData();
 	void SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf);
 
+	template <class T>
+	inline void CopyDeviceData(T* DestDod, DIDEVICEOBJECTDATA* SrcDod, DWORD dwNumRecords)
+	{
+		for (UINT x = 0; x < dwNumRecords; x++)
+		{
+			*DestDod = *(T*)SrcDod;
+			SrcDod = (DIDEVICEOBJECTDATA*)((DWORD)SrcDod + sizeof(DIDEVICEOBJECTDATA));
+			DestDod = (T*)((DWORD)DestDod + sizeof(T));
+		}
+	}
+	inline void CopyDeviceData(DIDEVICEOBJECTDATA* DestDod, DIDEVICEOBJECTDATA_DX3* SrcDod, DWORD dwNumRecords)
+	{
+		for (UINT x = 0; x < dwNumRecords; x++)
+		{
+			*(DIDEVICEOBJECTDATA_DX3*)DestDod = *SrcDod;
+			DestDod->uAppData = NULL;
+			SrcDod = (DIDEVICEOBJECTDATA_DX3*)((DWORD)SrcDod + sizeof(DIDEVICEOBJECTDATA_DX3));
+			DestDod = (DIDEVICEOBJECTDATA*)((DWORD)DestDod + sizeof(DIDEVICEOBJECTDATA));
+		}
+	}
+
 	// Wrapper interface functions
 	inline REFIID GetWrapperType(DWORD DirectXVersion)
 	{
