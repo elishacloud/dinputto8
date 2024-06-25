@@ -104,6 +104,12 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 
 			DI.dwDevType = devType7 | (devSubType7 << 8) | hidDevice;
 
+			// Filter unknown device types
+			if (DI.dwDevType = 0x10001)
+			{
+				return DIENUM_CONTINUE;
+			}
+
 			return self->lpCallback(&DI, self->pvRef);
 		}
 	} CallbackContext;
