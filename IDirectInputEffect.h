@@ -6,6 +6,7 @@ private:
 	IDirectInputEffect *ProxyInterface;
 	m_IDirectInputEffect *WrapperInterface;
 	REFIID WrapperID = IID_IDirectInputEffect;
+	ULONG Ref = 1;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;

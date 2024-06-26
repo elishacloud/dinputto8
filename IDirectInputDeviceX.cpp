@@ -706,14 +706,20 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 	if (SUCCEEDED(hr) && ppdeff)
 	{
-		m_IDirectInputEffect* DIEffect = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
-		DIEffect->SetVersion(diVersion);
+		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
+		pEffect->SetVersion(diVersion);
 
-		*ppdeff = DIEffect;
+		*ppdeff = pEffect;
 	}
 	else
 	{
 		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
+
+		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(nullptr);
+		effects.push_back(pEffect);
+
+		// Return an effect class even on failure becasue some games don't check for failure
+		*ppdeff = pEffect;
 	}
 
 	return hr;

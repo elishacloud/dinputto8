@@ -18,6 +18,9 @@ private:
 	void *WrapperInterface2;
 	void *WrapperInterface7;
 
+	// Vector to store instances of m_IDirectInputEffect
+	std::vector<m_IDirectInputEffect> effects;
+
 	// For CooperativeLevel
 	bool CanAquireDevice = false;
 
@@ -153,6 +156,11 @@ public:
 			((m_IDirectInputW*)WrapperInterface)->DeleteMe();
 			((m_IDirectInput2W*)WrapperInterface2)->DeleteMe();
 			((m_IDirectInput7W*)WrapperInterface7)->DeleteMe();
+		}
+
+		for (auto& entry : effects)
+		{
+			entry.DeleteMe();
 		}
 
 		// Delete Critical Section

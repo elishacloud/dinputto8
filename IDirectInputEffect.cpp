@@ -20,6 +20,25 @@ HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		if (!ppvObj)
+		{
+			return E_POINTER;
+		}
+		*ppvObj = nullptr;
+
+		if (riid == WrapperID || riid == IID_IUnknown)
+		{
+			*ppvObj = this;
+
+			AddRef();
+
+			return DI_OK;
+		}
+		return E_POINTER;
+	}
+
 	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
 }
 
@@ -27,12 +46,27 @@ ULONG m_IDirectInputEffect::AddRef()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		return InterlockedIncrement(&Ref);
+	}
+
 	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInputEffect::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+
+	if (!ProxyInterface)
+	{
+		if (InterlockedCompareExchange(&Ref, 0, 0) == 0)
+		{
+			return 0;
+		}
+
+		return InterlockedDecrement(&Ref);
+	}
 
 	ULONG ref = ProxyInterface->Release();
 
@@ -47,6 +81,11 @@ ULONG m_IDirectInputEffect::Release()
 HRESULT m_IDirectInputEffect::Initialize(HINSTANCE hinst, DWORD dwVersion, REFGUID rguid)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+
+	if (!ProxyInterface)
+	{
+		return DIERR_INCOMPLETEEFFECT;
+	}
 
 	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
 	if (SUCCEEDED(hr))
@@ -66,12 +105,22 @@ HRESULT m_IDirectInputEffect::GetEffectGuid(LPGUID pguid)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+
 	return ProxyInterface->GetEffectGuid(pguid);
 }
 
 HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT lpeff, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
 
 	if (!lpeff || !lpeff->dwSize)
 	{
@@ -94,6 +143,11 @@ HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT lpeff, DWORD dwFlags)
 HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << Logging::hex(dwFlags);
+
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
 
 #ifdef _DEBUG
 	GUID guid;
@@ -123,6 +177,10 @@ HRESULT m_IDirectInputEffect::Start(DWORD dwIterations, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << dwIterations << " " << Logging::hex(dwFlags);
 
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
 
 	HRESULT hr = ProxyInterface->Start(dwIterations, dwFlags);
 
@@ -138,12 +196,22 @@ HRESULT m_IDirectInputEffect::Stop()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+
 	return ProxyInterface->Stop();
 }
 
 HRESULT m_IDirectInputEffect::GetEffectStatus(LPDWORD pdwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
 
 	return ProxyInterface->GetEffectStatus(pdwFlags);
 }
@@ -152,6 +220,11 @@ HRESULT m_IDirectInputEffect::Download()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+
 	return ProxyInterface->Download();
 }
 
@@ -159,12 +232,22 @@ HRESULT m_IDirectInputEffect::Unload()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
+
 	return ProxyInterface->Unload();
 }
 
 HRESULT m_IDirectInputEffect::Escape(LPDIEFFESCAPE pesc)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+
+	if (!ProxyInterface)
+	{
+		return DIERR_NOTINITIALIZED;
+	}
 
 	return ProxyInterface->Escape(pesc);
 }
