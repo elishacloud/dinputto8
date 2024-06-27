@@ -694,6 +694,12 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << punkOuter;
 
+	if (!ppdeff)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+	*ppdeff = nullptr;
+
 	DIEFFECT eff = {};
 	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
 	{
@@ -704,7 +710,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, punkOuter);
 
-	if (SUCCEEDED(hr) && ppdeff)
+	if (SUCCEEDED(hr))
 	{
 		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
 		pEffect->SetVersion(diVersion);
