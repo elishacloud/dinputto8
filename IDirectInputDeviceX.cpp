@@ -429,12 +429,6 @@ HRESULT m_IDirectInputDeviceX::Acquire()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!CanAquireDevice)
-	{
-		CanAquireDevice = true;
-		return DIERR_NOTINITIALIZED;
-	}
-
 	return ProxyInterface->Acquire();
 }
 
@@ -583,14 +577,7 @@ HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	HRESULT hr = ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
-
-	if (SUCCEEDED(hr))
-	{
-		CanAquireDevice = true;
-	}
-
-	return hr;
+	return ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
 }
 
 template HRESULT m_IDirectInputDeviceX::GetObjectInfoX<IDirectInputDevice8A, LPDIDEVICEOBJECTINSTANCEA>(LPDIDEVICEOBJECTINSTANCEA, DWORD, DWORD);

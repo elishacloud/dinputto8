@@ -21,9 +21,6 @@ private:
 	// Vector to store instances of m_IDirectInputEffect
 	std::vector<m_IDirectInputEffect*> effects;
 
-	// For CooperativeLevel
-	bool CanAquireDevice = false;
-
 	// For GetDeviceData
 	bool IsMouse = false;
 
