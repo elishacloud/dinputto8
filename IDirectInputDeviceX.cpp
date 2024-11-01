@@ -16,14 +16,37 @@
 
 #include "dinputto8.h"
 
-const DIDATAFORMAT c_dfDIKeyboard = {
-	sizeof(DIDATAFORMAT),
-	sizeof(DIOBJECTDATAFORMAT),
-	DIDF_RELAXIS,
-	MAX_KEYBAORD,
-	sizeof(dfDIKeyboard) / sizeof(*dfDIKeyboard),
-	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
-};
+HWND GetMainWindow()
+{
+	struct ENUMEDATA
+	{
+		DWORD processId = GetCurrentProcessId();
+		HWND mainWindow = nullptr;
+	} WindowData;
+
+	EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL
+		{
+			DWORD wndProcessId;
+			GetWindowThreadProcessId(hwnd, &wndProcessId);
+			ENUMEDATA* WindowData = reinterpret_cast<ENUMEDATA*>(lParam);
+
+			if (wndProcessId == WindowData->processId && GetWindow(hwnd, GW_OWNER) == nullptr && IsWindowVisible(hwnd))
+			{
+				WindowData->mainWindow = hwnd;
+				return FALSE;  // Stop enumerating once found
+			}
+
+			return TRUE;
+		}, reinterpret_cast<LPARAM>(&WindowData));
+
+	// Fallback to GetForegroundWindow if no suitable window is found
+	if (!WindowData.mainWindow)
+	{
+		WindowData.mainWindow = GetForegroundWindow();
+	}
+
+	return WindowData.mainWindow;
+}
 
 // Our EnumObjectDataLUT contains only abstract types AXIS, BUTTON and POV, so consider it a match if
 // any bit of the type matches (e.g. DIDFT_AXIS is 3 while DIDFT_ABSAXIS is 1).
@@ -422,6 +445,10 @@ HRESULT m_IDirectInputDeviceX::SetProperty(REFGUID rguidProp, LPCDIPROPHEADER pd
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	// Get rguidProp as a raw integer value, assuming it's not an actual GUID pointer
+	const int rguidBytes = (const int)reinterpret_cast<const BYTE*>(&rguidProp);
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Property Identifier: " << rguidBytes;
+
 	return ProxyInterface->SetProperty(rguidProp, pdiph);
 }
 
@@ -533,12 +560,19 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 		std::vector<DIOBJECTDATAFORMAT> rgodf(lpdf->dwNumObjs);
 
 		const DIDATAFORMAT df {
-			sizeof(df),
-			lpdf->dwObjSize,
+			sizeof(DIDATAFORMAT),
+			sizeof(DIOBJECTDATAFORMAT),
 			lpdf->dwFlags,
 			lpdf->dwDataSize,
 			lpdf->dwNumObjs,
 			rgodf.data() };
+
+		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") "
+			<< " Size: " << lpdf->dwSize
+			<< " ObjSize: " << lpdf->dwObjSize
+			<< " Flags: " << Logging::hex(lpdf->dwFlags)
+			<< " DataSize: " << lpdf->dwDataSize
+			<< " NumObjs: " << lpdf->dwNumObjs;
 
 		for (DWORD x = 0; x < df.dwNumObjs; x++)
 		{
@@ -546,6 +580,12 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 			rgodf[x].dwOfs = lpdf->rgodf[x].dwOfs;
 			rgodf[x].dwType = ((lpdf->rgodf[x].dwType & DIDFT_ANYINSTANCE) == 0xFF00) ? lpdf->rgodf[x].dwType | DIDFT_ANYINSTANCE : lpdf->rgodf[x].dwType;
 			rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
+
+			Logging::LogDebug() << __FUNCTION__ << " (" << this << ") -" << x << "-"
+				<< " GUID: " << rgodf[x].pguid
+				<< " Ofs: " << rgodf[x].dwOfs
+				<< " Type: " << Logging::hex(rgodf[x].dwType)
+				<< " Flags: " << Logging::hex(rgodf[x].dwFlags);
 		}
 
 		Offset = 0;
@@ -575,7 +615,15 @@ HRESULT m_IDirectInputDeviceX::SetEventNotification(HANDLE hEvent)
 
 HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") hwnd: " << hwnd << " dwFlags: " << Logging::hex(dwFlags);
+
+	// If hwnd is null, assign the main application window as a fallback
+	if (!hwnd && IsMouse)
+	{
+		hwnd = GetMainWindow();
+		Logging::LogDebug() << __FUNCTION__ << " Warning: null hwnd, using: " << hwnd << (dwFlags & DISCL_FOREGROUND ? " Removing: DISCL_FOREGROUND" : "");
+		dwFlags = (dwFlags | DISCL_BACKGROUND) & ~DISCL_FOREGROUND;
+	}
 
 	return ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
 }

@@ -247,7 +247,7 @@ template HRESULT m_IDirectInputX::CreateDeviceExX<IDirectInput8W, LPDIRECTINPUTD
 template <class T, class V>
 HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") " << rguid;
 
 	HRESULT hr = GetProxyInterface<T>()->CreateDevice(rguid, ppvObj, pUnkOuter);
 

@@ -17,6 +17,51 @@
 #include "dinputto8.h"
 #include <hidusage.h>
 
+const DIDATAFORMAT c_dfDIKeyboard = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_RELAXIS,
+	MAX_KEYBAORD,
+	sizeof(dfDIKeyboard) / sizeof(*dfDIKeyboard),
+	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
+};
+
+const DIDATAFORMAT c_dfDIMouse = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_RELAXIS,
+	sizeof(DIMOUSESTATE),
+	sizeof(dfDIMouse) / sizeof(*dfDIMouse),
+	(LPDIOBJECTDATAFORMAT)dfDIMouse
+};
+
+const DIDATAFORMAT c_dfDIMouse2 = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_RELAXIS,
+	sizeof(DIMOUSESTATE2),
+	sizeof(dfDIMouse2) / sizeof(*dfDIMouse2),
+	(LPDIOBJECTDATAFORMAT)dfDIMouse2
+};
+
+const DIDATAFORMAT c_dfDIJoystick = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_ABSAXIS,
+	sizeof(DIJOYSTATE),
+	sizeof(dfDIJoystick) / sizeof(*dfDIJoystick),
+	(LPDIOBJECTDATAFORMAT)dfDIJoystick
+};
+
+const DIDATAFORMAT c_dfDIJoystick2 = {
+	sizeof(DIDATAFORMAT),
+	sizeof(DIOBJECTDATAFORMAT),
+	DIDF_ABSAXIS,
+	sizeof(DIJOYSTATE2),
+	sizeof(dfDIJoystick2) / sizeof(*dfDIJoystick2),
+	(LPDIOBJECTDATAFORMAT)dfDIJoystick2
+};
+
 DWORD ConvertDevTypeTo7(DWORD dwDevType, WORD wUsagePage, WORD wUsage, BOOL isHID, BOOL& IsGamepad)
 {
 	IsGamepad = FALSE;
