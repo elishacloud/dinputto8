@@ -17,12 +17,14 @@
 #include "dinputto8.h"
 
 // Cached wrapper interface
-m_IDirectInputDeviceA* DirectInputDeviceWrapperBackupA = nullptr;
-m_IDirectInputDeviceW* DirectInputDeviceWrapperBackupW = nullptr;
-m_IDirectInputDevice2A* DirectInputDeviceWrapperBackup2A = nullptr;
-m_IDirectInputDevice2W* DirectInputDeviceWrapperBackup2W = nullptr;
-m_IDirectInputDevice7A* DirectInputDeviceWrapperBackup7A = nullptr;
-m_IDirectInputDevice7W* DirectInputDeviceWrapperBackup7W = nullptr;
+namespace {
+	m_IDirectInputDeviceA* WrapperInterfaceBackupA = nullptr;
+	m_IDirectInputDeviceW* WrapperInterfaceBackupW = nullptr;
+	m_IDirectInputDevice2A* WrapperInterfaceBackup2A = nullptr;
+	m_IDirectInputDevice2W* WrapperInterfaceBackup2W = nullptr;
+	m_IDirectInputDevice7A* WrapperInterfaceBackup7A = nullptr;
+	m_IDirectInputDevice7W* WrapperInterfaceBackup7W = nullptr;
+}
 
 HWND GetMainWindow()
 {
@@ -271,29 +273,29 @@ LPVOID m_IDirectInputDeviceX::GetWrapperInterfaceX(DWORD DirectXVersion)
 	case 1:
 		if (StringType == ANSI_CHARSET)
 		{
-			return GetInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, DirectInputDeviceWrapperBackupA, (LPDIRECTINPUTDEVICEA)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, WrapperInterfaceBackupA, (LPDIRECTINPUTDEVICEA)ProxyInterface, this);
 		}
 		else
 		{
-			return GetInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, DirectInputDeviceWrapperBackupW, (LPDIRECTINPUTDEVICEW)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, WrapperInterfaceBackupW, (LPDIRECTINPUTDEVICEW)ProxyInterface, this);
 		}
 	case 2:
 		if (StringType == ANSI_CHARSET)
 		{
-			return GetInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, DirectInputDeviceWrapperBackup2A, (LPDIRECTINPUTDEVICE2A)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, WrapperInterfaceBackup2A, (LPDIRECTINPUTDEVICE2A)ProxyInterface, this);
 		}
 		else
 		{
-			return GetInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, DirectInputDeviceWrapperBackup2W, (LPDIRECTINPUTDEVICE2W)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, WrapperInterfaceBackup2W, (LPDIRECTINPUTDEVICE2W)ProxyInterface, this);
 		}
 	case 7:
 		if (StringType == ANSI_CHARSET)
 		{
-			return GetInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, DirectInputDeviceWrapperBackup7A, (LPDIRECTINPUTDEVICE7A)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, WrapperInterfaceBackup7A, (LPDIRECTINPUTDEVICE7A)ProxyInterface, this);
 		}
 		else
 		{
-			return GetInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, DirectInputDeviceWrapperBackup7W, (LPDIRECTINPUTDEVICE7W)ProxyInterface, this);
+			return GetInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, WrapperInterfaceBackup7W, (LPDIRECTINPUTDEVICE7W)ProxyInterface, this);
 		}
 	}
 	LOG_LIMIT(100, __FUNCTION__ << " Error: wrapper interface version not found: " << DirectXVersion);
@@ -941,14 +943,14 @@ void m_IDirectInputDeviceX::ReleaseInterface()
 	// Don't delete wrapper interface
 	if (StringType == ANSI_CHARSET)
 	{
-		SaveInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, DirectInputDeviceWrapperBackupA);
-		SaveInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, DirectInputDeviceWrapperBackup2A);
-		SaveInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, DirectInputDeviceWrapperBackup7A);
+		SaveInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, WrapperInterfaceBackupA);
+		SaveInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, WrapperInterfaceBackup2A);
+		SaveInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, WrapperInterfaceBackup7A);
 	}
 	else
 	{
-		SaveInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, DirectInputDeviceWrapperBackupW);
-		SaveInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, DirectInputDeviceWrapperBackup2W);
-		SaveInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, DirectInputDeviceWrapperBackup7W);
+		SaveInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, WrapperInterfaceBackupW);
+		SaveInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, WrapperInterfaceBackup2W);
+		SaveInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, WrapperInterfaceBackup7W);
 	}
 }
