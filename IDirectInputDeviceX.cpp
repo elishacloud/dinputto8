@@ -791,7 +791,6 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
 
 		m_IDirectInputEffect* pEffect = CreateEffectWrapper(nullptr);
-		effects.push_back(pEffect);
 
 		// Return an effect class even on failure becasue some games don't check for failure
 		*ppdeff = pEffect;

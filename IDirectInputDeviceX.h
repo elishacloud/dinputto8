@@ -18,9 +18,6 @@ private:
 	void *WrapperInterface2 = nullptr;
 	void *WrapperInterface7 = nullptr;
 
-	// Vector to store instances of m_IDirectInputEffect
-	std::vector<m_IDirectInputEffect*> effects;
-
 	// For SetCooperativeLevel
 	bool IsMouse = false;
 
@@ -130,11 +127,6 @@ public:
 	~m_IDirectInputDeviceX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
-
-		for (auto& entry : effects)
-		{
-			entry->DeleteMe();
-		}
 
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
