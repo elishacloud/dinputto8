@@ -936,7 +936,7 @@ HRESULT m_IDirectInputDeviceX::WriteEffectToFileX(V lpszFileName, DWORD dwEntrie
 	return GetProxyInterface<T>()->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
 }
 
-void m_IDirectInputDeviceX::ReleaseDirectInput()
+void m_IDirectInputDeviceX::ReleaseInterface()
 {
 	// Don't delete wrapper interface
 	if (StringType == ANSI_CHARSET)

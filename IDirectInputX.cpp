@@ -301,7 +301,7 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 	return hr;
 }
 
-void m_IDirectInputX::ReleaseDirectInput()
+void m_IDirectInputX::ReleaseInterface()
 {
 	// Don't delete wrapper interface
 	if (StringType == ANSI_CHARSET)

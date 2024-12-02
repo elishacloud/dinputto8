@@ -51,21 +51,11 @@ HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 
 	if (!ProxyInterface)
 	{
-		if (!ppvObj)
+		if (ppvObj)
 		{
-			return E_POINTER;
+			*ppvObj = nullptr;
 		}
-		*ppvObj = nullptr;
-
-		if (riid == WrapperID || riid == IID_IUnknown)
-		{
-			*ppvObj = this;
-
-			AddRef();
-
-			return DI_OK;
-		}
-		return E_POINTER;
+		return E_NOINTERFACE;
 	}
 
 	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);

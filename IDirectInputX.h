@@ -48,7 +48,7 @@ private:
 	template <class T, class V>
 	inline HRESULT CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter);
 
-	void ReleaseDirectInput();
+	void ReleaseInterface();
 
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
@@ -59,7 +59,7 @@ public:
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 		
-		ReleaseDirectInput();
+		ReleaseInterface();
 	}
 
 	/*** IUnknown methods ***/

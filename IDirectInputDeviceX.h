@@ -112,7 +112,7 @@ private:
 	template <class T, class V>
 	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);
 
-	void ReleaseDirectInput();
+	void ReleaseInterface();
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
@@ -131,7 +131,7 @@ public:
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
 
-		ReleaseDirectInput();
+		ReleaseInterface();
 	}
 
 	/*** IUnknown methods ***/
