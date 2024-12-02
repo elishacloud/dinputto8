@@ -4,18 +4,30 @@ class m_IDirectInputDeviceW : public IDirectInputDeviceW, public AddressLookupTa
 {
 private:
 	m_IDirectInputDeviceX *ProxyInterface;
-	IDirectInputDeviceW *RealInterface;
 	REFIID WrapperID = IID_IDirectInputDeviceW;
 	const DWORD DirectXVersion = 1;
 
 public:
-	m_IDirectInputDeviceW(IDirectInputDeviceW *aOriginal, m_IDirectInputDeviceX *Interface) : RealInterface(aOriginal), ProxyInterface(Interface)
+	m_IDirectInputDeviceW(IDirectInputDeviceW *, m_IDirectInputDeviceX *Interface) : ProxyInterface(Interface)
 	{
-		ProxyAddressLookupTable.SaveAddress(this, RealInterface);
+		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputDeviceW()
 	{
 		ProxyAddressLookupTable.DeleteAddress(this);
+	}
+
+	void SetProxy(m_IDirectInputDeviceX* NewProxyInterface)
+	{
+		ProxyInterface = NewProxyInterface;
+		if (NewProxyInterface)
+		{
+			ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
+		}
+		else
+		{
+			ProxyAddressLookupTable.DeleteAddress(this);
+		}
 	}
 
 	/*** IUnknown methods ***/

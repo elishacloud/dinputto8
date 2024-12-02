@@ -16,6 +16,14 @@
 
 #include "dinputto8.h"
 
+// Cached wrapper interface
+m_IDirectInputDeviceA* DirectInputDeviceWrapperBackupA = nullptr;
+m_IDirectInputDeviceW* DirectInputDeviceWrapperBackupW = nullptr;
+m_IDirectInputDevice2A* DirectInputDeviceWrapperBackup2A = nullptr;
+m_IDirectInputDevice2W* DirectInputDeviceWrapperBackup2W = nullptr;
+m_IDirectInputDevice7A* DirectInputDeviceWrapperBackup7A = nullptr;
+m_IDirectInputDevice7W* DirectInputDeviceWrapperBackup7W = nullptr;
+
 HWND GetMainWindow()
 {
 	struct ENUMEDATA
@@ -255,15 +263,41 @@ LPVOID m_IDirectInputDeviceX::GetWrapperInterfaceX(DWORD DirectXVersion)
 {
 	switch (DirectXVersion)
 	{
+	case 0:
+		if (WrapperInterface7) return WrapperInterface7;
+		if (WrapperInterface2) return WrapperInterface2;
+		if (WrapperInterface) return WrapperInterface;
+		break;
 	case 1:
-		return WrapperInterface;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, DirectInputDeviceWrapperBackupA, (LPDIRECTINPUTDEVICEA)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, DirectInputDeviceWrapperBackupW, (LPDIRECTINPUTDEVICEW)ProxyInterface, this);
+		}
 	case 2:
-		return WrapperInterface2;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, DirectInputDeviceWrapperBackup2A, (LPDIRECTINPUTDEVICE2A)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, DirectInputDeviceWrapperBackup2W, (LPDIRECTINPUTDEVICE2W)ProxyInterface, this);
+		}
 	case 7:
-		return WrapperInterface7;
-	default:
-		return nullptr;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, DirectInputDeviceWrapperBackup7A, (LPDIRECTINPUTDEVICE7A)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, DirectInputDeviceWrapperBackup7W, (LPDIRECTINPUTDEVICE7W)ProxyInterface, this);
+		}
 	}
+	LOG_LIMIT(100, __FUNCTION__ << " Error: wrapper interface version not found: " << DirectXVersion);
+	return nullptr;
 }
 
 ULONG m_IDirectInputDeviceX::AddRef()
@@ -747,7 +781,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 	if (SUCCEEDED(hr))
 	{
-		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect((IDirectInputEffect*)*ppdeff);
+		m_IDirectInputEffect* pEffect = CreateEffectWrapper((IDirectInputEffect*)*ppdeff);
 		pEffect->SetVersion(diVersion);
 
 		*ppdeff = pEffect;
@@ -756,7 +790,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	{
 		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
 
-		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(nullptr);
+		m_IDirectInputEffect* pEffect = CreateEffectWrapper(nullptr);
 		effects.push_back(pEffect);
 
 		// Return an effect class even on failure becasue some games don't check for failure
@@ -901,4 +935,21 @@ HRESULT m_IDirectInputDeviceX::WriteEffectToFileX(V lpszFileName, DWORD dwEntrie
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
 	return GetProxyInterface<T>()->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+}
+
+void m_IDirectInputDeviceX::ReleaseDirectInput()
+{
+	// Don't delete wrapper interface
+	if (StringType == ANSI_CHARSET)
+	{
+		SaveInterfaceAddress((m_IDirectInputDeviceA*&)WrapperInterface, DirectInputDeviceWrapperBackupA);
+		SaveInterfaceAddress((m_IDirectInputDevice2A*&)WrapperInterface2, DirectInputDeviceWrapperBackup2A);
+		SaveInterfaceAddress((m_IDirectInputDevice7A*&)WrapperInterface7, DirectInputDeviceWrapperBackup7A);
+	}
+	else
+	{
+		SaveInterfaceAddress((m_IDirectInputDeviceW*&)WrapperInterface, DirectInputDeviceWrapperBackupW);
+		SaveInterfaceAddress((m_IDirectInputDevice2W*&)WrapperInterface2, DirectInputDeviceWrapperBackup2W);
+		SaveInterfaceAddress((m_IDirectInputDevice7W*&)WrapperInterface7, DirectInputDeviceWrapperBackup7W);
+	}
 }

@@ -4,18 +4,30 @@ class m_IDirectInput7W : public IDirectInput7W, public AddressLookupTableDinputO
 {
 private:
 	m_IDirectInputX *ProxyInterface;
-	IDirectInput7W *RealInterface;
 	REFIID WrapperID = IID_IDirectInput7W;
 	const DWORD DirectXVersion = 7;
 
 public:
-	m_IDirectInput7W(IDirectInput7W *aOriginal, m_IDirectInputX *Interface) : RealInterface(aOriginal), ProxyInterface(Interface)
+	m_IDirectInput7W(IDirectInput7W *, m_IDirectInputX *Interface) : ProxyInterface(Interface)
 	{
-		ProxyAddressLookupTable.SaveAddress(this, RealInterface);
+		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInput7W()
 	{
 		ProxyAddressLookupTable.DeleteAddress(this);
+	}
+
+	void SetProxy(m_IDirectInputX* NewProxyInterface)
+	{
+		ProxyInterface = NewProxyInterface;
+		if (NewProxyInterface)
+		{
+			ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
+		}
+		else
+		{
+			ProxyAddressLookupTable.DeleteAddress(this);
+		}
 	}
 
 	/*** IUnknown methods ***/

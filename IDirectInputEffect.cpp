@@ -16,6 +16,35 @@
 
 #include "dinputto8.h"
 
+// Cached wrapper interface
+m_IDirectInputEffect* DirectInputEffectWrapperBackup = nullptr;
+
+m_IDirectInputEffect* CreateEffectWrapper(IDirectInputEffect* aOriginal)
+{
+	SetCriticalSection();
+	m_IDirectInputEffect* Interface = nullptr;
+	if (DirectInputEffectWrapperBackup)
+	{
+		Interface = DirectInputEffectWrapperBackup;
+		if (aOriginal)
+		{
+			DirectInputEffectWrapperBackup = nullptr;
+			Interface->SetProxy(aOriginal);
+		}
+	}
+	else
+	{
+		Interface = new m_IDirectInputEffect(aOriginal);
+		if (!aOriginal)
+		{
+			Interface->SetProxy(nullptr);
+			DirectInputEffectWrapperBackup = Interface;
+		}
+	}
+	ReleaseCriticalSection();
+	return Interface;
+}
+
 HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -48,7 +77,7 @@ ULONG m_IDirectInputEffect::AddRef()
 
 	if (!ProxyInterface)
 	{
-		return InterlockedIncrement(&Ref);
+		return 0;
 	}
 
 	return ProxyInterface->AddRef();
@@ -60,19 +89,15 @@ ULONG m_IDirectInputEffect::Release()
 
 	if (!ProxyInterface)
 	{
-		if (InterlockedCompareExchange(&Ref, 0, 0) == 0)
-		{
-			return 0;
-		}
-
-		return InterlockedDecrement(&Ref);
+		return 0;
 	}
 
 	ULONG ref = ProxyInterface->Release();
 
 	if (ref == 0)
 	{
-		delete this;
+		// Don't delete wrapper interface
+		SaveInterfaceAddress((m_IDirectInputEffect*&)WrapperInterface, DirectInputEffectWrapperBackup);
 	}
 
 	return ref;
@@ -84,7 +109,7 @@ HRESULT m_IDirectInputEffect::Initialize(HINSTANCE hinst, DWORD dwVersion, REFGU
 
 	if (!ProxyInterface)
 	{
-		return DIERR_INCOMPLETEEFFECT;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
@@ -107,7 +132,7 @@ HRESULT m_IDirectInputEffect::GetEffectGuid(LPGUID pguid)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->GetEffectGuid(pguid);
@@ -119,7 +144,7 @@ HRESULT m_IDirectInputEffect::GetParameters(LPDIEFFECT lpeff, DWORD dwFlags)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	if (!lpeff || !lpeff->dwSize)
@@ -146,7 +171,7 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 #ifdef _DEBUG
@@ -179,7 +204,7 @@ HRESULT m_IDirectInputEffect::Start(DWORD dwIterations, DWORD dwFlags)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	HRESULT hr = ProxyInterface->Start(dwIterations, dwFlags);
@@ -198,7 +223,7 @@ HRESULT m_IDirectInputEffect::Stop()
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->Stop();
@@ -210,7 +235,7 @@ HRESULT m_IDirectInputEffect::GetEffectStatus(LPDWORD pdwFlags)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->GetEffectStatus(pdwFlags);
@@ -222,7 +247,7 @@ HRESULT m_IDirectInputEffect::Download()
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->Download();
@@ -234,7 +259,7 @@ HRESULT m_IDirectInputEffect::Unload()
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->Unload();
@@ -246,7 +271,7 @@ HRESULT m_IDirectInputEffect::Escape(LPDIEFFESCAPE pesc)
 
 	if (!ProxyInterface)
 	{
-		return DIERR_NOTINITIALIZED;
+		return DIERR_OBJECTNOTFOUND;
 	}
 
 	return ProxyInterface->Escape(pesc);

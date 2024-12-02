@@ -11,9 +11,9 @@ private:
 	DWORD diVersion = 0;
 
 	// Version Interfaces
-	void *WrapperInterface;
-	void *WrapperInterface2;
-	void *WrapperInterface7;
+	void *WrapperInterface = nullptr;
+	void *WrapperInterface2 = nullptr;
+	void *WrapperInterface7 = nullptr;
 
 	// Wrapper interface functions
 	inline REFIID GetWrapperType(DWORD DirectXVersion)
@@ -48,40 +48,18 @@ private:
 	template <class T, class V>
 	inline HRESULT CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter);
 
+	void ReleaseDirectInput();
+
 public:
 	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")" << " converting interface from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
-
-		if (StringType == ANSI_CHARSET)
-		{
-			WrapperInterface = new m_IDirectInputA((LPDIRECTINPUTA)ProxyInterface, this);
-			WrapperInterface2 = new m_IDirectInput2A((LPDIRECTINPUT2A)ProxyInterface, this);
-			WrapperInterface7 = new m_IDirectInput7A((LPDIRECTINPUT7A)ProxyInterface, this);
-		}
-		else
-		{
-			WrapperInterface = new m_IDirectInputW((LPDIRECTINPUTW)ProxyInterface, this);
-			WrapperInterface2 = new m_IDirectInput2W((LPDIRECTINPUT2W)ProxyInterface, this);
-			WrapperInterface7 = new m_IDirectInput7W((LPDIRECTINPUT7W)ProxyInterface, this);
-		}
 	}
 	~m_IDirectInputX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 		
-		if (StringType == ANSI_CHARSET)
-		{
-			((m_IDirectInputA*)WrapperInterface)->DeleteMe();
-			((m_IDirectInput2A*)WrapperInterface2)->DeleteMe();
-			((m_IDirectInput7A*)WrapperInterface7)->DeleteMe();
-		}
-		else
-		{
-			((m_IDirectInputW*)WrapperInterface)->DeleteMe();
-			((m_IDirectInput2W*)WrapperInterface2)->DeleteMe();
-			((m_IDirectInput7W*)WrapperInterface7)->DeleteMe();
-		}
+		ReleaseDirectInput();
 	}
 
 	/*** IUnknown methods ***/

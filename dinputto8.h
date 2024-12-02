@@ -35,6 +35,9 @@ typedef HRESULT(WINAPI *DllUnregisterServerProc)();
 
 namespace dinputto8
 {
+	void SetCriticalSection();
+	void ReleaseCriticalSection();
+
 	DWORD GetStringType(REFIID riid);
 	DWORD GetGUIDVersion(REFIID riid);
 	REFIID ReplaceIIDUnknown(REFIID riid, REFIID guid);

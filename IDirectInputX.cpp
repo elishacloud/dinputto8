@@ -16,6 +16,14 @@
 
 #include "dinputto8.h"
 
+// Cached wrapper interface
+m_IDirectInputA* DirectInputWrapperBackupA = nullptr;
+m_IDirectInputW* DirectInputWrapperBackupW = nullptr;
+m_IDirectInput2A* DirectInputWrapperBackup2A = nullptr;
+m_IDirectInput2W* DirectInputWrapperBackup2W = nullptr;
+m_IDirectInput7A* DirectInputWrapperBackup7A = nullptr;
+m_IDirectInput7W* DirectInputWrapperBackup7W = nullptr;
+
 HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -29,15 +37,41 @@ LPVOID m_IDirectInputX::GetWrapperInterfaceX(DWORD DirectXVersion)
 {
 	switch (DirectXVersion)
 	{
+	case 0:
+		if (WrapperInterface7) return WrapperInterface7;
+		if (WrapperInterface2) return WrapperInterface2;
+		if (WrapperInterface) return WrapperInterface;
+		break;
 	case 1:
-		return WrapperInterface;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInputA*&)WrapperInterface, DirectInputWrapperBackupA, (LPDIRECTINPUTA)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInputW*&)WrapperInterface, DirectInputWrapperBackupW, (LPDIRECTINPUTW)ProxyInterface, this);
+		}
 	case 2:
-		return WrapperInterface2;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInput2A*&)WrapperInterface2, DirectInputWrapperBackup2A, (LPDIRECTINPUT2A)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInput2W*&)WrapperInterface2, DirectInputWrapperBackup2W, (LPDIRECTINPUT2W)ProxyInterface, this);
+		}
 	case 7:
-		return WrapperInterface7;
-	default:
-		return nullptr;
+		if (StringType == ANSI_CHARSET)
+		{
+			return GetInterfaceAddress((m_IDirectInput7A*&)WrapperInterface7, DirectInputWrapperBackup7A, (LPDIRECTINPUT7A)ProxyInterface, this);
+		}
+		else
+		{
+			return GetInterfaceAddress((m_IDirectInput7W*&)WrapperInterface7, DirectInputWrapperBackup7W, (LPDIRECTINPUT7W)ProxyInterface, this);
+		}
 	}
+	LOG_LIMIT(100, __FUNCTION__ << " Error: wrapper interface version not found: " << DirectXVersion);
+	return nullptr;
 }
 
 ULONG m_IDirectInputX::AddRef()
@@ -265,4 +299,21 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 	}
 
 	return hr;
+}
+
+void m_IDirectInputX::ReleaseDirectInput()
+{
+	// Don't delete wrapper interface
+	if (StringType == ANSI_CHARSET)
+	{
+		SaveInterfaceAddress((m_IDirectInputA*&)WrapperInterface, DirectInputWrapperBackupA);
+		SaveInterfaceAddress((m_IDirectInput2A*&)WrapperInterface2, DirectInputWrapperBackup2A);
+		SaveInterfaceAddress((m_IDirectInput7A*&)WrapperInterface7, DirectInputWrapperBackup7A);
+	}
+	else
+	{
+		SaveInterfaceAddress((m_IDirectInputW*&)WrapperInterface, DirectInputWrapperBackupW);
+		SaveInterfaceAddress((m_IDirectInput2W*&)WrapperInterface2, DirectInputWrapperBackup2W);
+		SaveInterfaceAddress((m_IDirectInput7W*&)WrapperInterface7, DirectInputWrapperBackup7W);
+	}
 }

@@ -18,50 +18,102 @@
 
 HRESULT m_IDirectInput7W::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 {
+	if (!ProxyInterface)
+	{
+		if (ppvObj)
+		{
+			*ppvObj = nullptr;
+		}
+		return E_NOINTERFACE;
+	}
 	return ProxyInterface->QueryInterface(ReplaceIIDUnknown(riid, WrapperID), ppvObj, DirectXVersion);
 }
 
 ULONG m_IDirectInput7W::AddRef()
 {
+	if (!ProxyInterface)
+	{
+		return 0;
+	}
 	return ProxyInterface->AddRef();
 }
 
 ULONG m_IDirectInput7W::Release()
 {
+	if (!ProxyInterface)
+	{
+		return 0;
+	}
 	return ProxyInterface->Release();
 }
 
 HRESULT m_IDirectInput7W::CreateDevice(REFGUID rguid, LPDIRECTINPUTDEVICEW *lplpDirectInputDevice, LPUNKNOWN pUnkOuter)
 {
+	if (!ProxyInterface)
+	{
+		if (lplpDirectInputDevice)
+		{
+			*lplpDirectInputDevice = nullptr;
+		}
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->CreateDeviceEx(rguid, IID_IDirectInputDevice7W, (LPDIRECTINPUTDEVICE8W *)lplpDirectInputDevice, pUnkOuter);
 }
 
 HRESULT m_IDirectInput7W::EnumDevices(DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
+	if (!ProxyInterface)
+	{
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->EnumDevices(dwDevType, lpCallback, pvRef, dwFlags);
 }
 
 HRESULT m_IDirectInput7W::GetDeviceStatus(REFGUID rguidInstance)
 {
+	if (!ProxyInterface)
+	{
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->GetDeviceStatus(rguidInstance);
 }
 
 HRESULT m_IDirectInput7W::RunControlPanel(HWND hwndOwner, DWORD dwFlags)
 {
+	if (!ProxyInterface)
+	{
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->RunControlPanel(hwndOwner, dwFlags);
 }
 
 HRESULT m_IDirectInput7W::Initialize(HINSTANCE hinst, DWORD dwVersion)
 {
+	if (!ProxyInterface)
+	{
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->Initialize(hinst, dwVersion);
 }
 
 HRESULT m_IDirectInput7W::FindDevice(REFGUID rguidClass, LPCWSTR ptszName, LPGUID pguidInstance)
 {
+	if (!ProxyInterface)
+	{
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->FindDevice(rguidClass, ptszName, pguidInstance);
 }
 
 HRESULT m_IDirectInput7W::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID * ppvObj, LPUNKNOWN pUnkOuter)
 {
+	if (!ProxyInterface)
+	{
+		if (ppvObj)
+		{
+			*ppvObj = nullptr;
+		}
+		return DIERR_OBJECTNOTFOUND;
+	}
 	return ProxyInterface->CreateDeviceEx(rguid, riid, (LPDIRECTINPUTDEVICE8W *)ppvObj, pUnkOuter);
 }

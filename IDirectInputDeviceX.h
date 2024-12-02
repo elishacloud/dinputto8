@@ -14,9 +14,9 @@ private:
 	DWORD diVersion = 0;
 
 	// Version Interfaces
-	void *WrapperInterface;
-	void *WrapperInterface2;
-	void *WrapperInterface7;
+	void *WrapperInterface = nullptr;
+	void *WrapperInterface2 = nullptr;
+	void *WrapperInterface7 = nullptr;
 
 	// Vector to store instances of m_IDirectInputEffect
 	std::vector<m_IDirectInputEffect*> effects;
@@ -115,23 +115,12 @@ private:
 	template <class T, class V>
 	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);
 
+	void ReleaseDirectInput();
+
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")" << " converting interface from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
-
-		if (StringType == ANSI_CHARSET)
-		{
-			WrapperInterface = new m_IDirectInputDeviceA((LPDIRECTINPUTDEVICEA)ProxyInterface, this);
-			WrapperInterface2 = new m_IDirectInputDevice2A((LPDIRECTINPUTDEVICE2A)ProxyInterface, this);
-			WrapperInterface7 = new m_IDirectInputDevice7A((LPDIRECTINPUTDEVICE7A)ProxyInterface, this);
-		}
-		else
-		{
-			WrapperInterface = new m_IDirectInputDeviceW((LPDIRECTINPUTDEVICEW)ProxyInterface, this);
-			WrapperInterface2 = new m_IDirectInputDevice2W((LPDIRECTINPUTDEVICE2W)ProxyInterface, this);
-			WrapperInterface7 = new m_IDirectInputDevice7W((LPDIRECTINPUTDEVICE7W)ProxyInterface, this);
-		}
 
 		// Initialize Critical Section
 		InitializeCriticalSection(&dics);
@@ -142,19 +131,6 @@ public:
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 
-		if (StringType == ANSI_CHARSET)
-		{
-			((m_IDirectInputA*)WrapperInterface)->DeleteMe();
-			((m_IDirectInput2A*)WrapperInterface2)->DeleteMe();
-			((m_IDirectInput7A*)WrapperInterface7)->DeleteMe();
-		}
-		else
-		{
-			((m_IDirectInputW*)WrapperInterface)->DeleteMe();
-			((m_IDirectInput2W*)WrapperInterface2)->DeleteMe();
-			((m_IDirectInput7W*)WrapperInterface7)->DeleteMe();
-		}
-
 		for (auto& entry : effects)
 		{
 			entry->DeleteMe();
@@ -162,6 +138,8 @@ public:
 
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
+
+		ReleaseDirectInput();
 	}
 
 	/*** IUnknown methods ***/
