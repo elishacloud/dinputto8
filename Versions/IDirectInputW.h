@@ -4,7 +4,7 @@ class m_IDirectInputW : public IDirectInputW, public AddressLookupTableDinputObj
 {
 private:
 	m_IDirectInputX *ProxyInterface;
-	REFIID WrapperID = IID_IDirectInputW;
+	const IID WrapperID = IID_IDirectInputW;
 	const DWORD DirectXVersion = 1;
 
 public:

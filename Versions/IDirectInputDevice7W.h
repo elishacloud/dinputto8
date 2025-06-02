@@ -4,7 +4,7 @@ class m_IDirectInputDevice7W : public IDirectInputDevice7W, public AddressLookup
 {
 private:
 	m_IDirectInputDeviceX *ProxyInterface;
-	REFIID WrapperID = IID_IDirectInputDevice7W;
+	const IID WrapperID = IID_IDirectInputDevice7W;
 	const DWORD DirectXVersion = 7;
 
 public:

@@ -7,7 +7,7 @@ class m_IDirectInputDeviceX : public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputDevice8W *ProxyInterface;
-	REFIID WrapperID;
+	const IID WrapperID;
 	DWORD StringType;
 
 	// Requested DirectInput version - used to alter behaviour by requested version

@@ -7,7 +7,7 @@ class m_IDirectInputEffect : public IDirectInputEffect, public AddressLookupTabl
 private:
 	IDirectInputEffect *ProxyInterface;
 	m_IDirectInputEffect *WrapperInterface;
-	REFIID WrapperID = IID_IDirectInputEffect;
+	const IID WrapperID = IID_IDirectInputEffect;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
