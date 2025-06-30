@@ -26,7 +26,7 @@ namespace {
 	m_IDirectInputDevice7W* WrapperInterfaceBackup7W = nullptr;
 }
 
-HWND GetMainWindow()
+static HWND GetMainWindow()
 {
 	struct ENUMEDATA
 	{

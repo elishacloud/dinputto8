@@ -86,7 +86,6 @@ This software is provided 'as-is', without any express or implied warranty. In n
 dinputto8 uses code from some other projects. Below is a list of locations that source code was taken from:
 
  - [DDrawCompat](https://github.com/narzoul/DDrawCompat/): Includes code to for logging.
- - [noser-sandbox](https://code.google.com/archive/p/noser-sandbox/source/default/source) Includes code in EnumDevices() used to order the device list.  You will find the extracted code in the Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
 
 ### Development
 dinputto8 is written in C++ using Microsoft Visual Studio Community 2017.

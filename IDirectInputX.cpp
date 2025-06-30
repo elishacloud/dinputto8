@@ -157,17 +157,15 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 	if (dwDevType == DI8DEVCLASS_ALL)
 	{
 		// Instead of directly calling the ProxyInterface here, we are adding some extra code to sort the devices. This is an exclusive fix
-		// for a known bug in Rayman 2 that would prevent any gamepad from working. The fix has been extracted from this old VS 2010 project:
+		// for a known bug in Rayman 2 that would prevent any gamepad from working. A similar fix can be seen in this old VS 2010 project:
 		// https://code.google.com/archive/p/noser-sandbox/source/default/source
 		// There is only one download link with a zip file containing other projects too. You will find the extracted code in the
 		// Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
-		// Thanks to Nolan Check for the fix!
+		// Thanks Nolan Check for an example of how to fix this!
 
-		// The bug: Rayman 2 expects EnumDevices to give results in a certain
-		// order, where gamepads come before the keyboard. DirectInput makes
+		// The bug: Rayman 2 expects EnumDevices to give results in a certain order, where gamepads come before the keyboard. DirectInput makes
 		// no guarantee about the order.
-		// The fix: Call DirectInput's EnumDevices, then sort the results in
-		// an order where gamepads come first, then give them to Rayman 2.
+		// The fix: Call DirectInput's EnumDevices, then sort the results in an order where gamepads come first, then give them to Rayman 2.
 
 		// Get devices and sort them
 		using DeviceInstanceList = std::list<D>;
@@ -220,11 +218,11 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		}
 
 		// Execute Callback
-		for (const D& sortedDevice : sortedDevices)
+		for (const D& device : sortedDevices)
 		{
-			Logging::LogDebug() << __FUNCTION__ << " Enumerating Product: " << sortedDevice.tszProductName << " Instance: " << sortedDevice.tszInstanceName;
+			Logging::LogDebug() << __FUNCTION__ << " Enumerating Product: " << device.tszProductName << " Instance: " << device.tszInstanceName;
 
-			if (DeviceEnumerator::EnumDeviceCallback(&sortedDevice, &CallbackContext) == DIENUM_STOP)
+			if (DeviceEnumerator::EnumDeviceCallback(&device, &CallbackContext) == DIENUM_STOP)
 			{
 				break;
 			}
