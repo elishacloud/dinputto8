@@ -85,7 +85,6 @@ This software is provided 'as-is', without any express or implied warranty. In n
 ### Credits
 dinputto8 uses code from some other projects. Below is a list of locations that source code was taken from:
 
- - [Aqrit's ddwrapper](http://bitpatch.com/ddwrapper.html): Includes code to read the ini config file.
  - [DDrawCompat](https://github.com/narzoul/DDrawCompat/): Includes code to for logging.
  - [noser-sandbox](https://code.google.com/archive/p/noser-sandbox/source/default/source) Includes code in EnumDevices() used to order the device list.  You will find the extracted code in the Rayman2InputFix_DirectInputA.cpp file from the Rayman2InputFix project.
 
