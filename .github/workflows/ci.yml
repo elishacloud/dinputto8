@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         config: [Workflow]
-        platform: [Win32]
+        platform: [Win32, x64]
 
     steps:
     - uses: actions/checkout@v3

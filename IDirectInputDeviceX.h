@@ -52,8 +52,8 @@ private:
 		for (UINT x = 0; x < dwNumRecords; x++)
 		{
 			*DestDod = *(T*)SrcDod;
-			SrcDod = (DIDEVICEOBJECTDATA*)((DWORD)SrcDod + sizeof(DIDEVICEOBJECTDATA));
-			DestDod = (T*)((DWORD)DestDod + sizeof(T));
+			SrcDod = (DIDEVICEOBJECTDATA*)((size_t)SrcDod + sizeof(DIDEVICEOBJECTDATA));
+			DestDod = (T*)((size_t)DestDod + sizeof(T));
 		}
 	}
 	inline void CopyDeviceData(DIDEVICEOBJECTDATA* DestDod, DIDEVICEOBJECTDATA_DX3* SrcDod, DWORD dwNumRecords)
@@ -62,8 +62,8 @@ private:
 		{
 			*(DIDEVICEOBJECTDATA_DX3*)DestDod = *SrcDod;
 			DestDod->uAppData = NULL;
-			SrcDod = (DIDEVICEOBJECTDATA_DX3*)((DWORD)SrcDod + sizeof(DIDEVICEOBJECTDATA_DX3));
-			DestDod = (DIDEVICEOBJECTDATA*)((DWORD)DestDod + sizeof(DIDEVICEOBJECTDATA));
+			SrcDod = (DIDEVICEOBJECTDATA_DX3*)((size_t)SrcDod + sizeof(DIDEVICEOBJECTDATA_DX3));
+			DestDod = (DIDEVICEOBJECTDATA*)((size_t)DestDod + sizeof(DIDEVICEOBJECTDATA));
 		}
 	}
 

@@ -115,7 +115,7 @@ HRESULT dinputto8::hresValidInstanceAndVersion(HINSTANCE& hinst, DWORD dwVersion
 	if (hinst != nullptr)
 	{
 		wchar_t path[4];
-		bValidInstance = GetModuleFileNameW(hinst, path, std::size(path) - 1) != 0;
+		bValidInstance = GetModuleFileNameW(hinst, path, (DWORD)std::size(path) - 1) != 0;
 	}
 	else
 	{
