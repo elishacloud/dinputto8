@@ -49,6 +49,7 @@
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="IDirectInputTypes.cpp" />
+    <ClCompile Include="DllMain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDirectInputEffect.h" />

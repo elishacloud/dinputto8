@@ -252,6 +252,7 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
     <ClCompile Include="IDirectInputEffect.cpp" />
