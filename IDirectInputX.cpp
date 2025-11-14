@@ -283,7 +283,12 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") " << rguid;
 
-	HRESULT hr = GetProxyInterface<T>()->CreateDevice(rguid, ppvObj, pUnkOuter);
+	if (pUnkOuter)
+	{
+		LOG_LIMIT(3, __FUNCTION__ << " Warning: 'pUnkOuter' is not null: " << pUnkOuter);
+	}
+
+	HRESULT hr = GetProxyInterface<T>()->CreateDevice(rguid, ppvObj, nullptr);
 
 	if (SUCCEEDED(hr) && ppvObj)
 	{

@@ -761,15 +761,20 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 	return hr;
 }
 
-HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN punkOuter)
+HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN pUnkOuter)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << punkOuter;
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << pUnkOuter;
 
 	if (!ppdeff)
 	{
 		return DIERR_INVALIDPARAM;
 	}
 	*ppdeff = nullptr;
+
+	if (pUnkOuter)
+	{
+		LOG_LIMIT(3, __FUNCTION__ << " Warning: 'pUnkOuter' is not null: " << pUnkOuter);
+	}
 
 	DIEFFECT eff = {};
 	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
@@ -779,7 +784,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 		lpeff = &eff;
 	}
 
-	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, punkOuter);
+	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, nullptr);
 
 	if (SUCCEEDED(hr))
 	{

@@ -182,7 +182,7 @@ HRESULT m_IDirectInputDevice2W::Initialize(HINSTANCE hinst, DWORD dwVersion, REF
 	return ProxyInterface->Initialize(hinst, dwVersion, rguid);
 }
 
-HRESULT m_IDirectInputDevice2W::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN punkOuter)
+HRESULT m_IDirectInputDevice2W::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN pUnkOuter)
 {
 	if (!ProxyInterface)
 	{
@@ -192,7 +192,7 @@ HRESULT m_IDirectInputDevice2W::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, L
 		}
 		return DIERR_OBJECTNOTFOUND;
 	}
-	return ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, punkOuter);
+	return ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, pUnkOuter);
 }
 
 HRESULT m_IDirectInputDevice2W::EnumEffects(LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
