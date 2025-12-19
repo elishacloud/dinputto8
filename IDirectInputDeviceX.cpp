@@ -482,8 +482,7 @@ HRESULT m_IDirectInputDeviceX::SetProperty(REFGUID rguidProp, LPCDIPROPHEADER pd
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
 	// Get rguidProp as a raw integer value, assuming it's not an actual GUID pointer
-	const INT_PTR rguidBytes = (const INT_PTR)reinterpret_cast<const BYTE*>(&rguidProp);
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Property Identifier: " << rguidBytes;
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Property Identifier: " << reinterpret_cast<ULONG_PTR>(&rguidProp);
 
 	return ProxyInterface->SetProperty(rguidProp, pdiph);
 }
