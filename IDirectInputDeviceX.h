@@ -33,6 +33,9 @@ private:
 	// For DeviceData
 	std::vector<DIDEVICEOBJECTDATA> pdod;
 
+	// For SetDataFormat
+	std::vector<DIOBJECTDATAFORMAT> rgodf;
+
 	// For EnumObjects
 	struct ObjectOrderValue
 	{

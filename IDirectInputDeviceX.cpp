@@ -576,67 +576,79 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	// Fix unsupported flags
-	if (lpdf && lpdf->dwNumObjs && lpdf->dwObjSize == sizeof(DIOBJECTDATAFORMAT))
+	if (!lpdf ||
+		lpdf->dwSize != sizeof(DIDATAFORMAT) ||
+		lpdf->dwObjSize != sizeof(DIOBJECTDATAFORMAT) ||
+		!lpdf->rgodf ||
+		lpdf->dwNumObjs == 0 ||
+		lpdf->dwNumObjs > 2048 ||
+		lpdf->dwDataSize > 8192)	// no device state should be larger
 	{
-		// Handle data format offset
-		if (lpdf->dwNumObjs < MAX_KEYBAORD && (lpdf->rgodf[0].dwType & DIDFT_BUTTON) && lpdf->rgodf[0].dwOfs != 0 && *lpdf->rgodf[0].pguid == GUID_Key)
-		{
-			Offset = lpdf->rgodf[0].dwOfs - 1;
+		LOG_LIMIT(3, __FUNCTION__ << " Warning: invalid DIDATAFORMAT detected: "
+			<< " lpdf=" << lpdf
+			<< " dwSize=" << (lpdf ? lpdf->dwSize : 0)
+			<< " expectedSize=" << sizeof(DIDATAFORMAT)
+			<< " dwObjSize=" << (lpdf ? lpdf->dwObjSize : 0)
+			<< " expectedObjSize=" << sizeof(DIOBJECTDATAFORMAT)
+			<< " rgodf=" << (lpdf ? lpdf->rgodf : nullptr)
+			<< " dwNumObjs=" << (lpdf ? lpdf->dwNumObjs : 0)
+			<< " dwDataSize=" << (lpdf ? lpdf->dwDataSize : 0)
+		);
 
-			HRESULT hr = ProxyInterface->SetDataFormat(&c_dfDIKeyboard);
-			if (SUCCEEDED(hr))
-			{
-				SetEnumObjectDataFromFormat(&c_dfDIKeyboard);
-				return hr;
-			}
-		}
-
-		std::vector<DIOBJECTDATAFORMAT> rgodf(lpdf->dwNumObjs);
-
-		const DIDATAFORMAT df {
-			sizeof(DIDATAFORMAT),
-			sizeof(DIOBJECTDATAFORMAT),
-			lpdf->dwFlags,
-			lpdf->dwDataSize,
-			lpdf->dwNumObjs,
-			rgodf.data() };
-
-		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") "
-			<< " Size: " << lpdf->dwSize
-			<< " ObjSize: " << lpdf->dwObjSize
-			<< " Flags: " << Logging::hex(lpdf->dwFlags)
-			<< " DataSize: " << lpdf->dwDataSize
-			<< " NumObjs: " << lpdf->dwNumObjs;
-
-		for (DWORD x = 0; x < df.dwNumObjs; x++)
-		{
-			rgodf[x].pguid = lpdf->rgodf[x].pguid;
-			rgodf[x].dwOfs = lpdf->rgodf[x].dwOfs;
-			rgodf[x].dwType = ((lpdf->rgodf[x].dwType & DIDFT_ANYINSTANCE) == 0xFF00) ? lpdf->rgodf[x].dwType | DIDFT_ANYINSTANCE : lpdf->rgodf[x].dwType;
-			rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
-
-			Logging::LogDebug() << __FUNCTION__ << " (" << this << ") -" << x << "-"
-				<< " GUID: " << rgodf[x].pguid
-				<< " Ofs: " << rgodf[x].dwOfs
-				<< " Type: " << Logging::hex(rgodf[x].dwType)
-				<< " Flags: " << Logging::hex(rgodf[x].dwFlags);
-		}
-
-		Offset = 0;
-
-		HRESULT hr = ProxyInterface->SetDataFormat(&df);
-		if (SUCCEEDED(hr))
-		{
-			SetEnumObjectDataFromFormat(&df);
-		}
-		return hr;
+		return DIERR_INVALIDPARAM;
 	}
 
-	HRESULT hr = ProxyInterface->SetDataFormat(lpdf);
+	// Handle data format offset
+	if (lpdf->dwNumObjs < MAX_KEYBAORD && (lpdf->rgodf[0].dwType & DIDFT_BUTTON) && lpdf->rgodf[0].dwOfs != 0 && lpdf->rgodf[0].pguid && *lpdf->rgodf[0].pguid == GUID_Key)
+	{
+		Offset = lpdf->rgodf[0].dwOfs - 1;
+
+		HRESULT hr = ProxyInterface->SetDataFormat(&c_dfDIKeyboard);
+		if (SUCCEEDED(hr))
+		{
+			SetEnumObjectDataFromFormat(&c_dfDIKeyboard);
+			return hr;
+		}
+	}
+
+	rgodf.resize(lpdf->dwNumObjs);
+
+	const DIDATAFORMAT df{
+		sizeof(DIDATAFORMAT),
+		sizeof(DIOBJECTDATAFORMAT),
+		lpdf->dwFlags,
+		lpdf->dwDataSize,
+		lpdf->dwNumObjs,
+		rgodf.data() };
+
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") "
+		<< " Size: " << lpdf->dwSize
+		<< " ObjSize: " << lpdf->dwObjSize
+		<< " Flags: " << Logging::hex(lpdf->dwFlags)
+		<< " DataSize: " << lpdf->dwDataSize
+		<< " NumObjs: " << lpdf->dwNumObjs;
+
+	// Fix unsupported flags
+	for (DWORD x = 0; x < df.dwNumObjs; x++)
+	{
+		rgodf[x].pguid = lpdf->rgodf[x].pguid;
+		rgodf[x].dwOfs = lpdf->rgodf[x].dwOfs;
+		rgodf[x].dwType = ((lpdf->rgodf[x].dwType & DIDFT_ANYINSTANCE) == 0xFF00) ? lpdf->rgodf[x].dwType | DIDFT_ANYINSTANCE : lpdf->rgodf[x].dwType;
+		rgodf[x].dwFlags = lpdf->rgodf[x].dwFlags;
+
+		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") -" << x << "-"
+			<< " GUID: " << rgodf[x].pguid
+			<< " Ofs: " << rgodf[x].dwOfs
+			<< " Type: " << Logging::hex(rgodf[x].dwType)
+			<< " Flags: " << Logging::hex(rgodf[x].dwFlags);
+	}
+
+	Offset = 0;
+
+	HRESULT hr = ProxyInterface->SetDataFormat(&df);
 	if (SUCCEEDED(hr))
 	{
-		SetEnumObjectDataFromFormat(lpdf);
+		SetEnumObjectDataFromFormat(&df);
 	}
 	return hr;
 }

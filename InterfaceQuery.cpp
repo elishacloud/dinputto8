@@ -59,7 +59,7 @@ HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOI
 		return E_POINTER;
 	}
 
-	if ((riid == WrapperID || riid == IID_IUnknown) && ppvObj)
+	if (riid == WrapperID || riid == IID_IUnknown)
 	{
 		((IUnknown*)WrapperInterface)->AddRef();
 
