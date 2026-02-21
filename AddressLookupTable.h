@@ -165,8 +165,8 @@ private:
 	T *FindAddressAllInterfaces(void *Proxy)
 	{
 		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
-		auto it = g_map[CacheIndex].find(Proxy);
 
+		auto it = g_map[CacheIndex].find(Proxy);
 		if (it != std::end(g_map[CacheIndex]))
 		{
 			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
@@ -252,12 +252,12 @@ public:
 		}
 
 		constexpr UINT CacheIndex = AddressCacheIndex<T>::CacheIndex;
+
 		auto it = std::find_if(g_map[CacheIndex].begin(), g_map[CacheIndex].end(),
 			[=](auto& Map) -> bool { return Map.second == Wrapper; });
-
 		if (it != std::end(g_map[CacheIndex]))
 		{
-			it = g_map[CacheIndex].erase(it);
+			g_map[CacheIndex].erase(it);
 		}
 	}
 };
