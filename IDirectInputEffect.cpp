@@ -51,16 +51,22 @@ HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!ProxyInterface)
+	if (ppvObj == nullptr)
 	{
-		if (ppvObj)
-		{
-			*ppvObj = nullptr;
-		}
-		return E_NOINTERFACE;
+		return E_POINTER;
 	}
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
+	if (riid == IID_IUnknown || riid == IID_IDirectInputEffect)
+	{
+		*ppvObj = static_cast<IDirectInputEffect*>(this);
+	}
+	else
+	{
+		return ProxyInterface->QueryInterface(riid, ppvObj);
+	}
+
+	AddRef();
+	return S_OK;
 }
 
 ULONG m_IDirectInputEffect::AddRef()
@@ -89,7 +95,7 @@ ULONG m_IDirectInputEffect::Release()
 	if (ref == 0)
 	{
 		// Don't delete wrapper interface
-		SaveInterfaceAddress((m_IDirectInputEffect*&)WrapperInterface, WrapperInterfaceBackup);
+		SaveInterfaceAddress(WrapperInterface, WrapperInterfaceBackup);
 	}
 
 	return ref;

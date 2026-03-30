@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "dinputto8.h"
 
-constexpr UINT MaxIndex = 16;
+constexpr UINT MaxIndex = 4;
 
 template <typename T>
 inline void SaveInterfaceAddress(T*& Interface, T*& InterfaceBackup)
@@ -54,53 +54,15 @@ private:
 	template <typename T>
 	struct AddressCacheIndex { static constexpr UINT CacheIndex = 0; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputA> { static constexpr UINT CacheIndex = 1; };
+	struct AddressCacheIndex<m_IDirectInputEffect> { static constexpr UINT CacheIndex = 1; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInputW> { static constexpr UINT CacheIndex = 2;
-		using Type1A = m_IDirectInputA;
-		using Type2A = m_IDirectInput2A;
-		using Type7A = m_IDirectInput7A;
-		using Type1W = m_IDirectInputW;
-		using Type2W = m_IDirectInput2W;
-		using Type7W = m_IDirectInput7W;
-	};
+	struct AddressCacheIndex<m_IDirectInputX> { static constexpr UINT CacheIndex = 2; };
 	template <>
-	struct AddressCacheIndex<m_IDirectInput2A> { static constexpr UINT CacheIndex = 3; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInput2W> { static constexpr UINT CacheIndex = 4; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInput7A> { static constexpr UINT CacheIndex = 5; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInput7W> { static constexpr UINT CacheIndex = 6; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDeviceA> { static constexpr UINT CacheIndex = 7; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDeviceW> { static constexpr UINT CacheIndex = 8;
-		using Type1A = m_IDirectInputDeviceA;
-		using Type2A = m_IDirectInputDevice2A;
-		using Type7A = m_IDirectInputDevice7A;
-		using Type1W = m_IDirectInputDeviceW;
-		using Type2W = m_IDirectInputDevice2W;
-		using Type7W = m_IDirectInputDevice7W;
-	};
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice2A> { static constexpr UINT CacheIndex = 9; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice2W> { static constexpr UINT CacheIndex = 10; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice7A> { static constexpr UINT CacheIndex = 11; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDevice7W> { static constexpr UINT CacheIndex = 12; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputEffect> { static constexpr UINT CacheIndex = 13; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputX> { static constexpr UINT CacheIndex = 14; };
-	template <>
-	struct AddressCacheIndex<m_IDirectInputDeviceX> { static constexpr UINT CacheIndex = 15; };
+	struct AddressCacheIndex<m_IDirectInputDeviceX> { static constexpr UINT CacheIndex = 3; };
 
 	void DeleteAll()
 	{
-		for (const auto& x : { 13, 14, 15 })
+		for (const auto x : { 1, 2, 3 })
 		{
 			for (const auto& entry : g_map[x])
 			{
@@ -136,30 +98,6 @@ private:
 
 		return Interface;
 	}
-	template <>
-	m_IDirectInputA *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputA, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInputA); }
-	template <>
-	m_IDirectInputW *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputW, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInputW); }
-	template <>
-	m_IDirectInput2A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput2A, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput2A); }
-	template <>
-	m_IDirectInput2W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput2W, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput2W); }
-	template <>
-	m_IDirectInput7A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput7A, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput7A); }
-	template <>
-	m_IDirectInput7W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInput7W, m_IDirectInputX, IDirectInput8W>(Proxy, IID_IDirectInput7W); }
-	template <>
-	m_IDirectInputDeviceA *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDeviceA, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDeviceA); }
-	template <>
-	m_IDirectInputDeviceW *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDeviceW, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDeviceW); }
-	template <>
-	m_IDirectInputDevice2A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice2A, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice2A); }
-	template <>
-	m_IDirectInputDevice2W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice2W, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice2W); }
-	template <>
-	m_IDirectInputDevice7A *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice7A, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice7A); }
-	template <>
-	m_IDirectInputDevice7W *FindAddressPrivate(void *Proxy) { return FindAddressVersion<m_IDirectInputDevice7W, m_IDirectInputDeviceX, IDirectInputDevice8W>(Proxy, IID_IDirectInputDevice7W); }
 
 	template <typename T>
 	T *FindAddressAllInterfaces(void *Proxy)
@@ -181,7 +119,7 @@ public:
 	~AddressLookupTableDinput()
 	{
 		ConstructorFlag = true;
-		void DeleteAll();
+		DeleteAll();
 	}
 
 	template <typename T>

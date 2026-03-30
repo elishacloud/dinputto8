@@ -18,62 +18,34 @@
 
 // Cached wrapper interface
 namespace {
-	m_IDirectInputA* WrapperInterfaceBackupA = nullptr;
-	m_IDirectInputW* WrapperInterfaceBackupW = nullptr;
-	m_IDirectInput2A* WrapperInterfaceBackup2A = nullptr;
-	m_IDirectInput2W* WrapperInterfaceBackup2W = nullptr;
-	m_IDirectInput7A* WrapperInterfaceBackup7A = nullptr;
-	m_IDirectInput7W* WrapperInterfaceBackup7W = nullptr;
+	m_IDirectInputX* WrapperInterfaceBackup = nullptr;
 }
 
-HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion)
+HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	DWORD DxVersion = (CheckWrapperType(riid)) ? GetGUIDVersion(riid) : DirectXVersion;
-
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, GetWrapperType(DxVersion), GetWrapperInterfaceX(DxVersion));
-}
-
-LPVOID m_IDirectInputX::GetWrapperInterfaceX(DWORD DirectXVersion)
-{
-	switch (DirectXVersion)
+	if (ppvObj == nullptr)
 	{
-	case 0:
-		if (WrapperInterface7) return WrapperInterface7;
-		if (WrapperInterface2) return WrapperInterface2;
-		if (WrapperInterface) return WrapperInterface;
-		break;
-	case 1:
-		if (StringType == ANSI_CHARSET)
-		{
-			return GetInterfaceAddress((m_IDirectInputA*&)WrapperInterface, WrapperInterfaceBackupA, (LPDIRECTINPUTA)ProxyInterface, this);
-		}
-		else
-		{
-			return GetInterfaceAddress((m_IDirectInputW*&)WrapperInterface, WrapperInterfaceBackupW, (LPDIRECTINPUTW)ProxyInterface, this);
-		}
-	case 2:
-		if (StringType == ANSI_CHARSET)
-		{
-			return GetInterfaceAddress((m_IDirectInput2A*&)WrapperInterface2, WrapperInterfaceBackup2A, (LPDIRECTINPUT2A)ProxyInterface, this);
-		}
-		else
-		{
-			return GetInterfaceAddress((m_IDirectInput2W*&)WrapperInterface2, WrapperInterfaceBackup2W, (LPDIRECTINPUT2W)ProxyInterface, this);
-		}
-	case 7:
-		if (StringType == ANSI_CHARSET)
-		{
-			return GetInterfaceAddress((m_IDirectInput7A*&)WrapperInterface7, WrapperInterfaceBackup7A, (LPDIRECTINPUT7A)ProxyInterface, this);
-		}
-		else
-		{
-			return GetInterfaceAddress((m_IDirectInput7W*&)WrapperInterface7, WrapperInterfaceBackup7W, (LPDIRECTINPUT7W)ProxyInterface, this);
-		}
+		return E_POINTER;
 	}
-	LOG_LIMIT(100, __FUNCTION__ << " Error: wrapper interface version not found: " << DirectXVersion);
-	return nullptr;
+
+	if (riid == IID_IUnknown ||
+		riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A)
+	{
+		*ppvObj = static_cast<IDirectInput7A*>(this);
+	}
+	else if (riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W)
+	{
+		*ppvObj = static_cast<IDirectInput7W*>(this);
+	}
+	else
+	{
+		return ProxyInterface->QueryInterface(riid, ppvObj);
+	}
+
+	AddRef();
+	return S_OK;
 }
 
 ULONG m_IDirectInputX::AddRef()
@@ -91,15 +63,16 @@ ULONG m_IDirectInputX::Release()
 
 	if (ref == 0)
 	{
-		delete this;
+		// Don't delete wrapper interface
+		SaveInterfaceAddress(WrapperInterface, WrapperInterfaceBackup);
 	}
 
 	return ref;
 }
 
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
-template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
-template <class T, class V, class D, class D_Old>
+template HRESULT m_IDirectInputX::EnumDevicesX<false, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputX::EnumDevicesX<true, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+template <bool bUnicode, class V, class D, class D_Old>
 HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -185,14 +158,30 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 			// DirectInput 0x300 and earlier do not enumerate any game controllers
 			if (diVersion > 0x300)
 			{
-				HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
+				HRESULT hr;
+				if constexpr (bUnicode)
+				{
+					hr = ProxyInterface->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
+				}
+				else
+				{
+					hr = ProxyInterfaceA->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
+				}
 				if (FAILED(hr))
 				{
 					return hr;
 				}
 			}
 
-			HRESULT hr = GetProxyInterface<T>()->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
+			HRESULT hr;
+			if constexpr (bUnicode)
+			{
+				hr = ProxyInterface->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
+			}
+			else
+			{
+				hr = ProxyInterfaceA->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
+			}
 			if (FAILED(hr))
 			{
 				return hr;
@@ -231,7 +220,14 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		return DI_OK;
 	}
 
-	return GetProxyInterface<T>()->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
+	if constexpr (bUnicode)
+	{
+		return ProxyInterface->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
+	}
+	else
+	{
+		return ProxyInterfaceA->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
+	}
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)
@@ -266,20 +262,24 @@ HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 	return hr;
 }
 
-template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8A, LPCSTR>(REFGUID, LPCSTR, LPGUID);
-template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8W, LPCWSTR>(REFGUID, LPCWSTR, LPGUID);
-template <class T, class V>
+template HRESULT m_IDirectInputX::FindDeviceX<false, LPCSTR>(REFGUID, LPCSTR, LPGUID);
+template HRESULT m_IDirectInputX::FindDeviceX<true, LPCWSTR>(REFGUID, LPCWSTR, LPGUID);
+template <bool bUnicode, class V>
 HRESULT m_IDirectInputX::FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return GetProxyInterface<T>()->FindDevice(rguidClass, ptszName, pguidInstance);
+	if constexpr (bUnicode)
+	{
+		return ProxyInterface->FindDevice(rguidClass, ptszName, pguidInstance);
+	}
+	else
+	{
+		return ProxyInterfaceA->FindDevice(rguidClass, ptszName, pguidInstance);
+	}
 }
 
-template HRESULT m_IDirectInputX::CreateDeviceExX<IDirectInput8A, LPDIRECTINPUTDEVICE8A>(REFGUID, REFIID, LPDIRECTINPUTDEVICE8A*, LPUNKNOWN);
-template HRESULT m_IDirectInputX::CreateDeviceExX<IDirectInput8W, LPDIRECTINPUTDEVICE8W>(REFGUID, REFIID, LPDIRECTINPUTDEVICE8W*, LPUNKNOWN);
-template <class T, class V>
-HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, LPUNKNOWN pUnkOuter)
+HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID *ppvObj, LPUNKNOWN pUnkOuter)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") " << rguid;
 
@@ -288,11 +288,17 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 		LOG_LIMIT(3, __FUNCTION__ << " Warning: 'pUnkOuter' is not null: " << pUnkOuter);
 	}
 
-	HRESULT hr = GetProxyInterface<T>()->CreateDevice(rguid, ppvObj, nullptr);
-
-	if (SUCCEEDED(hr) && ppvObj)
+	if (ppvObj == nullptr)
 	{
-		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX((IDirectInputDevice8W*)*ppvObj, riid);
+		return E_POINTER;
+	}
+
+	IDirectInputDevice8W* ProxyDevice;
+	HRESULT hr = ProxyInterface->CreateDevice(rguid, &ProxyDevice, nullptr);
+
+	if (SUCCEEDED(hr))
+	{
+		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX(ProxyDevice, riid);
 		DIDevice->SetVersion(diVersion);
 
 		if (IsEqualIID(GUID_SysMouse, rguid) || IsEqualIID(GUID_SysMouseEm, rguid) || IsEqualIID(GUID_SysMouseEm2, rguid))
@@ -300,25 +306,9 @@ HRESULT m_IDirectInputX::CreateDeviceExX(REFGUID rguid, REFIID riid, V *ppvObj, 
 			DIDevice->SetAsMouse();
 		}
 
-		*ppvObj = (V)DIDevice->GetWrapperInterfaceX(GetGUIDVersion(riid));
+		hr = DIDevice->QueryInterface(riid, ppvObj);
+		DIDevice->Release();
 	}
 
 	return hr;
-}
-
-void m_IDirectInputX::ReleaseInterface()
-{
-	// Don't delete wrapper interface
-	if (StringType == ANSI_CHARSET)
-	{
-		SaveInterfaceAddress((m_IDirectInputA*&)WrapperInterface, WrapperInterfaceBackupA);
-		SaveInterfaceAddress((m_IDirectInput2A*&)WrapperInterface2, WrapperInterfaceBackup2A);
-		SaveInterfaceAddress((m_IDirectInput7A*&)WrapperInterface7, WrapperInterfaceBackup7A);
-	}
-	else
-	{
-		SaveInterfaceAddress((m_IDirectInputW*&)WrapperInterface, WrapperInterfaceBackupW);
-		SaveInterfaceAddress((m_IDirectInput2W*&)WrapperInterface2, WrapperInterfaceBackup2W);
-		SaveInterfaceAddress((m_IDirectInput7W*&)WrapperInterface7, WrapperInterfaceBackup7W);
-	}
 }

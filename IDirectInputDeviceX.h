@@ -3,20 +3,17 @@
 #include <map>
 #include <vector>
 
-class m_IDirectInputDeviceX : public AddressLookupTableDinputObject
+class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W, public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputDevice8W *ProxyInterface;
+	IDirectInputDevice8A *ProxyInterfaceA; // Non-owning alias
+	m_IDirectInputDeviceX *WrapperInterface = this;
 	const IID WrapperID;
 	DWORD StringType;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
-
-	// Version Interfaces
-	void *WrapperInterface = nullptr;
-	void *WrapperInterface2 = nullptr;
-	void *WrapperInterface7 = nullptr;
 
 	// For SetCooperativeLevel
 	bool IsMouse = false;
@@ -91,36 +88,36 @@ private:
 			IID == IID_IDirectInputDevice2W ||
 			IID == IID_IDirectInputDevice7W) ? true : false);
 	}
-	template <class T>
-	inline auto *GetProxyInterface() { return (T*)ProxyInterface; }
 
-	template <class T, class V, class D, class D_Old>
+	template <bool bUnicode, class V, class D, class D_Old>
 	inline HRESULT EnumObjectsX(V lpCallback, LPVOID pvRef, DWORD dwFlags);
 
-	template <class T, class V>
+	template <bool bUnicode, class V>
 	inline HRESULT GetObjectInfoX(V pdidoi, DWORD dwObj, DWORD dwHow);
 
-	template <class T, class V>
+	template <bool bUnicode, class V>
 	inline HRESULT GetDeviceInfoX(V pdidi);
 
-	template <class T, class V>
+	template <bool bUnicode, class V>
 	inline HRESULT EnumEffectsX(V lpCallback, LPVOID pvRef, DWORD dwEffType);
 
-	template <class T, class V>
+	template <bool bUnicode, class V>
 	inline HRESULT GetEffectInfoX(V pdei, REFGUID rguid);
 
-	template <class T, class V>
+	template <bool bUnicode, class V>
 	inline HRESULT EnumEffectsInFileX(V lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags);
 
-	template <class T, class V>
-	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);
-
-	void ReleaseInterface();
+	template <bool bUnicode, class V>
+	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);;
 
 public:
 	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")" << " converting interface from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
+
+		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
+
+		ProxyInterface->QueryInterface(IID_IDirectInputDevice8A, reinterpret_cast<LPVOID*>(&ProxyInterfaceA));
 
 		// Initialize Critical Section
 		InitializeCriticalSection(&dics);
@@ -134,100 +131,109 @@ public:
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
 
-		ReleaseInterface();
+		ProxyAddressLookupTable.DeleteAddress(this);
+	}
+
+	void SetProxy(IDirectInputDevice8W* NewProxyInterface)
+	{
+		ProxyInterface = NewProxyInterface;
+		if (NewProxyInterface)
+		{
+			ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
+		}
+		else
+		{
+			ProxyAddressLookupTable.DeleteAddress(this);
+		}
 	}
 
 	/*** IUnknown methods ***/
-	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj, DWORD DirectXVersion);
-	STDMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj) { return QueryInterface(riid, ppvObj, GetGUIDVersion(riid)); }
-	STDMETHOD_(ULONG, AddRef)(THIS);
-	STDMETHOD_(ULONG, Release)(THIS);
+	IFACEMETHOD(QueryInterface) (THIS_ REFIID riid, LPVOID FAR * ppvObj) override;
+	IFACEMETHOD_(ULONG, AddRef)(THIS) override;
+	IFACEMETHOD_(ULONG, Release)(THIS) override;
 
 	/*** IDirectInputDevice methods ***/
-	template <class T, class D>
-	HRESULT GetCapabilities(T lpDIDevCaps);
-	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags)
+	IFACEMETHOD(GetCapabilities)(THIS_ LPDIDEVCAPS) override;
+	IFACEMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumObjectsX<IDirectInputDevice8A, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<false, LPDIENUMDEVICEOBJECTSCALLBACKA, DIDEVICEOBJECTINSTANCEA, DIDEVICEOBJECTINSTANCE_DX3A>(lpCallback, pvRef, dwFlags);
 	}
-	STDMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags)
+	IFACEMETHOD(EnumObjects)(THIS_ LPDIENUMDEVICEOBJECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumObjectsX<IDirectInputDevice8W, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW, DIDEVICEOBJECTINSTANCE_DX3W>(lpCallback, pvRef, dwFlags);
+		return EnumObjectsX<true, LPDIENUMDEVICEOBJECTSCALLBACKW, DIDEVICEOBJECTINSTANCEW, DIDEVICEOBJECTINSTANCE_DX3W>(lpCallback, pvRef, dwFlags);
 	}
-	STDMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER);
-	STDMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER);
-	STDMETHOD(Acquire)(THIS);
-	STDMETHOD(Unacquire)(THIS);
-	STDMETHOD(GetDeviceState)(THIS_ DWORD, LPVOID);
-	STDMETHOD(GetDeviceData)(THIS_ DWORD, LPDIDEVICEOBJECTDATA, LPDWORD, DWORD);
-	STDMETHOD(SetDataFormat)(THIS_ LPCDIDATAFORMAT);
-	STDMETHOD(SetEventNotification)(THIS_ HANDLE);
-	STDMETHOD(SetCooperativeLevel)(THIS_ HWND, DWORD);
-	STDMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow)
+	IFACEMETHOD(GetProperty)(THIS_ REFGUID, LPDIPROPHEADER) override;
+	IFACEMETHOD(SetProperty)(THIS_ REFGUID, LPCDIPROPHEADER) override;
+	IFACEMETHOD(Acquire)(THIS) override;
+	IFACEMETHOD(Unacquire)(THIS) override;
+	IFACEMETHOD(GetDeviceState)(THIS_ DWORD, LPVOID) override;
+	IFACEMETHOD(GetDeviceData)(THIS_ DWORD, LPDIDEVICEOBJECTDATA, LPDWORD, DWORD) override;
+	IFACEMETHOD(SetDataFormat)(THIS_ LPCDIDATAFORMAT) override;
+	IFACEMETHOD(SetEventNotification)(THIS_ HANDLE) override;
+	IFACEMETHOD(SetCooperativeLevel)(THIS_ HWND, DWORD) override;
+	IFACEMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEA pdidoi, DWORD dwObj, DWORD dwHow) override
 	{
-		return GetObjectInfoX<IDirectInputDevice8A, LPDIDEVICEOBJECTINSTANCEA>(pdidoi, dwObj, dwHow);
+		return GetObjectInfoX<false, LPDIDEVICEOBJECTINSTANCEA>(pdidoi, dwObj, dwHow);
 	}
-	STDMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow)
+	IFACEMETHOD(GetObjectInfo)(THIS_ LPDIDEVICEOBJECTINSTANCEW pdidoi, DWORD dwObj, DWORD dwHow) override
 	{
-		return GetObjectInfoX<IDirectInputDevice8W, LPDIDEVICEOBJECTINSTANCEW>(pdidoi, dwObj, dwHow);
+		return GetObjectInfoX<true, LPDIDEVICEOBJECTINSTANCEW>(pdidoi, dwObj, dwHow);
 	}
-	STDMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEA pdidi)
+	IFACEMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEA pdidi) override
 	{
-		return GetDeviceInfoX<IDirectInputDevice8A, LPDIDEVICEINSTANCEA>(pdidi);
+		return GetDeviceInfoX<false, LPDIDEVICEINSTANCEA>(pdidi);
 	}
-	STDMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEW pdidi)
+	IFACEMETHOD(GetDeviceInfo)(THIS_ LPDIDEVICEINSTANCEW pdidi) override
 	{
-		return GetDeviceInfoX<IDirectInputDevice8W, LPDIDEVICEINSTANCEW>(pdidi);
+		return GetDeviceInfoX<true, LPDIDEVICEINSTANCEW>(pdidi);
 	}
-	STDMETHOD(RunControlPanel)(THIS_ HWND, DWORD);
-	STDMETHOD(Initialize)(THIS_ HINSTANCE, DWORD, REFGUID);
+	IFACEMETHOD(RunControlPanel)(THIS_ HWND, DWORD) override;
+	IFACEMETHOD(Initialize)(THIS_ HINSTANCE, DWORD, REFGUID) override;
 
 	/*** IDirectInputDevice2 methods ***/
-	STDMETHOD(CreateEffect)(THIS_ REFGUID, LPCDIEFFECT, LPDIRECTINPUTEFFECT *, LPUNKNOWN);
-	STDMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType)
+	IFACEMETHOD(CreateEffect)(THIS_ REFGUID, LPCDIEFFECT, LPDIRECTINPUTEFFECT *, LPUNKNOWN) override;
+	IFACEMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKA lpCallback, LPVOID pvRef, DWORD dwEffType) override
 	{
-		return EnumEffectsX<IDirectInputDevice8A, LPDIENUMEFFECTSCALLBACKA>(lpCallback, pvRef, dwEffType);
+		return EnumEffectsX<false, LPDIENUMEFFECTSCALLBACKA>(lpCallback, pvRef, dwEffType);
 	}
-	STDMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType)
+	IFACEMETHOD(EnumEffects)(THIS_ LPDIENUMEFFECTSCALLBACKW lpCallback, LPVOID pvRef, DWORD dwEffType) override
 	{
-		return EnumEffectsX<IDirectInputDevice8W, LPDIENUMEFFECTSCALLBACKW>(lpCallback, pvRef, dwEffType);
+		return EnumEffectsX<true, LPDIENUMEFFECTSCALLBACKW>(lpCallback, pvRef, dwEffType);
 	}
-	STDMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOA pdei, REFGUID rguid)
+	IFACEMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOA pdei, REFGUID rguid) override
 	{
-		return GetEffectInfoX<IDirectInputDevice8A, LPDIEFFECTINFOA>(pdei, rguid);
+		return GetEffectInfoX<false, LPDIEFFECTINFOA>(pdei, rguid);
 	}
-	STDMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOW pdei, REFGUID rguid)
+	IFACEMETHOD(GetEffectInfo)(THIS_ LPDIEFFECTINFOW pdei, REFGUID rguid) override
 	{
-		return GetEffectInfoX<IDirectInputDevice8W, LPDIEFFECTINFOW>(pdei, rguid);
+		return GetEffectInfoX<true, LPDIEFFECTINFOW>(pdei, rguid);
 	}
-	STDMETHOD(GetForceFeedbackState)(THIS_ LPDWORD);
-	STDMETHOD(SendForceFeedbackCommand)(THIS_ DWORD);
-	STDMETHOD(EnumCreatedEffectObjects)(THIS_ LPDIENUMCREATEDEFFECTOBJECTSCALLBACK, LPVOID, DWORD);
-	STDMETHOD(Escape)(THIS_ LPDIEFFESCAPE);
-	STDMETHOD(Poll)(THIS);
-	STDMETHOD(SendDeviceData)(THIS_ DWORD, LPCDIDEVICEOBJECTDATA, LPDWORD, DWORD);
+	IFACEMETHOD(GetForceFeedbackState)(THIS_ LPDWORD) override;
+	IFACEMETHOD(SendForceFeedbackCommand)(THIS_ DWORD) override;
+	IFACEMETHOD(EnumCreatedEffectObjects)(THIS_ LPDIENUMCREATEDEFFECTOBJECTSCALLBACK, LPVOID, DWORD) override;
+	IFACEMETHOD(Escape)(THIS_ LPDIEFFESCAPE) override;
+	IFACEMETHOD(Poll)(THIS) override;
+	IFACEMETHOD(SendDeviceData)(THIS_ DWORD, LPCDIDEVICEOBJECTDATA, LPDWORD, DWORD) override;
 
 	/*** IDirectInputDevice7 methods ***/
-	STDMETHOD(EnumEffectsInFile)(THIS_ LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	IFACEMETHOD(EnumEffectsInFile)(THIS_ LPCSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumEffectsInFileX<IDirectInputDevice8A, LPCSTR>(lpszFileName, pec, pvRef, dwFlags);
+		return EnumEffectsInFileX<false, LPCSTR>(lpszFileName, pec, pvRef, dwFlags);
 	}
-	STDMETHOD(EnumEffectsInFile)(THIS_ LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags)
+	IFACEMETHOD(EnumEffectsInFile)(THIS_ LPCWSTR lpszFileName, LPDIENUMEFFECTSINFILECALLBACK pec, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumEffectsInFileX<IDirectInputDevice8W, LPCWSTR>(lpszFileName, pec, pvRef, dwFlags);
+		return EnumEffectsInFileX<true, LPCWSTR>(lpszFileName, pec, pvRef, dwFlags);
 	}
-	STDMETHOD(WriteEffectToFile)(THIS_ LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	IFACEMETHOD(WriteEffectToFile)(THIS_ LPCSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags) override
 	{
-		return WriteEffectToFileX<IDirectInputDevice8A, LPCSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+		return WriteEffectToFileX<false, LPCSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
 	}
-	STDMETHOD(WriteEffectToFile)(THIS_ LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags)
+	IFACEMETHOD(WriteEffectToFile)(THIS_ LPCWSTR lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags) override
 	{
-		return WriteEffectToFileX<IDirectInputDevice8W, LPCWSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+		return WriteEffectToFileX<true, LPCWSTR>(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
 	}
 
 	// Helper functions
-	LPVOID GetWrapperInterfaceX(DWORD DXVersion);
-
 	void SetVersion(DWORD dwVersion) { diVersion = dwVersion; }
 	void SetAsMouse() { IsMouse = true; }
 };

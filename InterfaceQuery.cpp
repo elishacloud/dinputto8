@@ -50,65 +50,6 @@ REFIID dinputto8::ConvertREFIID(REFIID riid)
 		(riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? IID_IDirectInputDevice8W : riid;
 }
 
-HRESULT dinputto8::ProxyQueryInterface(LPVOID ProxyInterface, REFIID riid, LPVOID * ppvObj, REFIID WrapperID, LPVOID WrapperInterface)
-{
-	Logging::LogDebug() << __FUNCTION__ << " Query for " << riid << " from " << WrapperID;
-
-	if (!ppvObj)
-	{
-		return E_POINTER;
-	}
-
-	if (riid == WrapperID || riid == IID_IUnknown)
-	{
-		((IUnknown*)WrapperInterface)->AddRef();
-
-		*ppvObj = WrapperInterface;
-
-		return S_OK;
-	}
-
-	HRESULT hr = ((IUnknown*)ProxyInterface)->QueryInterface(ConvertREFIID(riid), ppvObj);
-
-	Logging::LogDebug() << __FUNCTION__ << " QueryInterface --> '" << riid << "' QueryInterface result: " << (DIERR)hr;
-
-	if (SUCCEEDED(hr))
-	{
-		genericQueryInterface(riid, ppvObj);
-	}
-
-	return hr;
-}
-
-void WINAPI dinputto8::genericQueryInterface(REFIID riid, LPVOID * ppvObj)
-{
-	if (!ppvObj || !*ppvObj)
-	{
-		return;
-	}
-
-#define QUERYINTERFACE(x) \
-	if (riid == IID_ ## x) \
-		{ \
-			Logging::LogDebug() << "Getting device for: m_" ## #x; \
-			*ppvObj = ProxyAddressLookupTable.FindAddress<m_ ## x>(*ppvObj); \
-		}
-
-	QUERYINTERFACE(IDirectInputA);
-	QUERYINTERFACE(IDirectInputW);
-	QUERYINTERFACE(IDirectInput2A);
-	QUERYINTERFACE(IDirectInput2W);
-	QUERYINTERFACE(IDirectInput7A);
-	QUERYINTERFACE(IDirectInput7W);
-	QUERYINTERFACE(IDirectInputDeviceA);
-	QUERYINTERFACE(IDirectInputDeviceW);
-	QUERYINTERFACE(IDirectInputDevice2A);
-	QUERYINTERFACE(IDirectInputDevice2W);
-	QUERYINTERFACE(IDirectInputDevice7A);
-	QUERYINTERFACE(IDirectInputDevice7W);
-	QUERYINTERFACE(IDirectInputEffect);
-}
-
 HRESULT dinputto8::hresValidInstanceAndVersion(HINSTANCE& hinst, DWORD dwVersion)
 {
 	bool bValidInstance;
