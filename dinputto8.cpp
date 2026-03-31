@@ -21,7 +21,7 @@ std::ofstream LOG;
 
 bool InitFlag = false;
 
-AddressLookupTableDinput<void> ProxyAddressLookupTable = AddressLookupTableDinput<void>();
+AddressLookupTableDinput ProxyAddressLookupTable;
 
 DirectInput8CreateProc m_pDirectInput8Create = nullptr;
 DllCanUnloadNowProc m_pDllCanUnloadNow = nullptr;
@@ -52,7 +52,7 @@ void InitDinput8()
 #endif
 
 	// Load dll
-	HMODULE dinput8dll = LoadLibraryA("dinput8.dll");
+	HMODULE dinput8dll = LoadLibrary(TEXT("dinput8"));
 
 	// Get function addresses
 	m_pDirectInput8Create = (DirectInput8CreateProc)GetProcAddress(dinput8dll, "DirectInput8Create");
@@ -112,7 +112,7 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 
 		if (SUCCEEDED(hr))
 		{
-			m_IDirectInputX *Interface = new m_IDirectInputX(Proxy, riid);
+			m_IDirectInputX *Interface = new m_IDirectInputX(Proxy);
 			Interface->SetVersion(dwVersion);
 
 			hr = Interface->QueryInterface(riid, lplpDD);

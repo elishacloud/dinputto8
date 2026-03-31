@@ -1,13 +1,9 @@
 #pragma once
 
-m_IDirectInputEffect* CreateEffectWrapper(IDirectInputEffect* aOriginal);
-
 class m_IDirectInputEffect final : public IDirectInputEffect, public AddressLookupTableDinputObject
 {
 private:
 	IDirectInputEffect *ProxyInterface;
-	m_IDirectInputEffect *WrapperInterface = this;
-	const IID WrapperID = IID_IDirectInputEffect;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
@@ -24,19 +20,6 @@ public:
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 
 		ProxyAddressLookupTable.DeleteAddress(this);
-	}
-
-	void SetProxy(IDirectInputEffect* NewProxyInterface)
-	{
-		ProxyInterface = NewProxyInterface;
-		if (NewProxyInterface)
-		{
-			ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
-		}
-		else
-		{
-			ProxyAddressLookupTable.DeleteAddress(this);
-		}
 	}
 
 	/*** IUnknown methods ***/

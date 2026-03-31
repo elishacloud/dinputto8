@@ -16,40 +16,6 @@
 
 #include "dinputto8.h"
 
-DWORD dinputto8::GetStringType(REFIID riid)
-{
-	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A ||
-		riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? ANSI_CHARSET :
-		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W ||
-		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? UNICODE_CHARSET : DIERR_UNSUPPORTED;
-}
-
-DWORD dinputto8::GetGUIDVersion(REFIID riid)
-{
-	return (riid == IID_IDirectInputA || riid == IID_IDirectInputW || riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDeviceW) ? 1 :
-		(riid == IID_IDirectInput2A || riid == IID_IDirectInput2W || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice2W) ? 2 :
-		(riid == IID_IDirectInput7A || riid == IID_IDirectInput7W || riid == IID_IDirectInputDevice7A || riid == IID_IDirectInputDevice7W) ? 7 : 0;
-}
-
-REFIID dinputto8::ReplaceIIDUnknown(REFIID riid, REFIID guid)
-{
-	return (riid == IID_IUnknown) ? guid : riid;
-}
-
-REFCLSID dinputto8::ConvertREFCLSID(REFCLSID rclsid)
-{
-	return (rclsid == CLSID_DirectInput) ? CLSID_DirectInput8 :
-		(rclsid == CLSID_DirectInputDevice) ? CLSID_DirectInputDevice8 : rclsid;
-}
-
-REFIID dinputto8::ConvertREFIID(REFIID riid)
-{
-	return (riid == IID_IDirectInputA || riid == IID_IDirectInput2A || riid == IID_IDirectInput7A) ? IID_IDirectInput8A :
-		(riid == IID_IDirectInputW || riid == IID_IDirectInput2W || riid == IID_IDirectInput7W) ? IID_IDirectInput8W :
-		(riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A) ? IID_IDirectInputDevice8A :
-		(riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W) ? IID_IDirectInputDevice8W : riid;
-}
-
 HRESULT dinputto8::hresValidInstanceAndVersion(HINSTANCE& hinst, DWORD dwVersion)
 {
 	bool bValidInstance;

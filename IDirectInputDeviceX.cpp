@@ -16,11 +16,6 @@
 
 #include "dinputto8.h"
 
-// Cached wrapper interface
-namespace {
-	m_IDirectInputDeviceX* WrapperInterfaceBackup = nullptr;
-}
-
 static HWND GetMainWindow()
 {
 	struct ENUMEDATA
@@ -289,8 +284,7 @@ ULONG m_IDirectInputDeviceX::Release()
 
 	if (ref == 0)
 	{
-		// Don't delete wrapper interface
-		SaveInterfaceAddress(WrapperInterface, WrapperInterfaceBackup);
+		delete this;
 	}
 
 	return ref;
@@ -782,16 +776,17 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	DIEFFECT eff = {};
 	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
 	{
-		*(DIEFFECT_DX5*)&eff = *(DIEFFECT_DX5*)lpeff;
-		eff.dwSize = sizeof(DIEFFECT);
+		memcpy(&eff, lpeff, lpeff->dwSize);
+		eff.dwSize = sizeof(eff);
 		lpeff = &eff;
 	}
 
-	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, ppdeff, nullptr);
+	IDirectInputEffect* ProxyEffect;
+	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, &ProxyEffect, nullptr);
 
 	if (SUCCEEDED(hr))
 	{
-		m_IDirectInputEffect* pEffect = CreateEffectWrapper((IDirectInputEffect*)*ppdeff);
+		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(ProxyEffect);
 		pEffect->SetVersion(diVersion);
 
 		*ppdeff = pEffect;
@@ -800,7 +795,8 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	{
 		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
 
-		m_IDirectInputEffect* pEffect = CreateEffectWrapper(nullptr);
+		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(nullptr);
+		pEffect->SetVersion(diVersion);
 
 		// Return an effect class even on failure becasue some games don't check for failure
 		*ppdeff = pEffect;
@@ -878,7 +874,12 @@ HRESULT m_IDirectInputDeviceX::EnumCreatedEffectObjects(LPDIENUMCREATEDEFFECTOBJ
 
 			if (pdeff)
 			{
-				pdeff = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(pdeff);
+				m_IDirectInputEffect* WrapperEffect = ProxyAddressLookupTable.FindAddress<m_IDirectInputEffect>(pdeff);
+				if (WrapperEffect == nullptr)
+				{
+					WrapperEffect = new m_IDirectInputEffect(pdeff);
+				}
+				pdeff = WrapperEffect;
 			}
 
 			return self->lpCallback(pdeff, self->pvRef);

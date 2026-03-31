@@ -5,34 +5,9 @@ class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, publ
 private:
 	IDirectInput8W *ProxyInterface;
 	IDirectInput8A *ProxyInterfaceA; // Non-owning alias
-	m_IDirectInputX *WrapperInterface = this;
-	const IID WrapperID;
-	DWORD StringType;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
-
-	// Wrapper interface functions
-	inline REFIID GetWrapperType(DWORD DirectXVersion)
-	{
-		return (StringType == ANSI_CHARSET) ?
-			((DirectXVersion == 1) ? IID_IDirectInputA :
-			(DirectXVersion == 2) ? IID_IDirectInput2A :
-			(DirectXVersion == 7) ? IID_IDirectInput7A : IID_IUnknown) :
-			((DirectXVersion == 1) ? IID_IDirectInputW :
-			(DirectXVersion == 2) ? IID_IDirectInput2W :
-			(DirectXVersion == 7) ? IID_IDirectInput7W : IID_IUnknown);
-	}
-	inline bool CheckWrapperType(REFIID IID)
-	{
-		return (StringType == ANSI_CHARSET) ?
-			((IID == IID_IDirectInputA ||
-			IID == IID_IDirectInput2A ||
-			IID == IID_IDirectInput7A) ? true : false) :
-			((IID == IID_IDirectInputW ||
-			IID == IID_IDirectInput2W ||
-			IID == IID_IDirectInput7W) ? true : false);
-	}
 
 	template <bool bUnicode, class V, class D, class D_Old>
 	inline HRESULT EnumDevicesX(DWORD, V, LPVOID, DWORD);
@@ -41,9 +16,9 @@ private:
 	inline HRESULT FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
 
 public:
-	m_IDirectInputX(IDirectInput8W *aOriginal, REFIID riid) : ProxyInterface(aOriginal), WrapperID(riid), StringType(GetStringType(riid))
+	m_IDirectInputX(IDirectInput8W *aOriginal) : ProxyInterface(aOriginal)
 	{
-		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")" << " converting interface from v" << GetGUIDVersion(riid) << " to v8 using " << ((StringType == ANSI_CHARSET) ? "ANSI" : "UNICODE"));
+		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")");
 
 		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 
@@ -54,19 +29,6 @@ public:
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 
 		ProxyAddressLookupTable.DeleteAddress(this);
-	}
-
-	void SetProxy(IDirectInput8W* NewProxyInterface)
-	{
-		ProxyInterface = NewProxyInterface;
-		if (NewProxyInterface)
-		{
-			ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
-		}
-		else
-		{
-			ProxyAddressLookupTable.DeleteAddress(this);
-		}
 	}
 
 	/*** IUnknown methods ***/

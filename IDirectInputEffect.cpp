@@ -16,37 +16,6 @@
 
 #include "dinputto8.h"
 
-// Cached wrapper interface
-namespace {
-	m_IDirectInputEffect* WrapperInterfaceBackup = nullptr;
-}
-
-m_IDirectInputEffect* CreateEffectWrapper(IDirectInputEffect* aOriginal)
-{
-	SetCriticalSection();
-	m_IDirectInputEffect* Interface = nullptr;
-	if (WrapperInterfaceBackup)
-	{
-		Interface = WrapperInterfaceBackup;
-		if (aOriginal)
-		{
-			WrapperInterfaceBackup = nullptr;
-			Interface->SetProxy(aOriginal);
-		}
-	}
-	else
-	{
-		Interface = new m_IDirectInputEffect(aOriginal);
-		if (!aOriginal)
-		{
-			Interface->SetProxy(nullptr);
-			WrapperInterfaceBackup = Interface;
-		}
-	}
-	ReleaseCriticalSection();
-	return Interface;
-}
-
 HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -62,7 +31,15 @@ HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 	}
 	else
 	{
-		return ProxyInterface->QueryInterface(riid, ppvObj);
+		if (ProxyInterface)
+		{
+			return ProxyInterface->QueryInterface(riid, ppvObj);
+		}
+		else
+		{
+			*ppvObj = nullptr;
+			return E_NOINTERFACE;
+		}
 	}
 
 	AddRef();
@@ -94,8 +71,7 @@ ULONG m_IDirectInputEffect::Release()
 
 	if (ref == 0)
 	{
-		// Don't delete wrapper interface
-		SaveInterfaceAddress(WrapperInterface, WrapperInterfaceBackup);
+		delete this;
 	}
 
 	return ref;

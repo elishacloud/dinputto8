@@ -17,12 +17,6 @@
 #include "dinputto8.h"
 #include <hidusage.h>
 
-namespace dinputto8
-{
-	CRITICAL_SECTION dics;
-	bool IsInitialized = false;
-}
-
 const DIDATAFORMAT c_dfDIKeyboard = {
 	sizeof(DIDATAFORMAT),
 	sizeof(DIOBJECTDATAFORMAT),
@@ -179,28 +173,5 @@ DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevType7, DWORD dwDevSubType
 	case DI8DEVTYPE_SCREENPOINTER:
 	case DI8DEVTYPE_REMOTE:
 		return DIDEVTYPEJOYSTICK_UNKNOWN;
-	}
-}
-
-void dinputto8::SetCriticalSection()
-{
-	if (!IsInitialized)
-	{
-		InitializeCriticalSection(&dics);
-		IsInitialized = true;
-	}
-	if (IsInitialized)
-	{
-		EnterCriticalSection(&dics);
-		return;
-	}
-}
-
-void dinputto8::ReleaseCriticalSection()
-{
-	if (IsInitialized)
-	{
-		LeaveCriticalSection(&dics);
-		return;
 	}
 }

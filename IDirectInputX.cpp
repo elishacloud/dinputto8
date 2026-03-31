@@ -16,11 +16,6 @@
 
 #include "dinputto8.h"
 
-// Cached wrapper interface
-namespace {
-	m_IDirectInputX* WrapperInterfaceBackup = nullptr;
-}
-
 HRESULT m_IDirectInputX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -63,8 +58,7 @@ ULONG m_IDirectInputX::Release()
 
 	if (ref == 0)
 	{
-		// Don't delete wrapper interface
-		SaveInterfaceAddress(WrapperInterface, WrapperInterfaceBackup);
+		delete this;
 	}
 
 	return ref;
@@ -298,7 +292,7 @@ HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID *ppvO
 
 	if (SUCCEEDED(hr))
 	{
-		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX(ProxyDevice, riid);
+		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX(ProxyDevice);
 		DIDevice->SetVersion(diVersion);
 
 		if (IsEqualIID(GUID_SysMouse, rguid) || IsEqualIID(GUID_SysMouseEm, rguid) || IsEqualIID(GUID_SysMouseEm2, rguid))
