@@ -3,7 +3,7 @@
 #include <map>
 #include <vector>
 
-class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W, public AddressLookupTableDinputObject
+class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W, public AddressLookupTableDinputObject<m_IDirectInputDeviceX>
 {
 private:
 	IDirectInputDevice8W *ProxyInterface;
@@ -86,11 +86,11 @@ private:
 	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);;
 
 public:
-	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal) : ProxyInterface(aOriginal)
+	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal)
+		: AddressLookupTableDinputObject(aOriginal)
+		, ProxyInterface(aOriginal)
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")");
-
-		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 
 		ProxyInterface->QueryInterface(IID_IDirectInputDevice8A, reinterpret_cast<LPVOID*>(&ProxyInterfaceA));
 
@@ -105,8 +105,6 @@ public:
 
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
-
-		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/

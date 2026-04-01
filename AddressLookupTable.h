@@ -4,11 +4,14 @@
 #include <algorithm>
 #include "dinputto8.h"
 
-class AddressLookupTableDinputObject
+class AddressLookupTableDinputObjectBase
 {
 public:
-	virtual ~AddressLookupTableDinputObject() = default;
+	virtual ~AddressLookupTableDinputObjectBase() = default;
 };
+
+template<typename T>
+class AddressLookupTableDinputObject;
 
 class AddressLookupTableDinput
 {
@@ -16,7 +19,7 @@ private:
 	static constexpr size_t MaxCacheIndex = 3;
 
 	bool ConstructorFlag = false;
-	std::unordered_map<void*, AddressLookupTableDinputObject*> g_map[MaxCacheIndex];
+	std::unordered_map<void*, AddressLookupTableDinputObjectBase*> g_map[MaxCacheIndex];
 
 	template <typename T>
 	struct AddressCacheIndex {};
@@ -73,7 +76,7 @@ public:
 	}
 
 	template <typename T>
-	void SaveAddress(T *Wrapper, void *Proxy)
+	void SaveAddress(AddressLookupTableDinputObject<T> *Wrapper, void *Proxy)
 	{
 		constexpr size_t CacheIndex = AddressCacheIndex<T>::CacheIndex;
 		if (Wrapper && Proxy)
@@ -83,7 +86,7 @@ public:
 	}
 
 	template <typename T>
-	void DeleteAddress(T *Wrapper)
+	void DeleteAddress(AddressLookupTableDinputObject<T> *Wrapper)
 	{
 		if (!Wrapper || ConstructorFlag)
 		{
@@ -98,5 +101,20 @@ public:
 		{
 			g_map[CacheIndex].erase(it);
 		}
+	}
+};
+
+template<typename T>
+class AddressLookupTableDinputObject : public AddressLookupTableDinputObjectBase
+{
+public:
+	AddressLookupTableDinputObject(void* Proxy)
+	{
+		ProxyAddressLookupTable.SaveAddress(this, Proxy);
+	}
+
+	~AddressLookupTableDinputObject()
+	{
+		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 };

@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputEffect final : public IDirectInputEffect, public AddressLookupTableDinputObject
+class m_IDirectInputEffect final : public IDirectInputEffect, public AddressLookupTableDinputObject<m_IDirectInputEffect>
 {
 private:
 	IDirectInputEffect *ProxyInterface;
@@ -9,17 +9,15 @@ private:
 	DWORD diVersion = 0;
 
 public:
-	m_IDirectInputEffect(IDirectInputEffect *aOriginal) : ProxyInterface(aOriginal)
+	m_IDirectInputEffect(IDirectInputEffect *aOriginal)
+		: AddressLookupTableDinputObject(aOriginal)
+		, ProxyInterface(aOriginal)
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << " (" << this << ")");
-
-		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 	}
 	~m_IDirectInputEffect()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
-
-		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/

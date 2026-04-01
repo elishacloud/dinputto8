@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, public AddressLookupTableDinputObject
+class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, public AddressLookupTableDinputObject<m_IDirectInputX>
 {
 private:
 	IDirectInput8W *ProxyInterface;
@@ -16,19 +16,17 @@ private:
 	inline HRESULT FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
 
 public:
-	m_IDirectInputX(IDirectInput8W *aOriginal) : ProxyInterface(aOriginal)
+	m_IDirectInputX(IDirectInput8W *aOriginal)
+		: AddressLookupTableDinputObject(aOriginal)
+		, ProxyInterface(aOriginal)
 	{
 		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")");
-
-		ProxyAddressLookupTable.SaveAddress(this, ProxyInterface);
 
 		ProxyInterface->QueryInterface(IID_IDirectInput8A, reinterpret_cast<LPVOID*>(&ProxyInterfaceA));
 	}
 	~m_IDirectInputX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
-
-		ProxyAddressLookupTable.DeleteAddress(this);
 	}
 
 	/*** IUnknown methods ***/
