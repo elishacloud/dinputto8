@@ -17,6 +17,8 @@
 #include "resource.h"
 #include "dinputto8.h"
 
+#include <new>
+
 std::ofstream LOG;
 
 bool InitFlag = false;
@@ -25,8 +27,7 @@ AddressLookupTableDinput ProxyAddressLookupTable;
 
 DirectInput8CreateProc m_pDirectInput8Create = nullptr;
 DllCanUnloadNowProc m_pDllCanUnloadNow = nullptr;
-DllRegisterServerProc m_pDllRegisterServer = nullptr;
-DllUnregisterServerProc m_pDllUnregisterServer = nullptr;
+DllGetClassObjectProc m_pDllGetClassObject = nullptr;
 
 HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid, LPVOID * lplpDD, LPUNKNOWN pUnkOuter);
 
@@ -57,14 +58,11 @@ void InitDinput8()
 	// Get function addresses
 	m_pDirectInput8Create = (DirectInput8CreateProc)GetProcAddress(dinput8dll, "DirectInput8Create");
 	m_pDllCanUnloadNow = (DllCanUnloadNowProc)GetProcAddress(dinput8dll, "DllCanUnloadNow");
-	m_pDllRegisterServer = (DllRegisterServerProc)GetProcAddress(dinput8dll, "DllRegisterServer");
-	m_pDllUnregisterServer = (DllUnregisterServerProc)GetProcAddress(dinput8dll, "DllUnregisterServer");
+	m_pDllGetClassObject = (DllGetClassObjectProc)GetProcAddress(dinput8dll, "DllGetClassObject");
 }
 
 HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTA* lplpDirectInput, LPUNKNOWN pUnkOuter)
 {
-	InitDinput8();
-
 	LOG_LIMIT(1, __FUNCTION__);
 
 	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputA, (LPVOID*)lplpDirectInput, pUnkOuter);
@@ -72,8 +70,6 @@ HRESULT WINAPI DirectInputCreateA(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPU
 
 HRESULT WINAPI DirectInputCreateW(HINSTANCE hinst, DWORD dwVersion, LPDIRECTINPUTW* lplpDirectInput, LPUNKNOWN pUnkOuter)
 {
-	InitDinput8();
-
 	LOG_LIMIT(1, __FUNCTION__);
 
 	return DirectInputCreateEx(hinst, dwVersion, IID_IDirectInputW, (LPVOID*)lplpDirectInput, pUnkOuter);
@@ -107,8 +103,8 @@ HRESULT WINAPI DirectInputCreateEx(HINSTANCE hinst, DWORD dwVersion, REFIID riid
 	HRESULT hr = hresValidInstanceAndVersion(hinst, dwVersion);
 	if (SUCCEEDED(hr))
 	{
-		IDirectInput8W* Proxy;
-		hr = m_pDirectInput8Create(hinst, 0x0800, IID_IDirectInput8W, reinterpret_cast<LPVOID*>(&Proxy), nullptr);
+		typename m_IDirectInputX::proxy_type* Proxy;
+		hr = m_pDirectInput8Create(hinst, 0x0800, m_IDirectInputX::proxy_iid, reinterpret_cast<LPVOID*>(&Proxy), nullptr);
 
 		if (SUCCEEDED(hr))
 		{
@@ -131,7 +127,12 @@ HRESULT WINAPI DllCanUnloadNow()
 
 	if (!m_pDllCanUnloadNow)
 	{
-		return DIERR_GENERIC;
+		return S_FALSE;
+	}
+
+	if (ModuleObjectCount::AnyObjectsInUse())
+	{
+		return S_FALSE;
 	}
 
 	return m_pDllCanUnloadNow();
@@ -143,34 +144,64 @@ HRESULT WINAPI DllGetClassObject(IN REFCLSID rclsid, IN REFIID riid, OUT LPVOID 
 
 	LOG_LIMIT(1, __FUNCTION__);
 
-	// TODO: Implement properly, the current broken implementation was removed
-	return E_NOTIMPL;
+	if (!m_pDllGetClassObject)
+	{
+		return DIERR_GENERIC;
+	}
+
+	if (ppv == nullptr)
+	{
+		return E_POINTER;
+	}
+
+	HRESULT hr = E_OUTOFMEMORY;
+	*ppv = nullptr;
+
+	ClassFactoryBase* wrapperFactory = nullptr;
+	if (rclsid == m_IDirectInputX::wrapper_clsid)
+	{
+		IClassFactory* proxyFactory;
+		HRESULT proxyHr = m_pDllGetClassObject(m_IDirectInputX::proxy_clsid, IID_PPV_ARGS(&proxyFactory));
+		if (FAILED(proxyHr))
+		{
+			return proxyHr;
+		}
+
+		wrapperFactory = new(std::nothrow) ClassFactory<m_IDirectInputX>(proxyFactory);
+	}
+	else if (rclsid == m_IDirectInputDeviceX::wrapper_clsid)
+	{
+		IClassFactory* proxyFactory;
+		HRESULT proxyHr = m_pDllGetClassObject(m_IDirectInputDeviceX::proxy_clsid, IID_PPV_ARGS(&proxyFactory));
+		if (FAILED(proxyHr))
+		{
+			return proxyHr;
+		}
+
+		wrapperFactory = new(std::nothrow) ClassFactory<m_IDirectInputDeviceX>(proxyFactory);
+	}
+	else
+	{
+		return CLASS_E_CLASSNOTAVAILABLE;
+	}
+
+	if (wrapperFactory != nullptr)
+	{
+		hr = wrapperFactory->QueryInterface(riid, ppv);
+		wrapperFactory->Release();
+	}
+
+	return hr;
 }
 
 HRESULT WINAPI DllRegisterServer()
 {
-	InitDinput8();
-
-	LOG_LIMIT(1, __FUNCTION__);
-
-	if (!m_pDllRegisterServer)
-	{
-		return DIERR_GENERIC;
-	}
-
-	return m_pDllRegisterServer();
+	// Registering this wrapper does nothing
+	return S_OK;
 }
 
 HRESULT WINAPI DllUnregisterServer()
 {
-	InitDinput8();
-
-	LOG_LIMIT(1, __FUNCTION__);
-
-	if (!m_pDllUnregisterServer)
-	{
-		return DIERR_GENERIC;
-	}
-
-	return m_pDllUnregisterServer();
+	// Unregistering this wrapper does nothing
+	return S_OK;
 }

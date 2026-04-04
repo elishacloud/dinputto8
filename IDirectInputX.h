@@ -1,9 +1,17 @@
 #pragma once
 
-class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, public AddressLookupTableDinputObject<m_IDirectInputX>
+class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, AddressLookupTableDinputObject<m_IDirectInputX>, ModuleObjectCount::CountedObject
 {
+public:
+	// Factory traits
+	static inline const CLSID wrapper_clsid = CLSID_DirectInput;
+
+	static inline const CLSID proxy_clsid = CLSID_DirectInput8;
+	static inline const IID proxy_iid = IID_IDirectInput8W;
+	using proxy_type = IDirectInput8W;
+
 private:
-	IDirectInput8W *ProxyInterface;
+	proxy_type *ProxyInterface;
 	IDirectInput8A *ProxyInterfaceA; // Non-owning alias
 
 	// Requested DirectInput version - used to alter behaviour by requested version
@@ -16,7 +24,7 @@ private:
 	inline HRESULT FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
 
 public:
-	m_IDirectInputX(IDirectInput8W *aOriginal)
+	m_IDirectInputX(proxy_type *aOriginal)
 		: AddressLookupTableDinputObject(aOriginal)
 		, ProxyInterface(aOriginal)
 	{

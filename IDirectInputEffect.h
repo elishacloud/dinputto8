@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputEffect final : public IDirectInputEffect, public AddressLookupTableDinputObject<m_IDirectInputEffect>
+class m_IDirectInputEffect final : public IDirectInputEffect, AddressLookupTableDinputObject<m_IDirectInputEffect>, ModuleObjectCount::CountedObject
 {
 private:
 	IDirectInputEffect *ProxyInterface;

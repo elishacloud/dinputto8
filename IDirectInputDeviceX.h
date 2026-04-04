@@ -3,10 +3,19 @@
 #include <map>
 #include <vector>
 
-class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W, public AddressLookupTableDinputObject<m_IDirectInputDeviceX>
+class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W,
+		AddressLookupTableDinputObject<m_IDirectInputDeviceX>, ModuleObjectCount::CountedObject
 {
+public:
+	// Factory traits
+	static inline const CLSID wrapper_clsid = CLSID_DirectInputDevice;
+
+	static inline const CLSID proxy_clsid = CLSID_DirectInputDevice8;
+	static inline const IID proxy_iid = IID_IDirectInputDevice8W;
+	using proxy_type = IDirectInputDevice8W;
+
 private:
-	IDirectInputDevice8W *ProxyInterface;
+	proxy_type *ProxyInterface;
 	IDirectInputDevice8A *ProxyInterfaceA; // Non-owning alias
 
 	// Requested DirectInput version - used to alter behaviour by requested version
@@ -86,7 +95,7 @@ private:
 	inline HRESULT WriteEffectToFileX(V lpszFileName, DWORD dwEntries, LPDIFILEEFFECT rgDiFileEft, DWORD dwFlags);;
 
 public:
-	m_IDirectInputDeviceX(IDirectInputDevice8W *aOriginal)
+	m_IDirectInputDeviceX(proxy_type *aOriginal)
 		: AddressLookupTableDinputObject(aOriginal)
 		, ProxyInterface(aOriginal)
 	{

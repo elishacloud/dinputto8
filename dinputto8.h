@@ -12,6 +12,7 @@ class m_IDirectInputDeviceX;
 
 #include <memory>
 #include "AddressLookupTable.h"
+#include "ModuleObjectCount.h"
 #include "Logging\Logging.h"
 
 typedef HRESULT(WINAPI *DirectInput8CreateProc)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
@@ -33,3 +34,4 @@ using namespace dinputto8;
 #include "IDirectInputTypes.h"
 #include "IDirectInputX.h"
 #include "IDirectInputDeviceX.h"
+#include "ClassFactory.h"

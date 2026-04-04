@@ -245,6 +245,7 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ClassFactory.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
@@ -259,12 +260,14 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <None Include="dinput.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="dinputto8.h" />
     <ClInclude Include="ditypes.h" />
     <ClInclude Include="IDirectInputTypes.h" />
     <ClInclude Include="Include\VersionHelpers.h" />
     <ClInclude Include="Include\winapifamily.h" />
     <ClInclude Include="Logging\Logging.h" />
+    <ClInclude Include="ModuleObjectCount.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />

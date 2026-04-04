@@ -14,6 +14,7 @@
     </ClCompile>
     <ClCompile Include="IDirectInputTypes.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="ClassFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDirectInputEffect.h" />
@@ -36,6 +37,8 @@
     <ClInclude Include="Include\winapifamily.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="ClassFactory.h" />
+    <ClInclude Include="ModuleObjectCount.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput.def" />
