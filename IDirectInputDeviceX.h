@@ -3,7 +3,7 @@
 #include <map>
 #include <vector>
 
-class m_IDirectInputDeviceX final : public IDirectInputDevice7A, public IDirectInputDevice7W,
+class m_IDirectInputDeviceX final : public IDirectInputDevice7W, public IDirectInputDevice7A,
 		AddressLookupTableDinputObject<m_IDirectInputDeviceX>, ModuleObjectCount::CountedObject
 {
 public:

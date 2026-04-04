@@ -252,13 +252,13 @@ HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 	}
 
 	if (riid == IID_IUnknown ||
-		riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A)
-	{
-		*ppvObj = static_cast<IDirectInputDevice7A*>(this);
-	}
-	else if (riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W)
+		riid == IID_IDirectInputDeviceW || riid == IID_IDirectInputDevice2W || riid == IID_IDirectInputDevice7W)
 	{
 		*ppvObj = static_cast<IDirectInputDevice7W*>(this);
+	}
+	else if (riid == IID_IDirectInputDeviceA || riid == IID_IDirectInputDevice2A || riid == IID_IDirectInputDevice7A)
+	{
+		*ppvObj = static_cast<IDirectInputDevice7A*>(this);
 	}
 	else
 	{

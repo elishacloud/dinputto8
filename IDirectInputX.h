@@ -1,6 +1,6 @@
 #pragma once
 
-class m_IDirectInputX final : public IDirectInput7A, public IDirectInput7W, AddressLookupTableDinputObject<m_IDirectInputX>, ModuleObjectCount::CountedObject
+class m_IDirectInputX final : public IDirectInput7W, public IDirectInput7A, AddressLookupTableDinputObject<m_IDirectInputX>, ModuleObjectCount::CountedObject
 {
 public:
 	// Factory traits
