@@ -245,6 +245,7 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <PreBuildEvent />
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ClassFactory.cpp" />
     <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
@@ -254,46 +255,24 @@ cmd /c "@echo off &amp;&amp; cd /D ""$(ProjectDir)"" &amp;&amp; type BuildNo.rc"
     <ClCompile Include="IDirectInputX.cpp" />
     <ClCompile Include="InterfaceQuery.cpp" />
     <ClCompile Include="Logging\Logging.cpp" />
-    <ClCompile Include="Versions\IDirectInput2A.cpp" />
-    <ClCompile Include="Versions\IDirectInput2W.cpp" />
-    <ClCompile Include="Versions\IDirectInput7A.cpp" />
-    <ClCompile Include="Versions\IDirectInput7W.cpp" />
-    <ClCompile Include="Versions\IDirectInputA.cpp" />
-    <ClCompile Include="Versions\IDirectInputDevice2A.cpp" />
-    <ClCompile Include="Versions\IDirectInputDevice2W.cpp" />
-    <ClCompile Include="Versions\IDirectInputDevice7A.cpp" />
-    <ClCompile Include="Versions\IDirectInputDevice7W.cpp" />
-    <ClCompile Include="Versions\IDirectInputDeviceA.cpp" />
-    <ClCompile Include="Versions\IDirectInputDeviceW.cpp" />
-    <ClCompile Include="Versions\IDirectInputW.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput.def" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ClassFactory.h" />
     <ClInclude Include="dinputto8.h" />
     <ClInclude Include="ditypes.h" />
     <ClInclude Include="IDirectInputTypes.h" />
     <ClInclude Include="Include\VersionHelpers.h" />
     <ClInclude Include="Include\winapifamily.h" />
     <ClInclude Include="Logging\Logging.h" />
+    <ClInclude Include="ModuleObjectCount.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="External\Logging\Logging.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />
     <ClInclude Include="IDirectInputEffect.h" />
     <ClInclude Include="IDirectInputX.h" />
-    <ClInclude Include="Versions\IDirectInput2A.h" />
-    <ClInclude Include="Versions\IDirectInput2W.h" />
-    <ClInclude Include="Versions\IDirectInput7A.h" />
-    <ClInclude Include="Versions\IDirectInput7W.h" />
-    <ClInclude Include="Versions\IDirectInputA.h" />
-    <ClInclude Include="Versions\IDirectInputDevice2A.h" />
-    <ClInclude Include="Versions\IDirectInputDevice2W.h" />
-    <ClInclude Include="Versions\IDirectInputDevice7A.h" />
-    <ClInclude Include="Versions\IDirectInputDevice7W.h" />
-    <ClInclude Include="Versions\IDirectInputDeviceA.h" />
-    <ClInclude Include="Versions\IDirectInputDeviceW.h" />
-    <ClInclude Include="Versions\IDirectInputW.h" />
     <ClInclude Include="AddressLookupTable.h" />
   </ItemGroup>
   <ItemGroup>

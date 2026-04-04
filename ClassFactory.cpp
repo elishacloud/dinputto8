@@ -1,5 +1,5 @@
 /**
-* Copyright (C) 2025 Elisha Riedlinger
+* Copyright (C) 2026 Elisha Riedlinger
 *
 * This software is  provided 'as-is', without any express  or implied  warranty. In no event will the
 * authors be held liable for any damages arising from the use of this software.
@@ -13,3 +13,54 @@
 *      being the original software.
 *   3. This notice may not be removed or altered from any source distribution.
 */
+
+#include "dinputto8.h"
+
+IFACEMETHODIMP ClassFactoryBase::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
+{
+	if (ppvObj == nullptr)
+	{
+		return E_POINTER;
+	}
+
+	if (riid == IID_IUnknown || riid == IID_IClassFactory)
+	{
+		*ppvObj = static_cast<IClassFactory*>(this);
+	}
+	else
+	{
+		*ppvObj = nullptr;
+		return E_NOINTERFACE;
+	}
+
+	AddRef();
+	return S_OK;
+}
+
+IFACEMETHODIMP_(ULONG) ClassFactoryBase::AddRef()
+{
+	return _InterlockedIncrement(&m_refCount);
+}
+
+IFACEMETHODIMP_(ULONG) ClassFactoryBase::Release()
+{
+	const ULONG ref = _InterlockedDecrement(&m_refCount);
+	if (ref == 0)
+	{
+		delete this;
+	}
+	return ref;
+}
+
+IFACEMETHODIMP ClassFactoryBase::LockServer(BOOL fLock)
+{
+	if (fLock)
+	{
+		ModuleObjectCount::IncrementObjectCount();
+	}
+	else
+	{
+		ModuleObjectCount::DecrementObjectCount();
+	}
+	return S_OK;
+}

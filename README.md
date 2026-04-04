@@ -28,6 +28,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Commandos 3
  * Conquest: Frontier Wars
  * Dark Reign
+ * Dick Johnson V8 Challenge
  * Digger XP
  * DOSBox
  * Dungeon Keeper 2

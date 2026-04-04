@@ -16,51 +16,34 @@
 
 #include "dinputto8.h"
 
-// Cached wrapper interface
-namespace {
-	m_IDirectInputEffect* WrapperInterfaceBackup = nullptr;
-}
-
-m_IDirectInputEffect* CreateEffectWrapper(IDirectInputEffect* aOriginal)
-{
-	SetCriticalSection();
-	m_IDirectInputEffect* Interface = nullptr;
-	if (WrapperInterfaceBackup)
-	{
-		Interface = WrapperInterfaceBackup;
-		if (aOriginal)
-		{
-			WrapperInterfaceBackup = nullptr;
-			Interface->SetProxy(aOriginal);
-		}
-	}
-	else
-	{
-		Interface = new m_IDirectInputEffect(aOriginal);
-		if (!aOriginal)
-		{
-			Interface->SetProxy(nullptr);
-			WrapperInterfaceBackup = Interface;
-		}
-	}
-	ReleaseCriticalSection();
-	return Interface;
-}
-
 HRESULT m_IDirectInputEffect::QueryInterface(REFIID riid, LPVOID * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!ProxyInterface)
+	if (ppvObj == nullptr)
 	{
-		if (ppvObj)
-		{
-			*ppvObj = nullptr;
-		}
-		return E_NOINTERFACE;
+		return E_POINTER;
 	}
 
-	return ProxyQueryInterface(ProxyInterface, riid, ppvObj, WrapperID, WrapperInterface);
+	if (riid == IID_IUnknown || riid == IID_IDirectInputEffect)
+	{
+		*ppvObj = static_cast<IDirectInputEffect*>(this);
+	}
+	else
+	{
+		if (ProxyInterface)
+		{
+			return ProxyInterface->QueryInterface(riid, ppvObj);
+		}
+		else
+		{
+			*ppvObj = nullptr;
+			return E_NOINTERFACE;
+		}
+	}
+
+	AddRef();
+	return S_OK;
 }
 
 ULONG m_IDirectInputEffect::AddRef()
@@ -88,8 +71,7 @@ ULONG m_IDirectInputEffect::Release()
 
 	if (ref == 0)
 	{
-		// Don't delete wrapper interface
-		SaveInterfaceAddress((m_IDirectInputEffect*&)WrapperInterface, WrapperInterfaceBackup);
+		delete this;
 	}
 
 	return ref;

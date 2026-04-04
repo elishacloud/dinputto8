@@ -2,42 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="IDirectInputEffect.cpp" />
-    <ClCompile Include="Versions\IDirectInput2A.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInput2W.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInput7A.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInput7W.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputA.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDevice2A.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDevice2W.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDevice7A.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDevice7W.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDeviceA.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputDeviceW.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
-    <ClCompile Include="Versions\IDirectInputW.cpp">
-      <Filter>Versions</Filter>
-    </ClCompile>
     <ClCompile Include="IDirectInputX.cpp" />
     <ClCompile Include="IDirectInputDeviceX.cpp" />
     <ClCompile Include="External\Logging\Logging.cpp">
@@ -50,45 +14,10 @@
     </ClCompile>
     <ClCompile Include="IDirectInputTypes.cpp" />
     <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="ClassFactory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="IDirectInputEffect.h" />
-    <ClInclude Include="Versions\IDirectInput2A.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInput2W.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInput7A.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInput7W.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputA.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDevice2A.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDevice2W.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDevice7A.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDevice7W.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDeviceA.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputDeviceW.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
-    <ClInclude Include="Versions\IDirectInputW.h">
-      <Filter>Versions</Filter>
-    </ClInclude>
     <ClInclude Include="IDirectInputX.h" />
     <ClInclude Include="IDirectInputDeviceX.h" />
     <ClInclude Include="External\Logging\Logging.h">
@@ -108,14 +37,13 @@
     <ClInclude Include="Include\winapifamily.h">
       <Filter>Include</Filter>
     </ClInclude>
+    <ClInclude Include="ClassFactory.h" />
+    <ClInclude Include="ModuleObjectCount.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="dinput.def" />
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Versions">
-      <UniqueIdentifier>{dab371b0-0104-4561-873e-4b46d6c55732}</UniqueIdentifier>
-    </Filter>
     <Filter Include="External">
       <UniqueIdentifier>{936e3373-bf15-47fa-9a48-f4d6b81bd647}</UniqueIdentifier>
     </Filter>
