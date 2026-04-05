@@ -41,21 +41,6 @@ private:
 		}
 	}
 
-	template <typename T>
-	T *FindAddressAllInterfaces(void *Proxy)
-	{
-		constexpr size_t CacheIndex = AddressCacheIndex<T>::CacheIndex;
-
-		auto it = g_map[CacheIndex].find(Proxy);
-		if (it != std::end(g_map[CacheIndex]))
-		{
-			Logging::LogDebug() << __FUNCTION__ << " Found device address!";
-			return static_cast<T *>(it->second);
-		}
-
-		return nullptr;
-	}
-
 public:
 	explicit AddressLookupTableDinput() {}
 	~AddressLookupTableDinput()
@@ -72,7 +57,15 @@ public:
 			return nullptr;
 		}
 
-		return FindAddressAllInterfaces<T>(Proxy);
+		constexpr size_t CacheIndex = AddressCacheIndex<T>::CacheIndex;
+
+		auto it = g_map[CacheIndex].find(Proxy);
+		if (it != std::end(g_map[CacheIndex]))
+		{
+			return static_cast<T*>(it->second);
+		}
+
+		return nullptr;
 	}
 
 	template <typename T>
