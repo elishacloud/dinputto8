@@ -18,7 +18,7 @@ private:
 	proxy_type *ProxyInterface;
 	IDirectInputDevice8A *ProxyInterfaceA; // Non-owning alias
 
-	ULONG RefCount = 1;
+	volatile LONG RefCount = 1;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
@@ -116,6 +116,9 @@ public:
 
 		// Delete Critical Section
 		DeleteCriticalSection(&dics);
+
+		ProxyInterfaceA->Release();
+		ProxyInterface->Release();
 	}
 
 	/*** IUnknown methods ***/

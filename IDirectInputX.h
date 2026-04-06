@@ -14,7 +14,7 @@ private:
 	proxy_type *ProxyInterface;
 	IDirectInput8A *ProxyInterfaceA; // Non-owning alias
 
-	ULONG RefCount = 1;
+	volatile LONG RefCount = 1;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
@@ -37,6 +37,9 @@ public:
 	~m_IDirectInputX()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
+
+		ProxyInterfaceA->Release();
+		ProxyInterface->Release();
 	}
 
 	/*** IUnknown methods ***/
