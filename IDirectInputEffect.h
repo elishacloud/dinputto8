@@ -21,7 +21,10 @@ public:
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
 
-		ProxyInterface->Release();
+		if (ProxyInterface)
+		{
+			ProxyInterface->Release();
+		}
 	}
 
 	/*** IUnknown methods ***/
