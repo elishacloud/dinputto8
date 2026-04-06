@@ -67,10 +67,10 @@ ULONG m_IDirectInputX::Release()
 	return ref;
 }
 
-template HRESULT m_IDirectInputX::EnumDevicesX<false, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
-template HRESULT m_IDirectInputX::EnumDevicesX<true, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
-template <bool bUnicode, class V, class D, class D_Old>
-HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(IDirectInput8A*, DWORD, LPDIENUMDEVICESCALLBACKA, LPVOID, DWORD);
+template HRESULT m_IDirectInputX::EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(IDirectInput8W*, DWORD, LPDIENUMDEVICESCALLBACKW, LPVOID, DWORD);
+template <class T, class V, class D, class D_Old>
+HRESULT m_IDirectInputX::EnumDevicesX(T* ProxyInterfaceT, DWORD dwDevType, V lpCallback, LPVOID pvRef, DWORD dwFlags)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
@@ -155,30 +155,14 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 			// DirectInput 0x300 and earlier do not enumerate any game controllers
 			if (diVersion > 0x300)
 			{
-				HRESULT hr;
-				if constexpr (bUnicode)
-				{
-					hr = ProxyInterface->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
-				}
-				else
-				{
-					hr = ProxyInterfaceA->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
-				}
+				HRESULT hr = ProxyInterfaceT->EnumDevices(DI8DEVCLASS_GAMECTRL, StoreCallback, &gameDevices, dwFlags);
 				if (FAILED(hr))
 				{
 					return hr;
 				}
 			}
 
-			HRESULT hr;
-			if constexpr (bUnicode)
-			{
-				hr = ProxyInterface->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
-			}
-			else
-			{
-				hr = ProxyInterfaceA->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
-			}
+			HRESULT hr = ProxyInterfaceT->EnumDevices(DI8DEVCLASS_ALL, StoreCallback, &allDevices, dwFlags);
 			if (FAILED(hr))
 			{
 				return hr;
@@ -217,14 +201,7 @@ HRESULT m_IDirectInputX::EnumDevicesX(DWORD dwDevType, V lpCallback, LPVOID pvRe
 		return DI_OK;
 	}
 
-	if constexpr (bUnicode)
-	{
-		return ProxyInterface->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
-	}
-	else
-	{
-		return ProxyInterfaceA->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
-	}
+	return ProxyInterfaceT->EnumDevices(dwDevType, DeviceEnumerator::EnumDeviceCallback, &CallbackContext, dwFlags);
 }
 
 HRESULT m_IDirectInputX::GetDeviceStatus(REFGUID rguidInstance)
@@ -259,21 +236,14 @@ HRESULT m_IDirectInputX::Initialize(HINSTANCE hinst, DWORD dwVersion)
 	return hr;
 }
 
-template HRESULT m_IDirectInputX::FindDeviceX<false, LPCSTR>(REFGUID, LPCSTR, LPGUID);
-template HRESULT m_IDirectInputX::FindDeviceX<true, LPCWSTR>(REFGUID, LPCWSTR, LPGUID);
-template <bool bUnicode, class V>
-HRESULT m_IDirectInputX::FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance)
+template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8A, LPCSTR>(IDirectInput8A*, REFGUID, LPCSTR, LPGUID);
+template HRESULT m_IDirectInputX::FindDeviceX<IDirectInput8W, LPCWSTR>(IDirectInput8W*, REFGUID, LPCWSTR, LPGUID);
+template <class T, class V>
+HRESULT m_IDirectInputX::FindDeviceX(T* ProxyInterfaceT, REFGUID rguidClass, V ptszName, LPGUID pguidInstance)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if constexpr (bUnicode)
-	{
-		return ProxyInterface->FindDevice(rguidClass, ptszName, pguidInstance);
-	}
-	else
-	{
-		return ProxyInterfaceA->FindDevice(rguidClass, ptszName, pguidInstance);
-	}
+	return ProxyInterfaceT->FindDevice(rguidClass, ptszName, pguidInstance);
 }
 
 HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID *ppvObj, LPUNKNOWN pUnkOuter)

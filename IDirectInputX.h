@@ -17,11 +17,11 @@ private:
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
 
-	template <bool bUnicode, class V, class D, class D_Old>
-	inline HRESULT EnumDevicesX(DWORD, V, LPVOID, DWORD);
+	template <class T, class V, class D, class D_Old>
+	inline HRESULT EnumDevicesX(T* ProxyInterfaceT, DWORD, V, LPVOID, DWORD);
 
-	template <bool bUnicode, class V>
-	inline HRESULT FindDeviceX(REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
+	template <class T, class V>
+	inline HRESULT FindDeviceX(T* ProxyInterfaceT, REFGUID rguidClass, V ptszName, LPGUID pguidInstance);
 
 public:
 	m_IDirectInputX(proxy_type *aOriginal)
@@ -54,11 +54,11 @@ public:
 
 	IFACEMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKA lpCallback, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumDevicesX<false, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(dwDevType, lpCallback, pvRef, dwFlags);
+		return EnumDevicesX<IDirectInput8A, LPDIENUMDEVICESCALLBACKA, DIDEVICEINSTANCEA, DIDEVICEINSTANCE_DX3A>(ProxyInterfaceA, dwDevType, lpCallback, pvRef, dwFlags);
 	}
 	IFACEMETHOD(EnumDevices)(THIS_ DWORD dwDevType, LPDIENUMDEVICESCALLBACKW lpCallback, LPVOID pvRef, DWORD dwFlags) override
 	{
-		return EnumDevicesX<true, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(dwDevType, lpCallback, pvRef, dwFlags);
+		return EnumDevicesX<IDirectInput8W, LPDIENUMDEVICESCALLBACKW, DIDEVICEINSTANCEW, DIDEVICEINSTANCE_DX3W>(ProxyInterface, dwDevType, lpCallback, pvRef, dwFlags);
 	}
 	IFACEMETHOD(GetDeviceStatus)(THIS_ REFGUID) override;
 	IFACEMETHOD(RunControlPanel)(THIS_ HWND, DWORD) override;
@@ -67,11 +67,11 @@ public:
 	/*** IDirectInput2 methods ***/
 	IFACEMETHOD(FindDevice)(THIS_ REFGUID rguidClass, LPCSTR ptszName, LPGUID pguidInstance) override
 	{
-		return FindDeviceX<false, LPCSTR>(rguidClass, ptszName, pguidInstance);
+		return FindDeviceX<IDirectInput8A, LPCSTR>(ProxyInterfaceA, rguidClass, ptszName, pguidInstance);
 	}
 	IFACEMETHOD(FindDevice)(THIS_ REFGUID rguidClass, LPCWSTR ptszName, LPGUID pguidInstance) override
 	{
-		return FindDeviceX<true, LPCWSTR>(rguidClass, ptszName, pguidInstance);
+		return FindDeviceX<IDirectInput8W, LPCWSTR>(ProxyInterface, rguidClass, ptszName, pguidInstance);
 	}
 
 	/*** IDirectInput7 methods ***/
