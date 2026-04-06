@@ -59,7 +59,6 @@ ULONG m_IDirectInputX::Release()
 	if (ref == 0)
 	{
 		delete this;
-		return 0;
 	}
 
 	return ref;

@@ -50,24 +50,14 @@ ULONG m_IDirectInputEffect::AddRef()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!ProxyInterface)
-	{
-		return 0;
-	}
-
-	return ProxyInterface->AddRef();
+	return _InterlockedIncrement(&RefCount);
 }
 
 ULONG m_IDirectInputEffect::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	if (!ProxyInterface)
-	{
-		return 0;
-	}
-
-	ULONG ref = ProxyInterface->Release();
+	LONG ref = _InterlockedDecrement(&RefCount);
 
 	if (ref == 0)
 	{

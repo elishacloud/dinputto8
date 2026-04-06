@@ -5,6 +5,8 @@ class m_IDirectInputEffect final : public IDirectInputEffect, AddressLookupTable
 private:
 	IDirectInputEffect *ProxyInterface;
 
+	LONG RefCount = 1;
+
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
 
@@ -18,6 +20,8 @@ public:
 	~m_IDirectInputEffect()
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " (" << this << ")" << " deleting interface!");
+
+		ProxyInterface->Release();
 	}
 
 	/*** IUnknown methods ***/
