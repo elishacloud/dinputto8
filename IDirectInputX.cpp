@@ -265,7 +265,27 @@ HRESULT m_IDirectInputX::CreateDeviceEx(REFGUID rguid, REFIID riid, LPVOID *ppvO
 		m_IDirectInputDeviceX *DIDevice = new m_IDirectInputDeviceX(ProxyDevice);
 		DIDevice->SetVersion(diVersion);
 
-		if (IsEqualIID(GUID_SysMouse, rguid) || IsEqualIID(GUID_SysMouseEm, rguid) || IsEqualIID(GUID_SysMouseEm2, rguid))
+		bool isMouse = false;
+
+		if (IsEqualGUID(GUID_SysMouse, rguid) || IsEqualGUID(GUID_SysMouseEm, rguid) || IsEqualGUID(GUID_SysMouseEm2, rguid))
+		{
+			isMouse = true;
+		}
+		else
+		{
+			DIDEVCAPS caps = {};
+			caps.dwSize = sizeof(DIDEVCAPS);
+
+			if (SUCCEEDED(DIDevice->GetCapabilities(&caps)))
+			{
+				if (GET_DIDEVICE_TYPE(caps.dwDevType) == DI8DEVTYPE_MOUSE)
+				{
+					isMouse = true;
+				}
+			}
+		}
+
+		if (isMouse)
 		{
 			DIDevice->SetAsMouse();
 		}

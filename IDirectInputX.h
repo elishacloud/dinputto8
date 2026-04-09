@@ -30,7 +30,7 @@ public:
 		: AddressLookupTableDinputObject(aOriginal)
 		, ProxyInterface(aOriginal)
 	{
-		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << "(" << this << ")");
+		LOG_LIMIT(3, "Creating interface " << __FUNCTION__ << " (" << this << ")");
 
 		ProxyInterface->QueryInterface(IID_IDirectInput8A, reinterpret_cast<LPVOID*>(&ProxyInterfaceA));
 	}
