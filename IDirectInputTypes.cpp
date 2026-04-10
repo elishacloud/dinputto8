@@ -21,7 +21,7 @@ const DIDATAFORMAT c_dfDIKeyboard = {
 	sizeof(DIDATAFORMAT),
 	sizeof(DIOBJECTDATAFORMAT),
 	DIDF_RELAXIS,
-	MAX_KEYBAORD,
+	MAX_KEYBOARD,
 	sizeof(dfDIKeyboard) / sizeof(*dfDIKeyboard),
 	(LPDIOBJECTDATAFORMAT)dfDIKeyboard
 };

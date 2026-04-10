@@ -26,7 +26,10 @@ private:
 	// For SetCooperativeLevel
 	bool IsMouse = false;
 
-	// Format memory
+	// For device data format
+	bool HasValidFormat = false;
+	DIDATAFORMAT LastValidFormat = {};
+	std::vector<DIOBJECTDATAFORMAT> LastValidObjects;
 	DWORD Offset = 0;
 
 	// For data format fixups
@@ -52,6 +55,7 @@ private:
 	DWORD OffsetForMissingObjects = 0; // -1 after the data format is set
 
 	void InitializeEnumObjectData();
+	void StoreLastValidFormat(LPCDIDATAFORMAT lpdf);
 	void SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf);
 
 	template <class T>

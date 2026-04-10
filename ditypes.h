@@ -1,6 +1,6 @@
 #pragma once
 
-#define MAX_KEYBAORD 256
+#define MAX_KEYBOARD 256
 
 #define DIDEVTYPE_DEVICE        1
 #define DIDEVTYPE_MOUSE         2

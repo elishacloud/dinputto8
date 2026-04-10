@@ -138,6 +138,32 @@ void m_IDirectInputDeviceX::InitializeEnumObjectData()
 	}
 }
 
+void m_IDirectInputDeviceX::StoreLastValidFormat(LPCDIDATAFORMAT lpdf)
+{
+	if (!lpdf)
+	{
+		return;
+	}
+
+	// Copy object array safely
+	if (lpdf->dwNumObjs && lpdf->rgodf)
+	{
+		LastValidObjects.assign(lpdf->rgodf, lpdf->rgodf + lpdf->dwNumObjs);
+	}
+	else
+	{
+		LastValidObjects.clear();
+	}
+
+	// Copy the structure
+	LastValidFormat = *lpdf;
+
+	// Redirect pointer to our owned memory
+	LastValidFormat.rgodf = LastValidObjects.empty() ? nullptr : LastValidObjects.data();
+
+	HasValidFormat = true;
+}
+
 void m_IDirectInputDeviceX::SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf)
 {
 	OffsetForMissingObjects = static_cast<DWORD>(-1);
@@ -470,17 +496,19 @@ HRESULT m_IDirectInputDeviceX::GetDeviceState(DWORD cbData, LPVOID lpvData)
 	// Handle data format offset
 	if (Offset)
 	{
-		UCHAR tmp[MAX_KEYBAORD] = {};
+		UCHAR tmp[MAX_KEYBOARD] = {};
 
-		HRESULT hr = ProxyInterface->GetDeviceState(MAX_KEYBAORD, tmp);
+		HRESULT hr = ProxyInterface->GetDeviceState(MAX_KEYBOARD, tmp);
 
 		if (SUCCEEDED(hr))
 		{
 			ZeroMemory(lpvData, cbData);
 
-			for (DWORD x = Offset; x < min(cbData, Offset + MAX_KEYBAORD); x++)
+			const DWORD copySize = min(cbData, MAX_KEYBOARD);
+
+			for (DWORD x = Offset; x < copySize && x < cbData; x++)
 			{
-				((UCHAR*)lpvData)[x] = tmp[x - Offset];
+				((BYTE*)lpvData)[x] = tmp[x - Offset];
 			}
 		}
 
@@ -538,15 +566,15 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
+	// Check structure integrity
 	if (!lpdf ||
 		lpdf->dwSize != sizeof(DIDATAFORMAT) ||
 		lpdf->dwObjSize != sizeof(DIOBJECTDATAFORMAT) ||
-		!lpdf->rgodf ||
-		lpdf->dwNumObjs == 0 ||
 		lpdf->dwNumObjs > 2048 ||
 		lpdf->dwDataSize > 8192)	// no device state should be larger
 	{
-		LOG_LIMIT(3, __FUNCTION__ << " Warning: invalid DIDATAFORMAT detected: "
+		LOG_LIMIT(3, __FUNCTION__ << " Error: invalid DIDATAFORMAT detected: "
+			<< " DevType7=" << DevType7
 			<< " lpdf=" << lpdf
 			<< " dwSize=" << (lpdf ? lpdf->dwSize : 0)
 			<< " expectedSize=" << sizeof(DIDATAFORMAT)
@@ -560,14 +588,72 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 		return DIERR_INVALIDPARAM;
 	}
 
+	// Empty or missing object data
+	if (!lpdf->rgodf || lpdf->dwNumObjs == 0 || lpdf->dwDataSize == 0)
+	{
+		if (HasValidFormat)
+		{
+			return ProxyInterface->SetDataFormat(&LastValidFormat);
+		}
+
+		LPCDIDATAFORMAT Format = nullptr;
+
+		switch (DevType7)
+		{
+		case DIDEVTYPE_KEYBOARD:
+			Format = &c_dfDIKeyboard;
+			break;
+		case DIDEVTYPE_MOUSE:
+			Format =
+				(lpdf->dwDataSize == c_dfDIMouse.dwDataSize) ? Format = &c_dfDIMouse :
+				(lpdf->dwDataSize == c_dfDIMouse2.dwDataSize) ? Format = &c_dfDIMouse2 :
+				(diVersion < 0x0700) ? &c_dfDIMouse : &c_dfDIMouse2;
+			break;
+		case DIDEVTYPE_JOYSTICK:
+			Format =
+				(lpdf->dwDataSize == c_dfDIJoystick.dwDataSize) ? Format = &c_dfDIJoystick :
+				(lpdf->dwDataSize == c_dfDIJoystick2.dwDataSize) ? Format = &c_dfDIJoystick2 :
+				(diVersion < 0x0700) ? &c_dfDIJoystick : &c_dfDIJoystick2;
+			break;
+		}
+
+		if (!Format)
+		{
+			LOG_LIMIT(3, __FUNCTION__ << " Error: couldn't detect correct data format for device: "
+				<< " DevType7=" << DevType7
+				<< " lpdf=" << lpdf
+				<< " dwSize=" << (lpdf ? lpdf->dwSize : 0)
+				<< " expectedSize=" << sizeof(DIDATAFORMAT)
+				<< " dwObjSize=" << (lpdf ? lpdf->dwObjSize : 0)
+				<< " expectedObjSize=" << sizeof(DIOBJECTDATAFORMAT)
+				<< " rgodf=" << (lpdf ? lpdf->rgodf : nullptr)
+				<< " dwNumObjs=" << (lpdf ? lpdf->dwNumObjs : 0)
+				<< " dwDataSize=" << (lpdf ? lpdf->dwDataSize : 0)
+			);
+
+			return DIERR_INVALIDPARAM;
+		}
+
+		Offset = 0;
+
+		HRESULT hr = ProxyInterface->SetDataFormat(Format);
+		if (SUCCEEDED(hr))
+		{
+			StoreLastValidFormat(Format);
+			SetEnumObjectDataFromFormat(Format);
+		}
+		return hr;
+	}
+
 	// Handle data format offset
-	if (lpdf->dwNumObjs < MAX_KEYBAORD && (lpdf->rgodf[0].dwType & DIDFT_BUTTON) && lpdf->rgodf[0].dwOfs != 0 && lpdf->rgodf[0].pguid && *lpdf->rgodf[0].pguid == GUID_Key)
+	if (lpdf->dwNumObjs < MAX_KEYBOARD && (lpdf->rgodf[0].dwType & DIDFT_BUTTON) && lpdf->rgodf[0].dwOfs != 0 && lpdf->rgodf[0].pguid && *lpdf->rgodf[0].pguid == GUID_Key)
 	{
 		Offset = lpdf->rgodf[0].dwOfs - 1;
 
 		HRESULT hr = ProxyInterface->SetDataFormat(&c_dfDIKeyboard);
 		if (SUCCEEDED(hr))
 		{
+			StoreLastValidFormat(&c_dfDIKeyboard);
 			SetEnumObjectDataFromFormat(&c_dfDIKeyboard);
 			return hr;
 		}
@@ -610,6 +696,7 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 	HRESULT hr = ProxyInterface->SetDataFormat(&df);
 	if (SUCCEEDED(hr))
 	{
+		StoreLastValidFormat(&df);
 		SetEnumObjectDataFromFormat(&df);
 	}
 	return hr;
