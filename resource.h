@@ -7,7 +7,7 @@
 // Main resource file details
 #define APP_NAME				"DirectInput1-7 to 8 Converter"
 #define APP_MAJOR				1
-#define APP_MINOR				0
+#define APP_MINOR				1
 #define APP_BUILDNUMBER			BUILD_NUMBER
 #define APP_REVISION			0
 #define APP_COMPANYNAME			"Sadrate Presents"
