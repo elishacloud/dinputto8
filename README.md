@@ -77,7 +77,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
 There are no configuration options for dinputto8.
 
 ### License
-Copyright (C) 2025 Elisha Riedlinger
+Copyright (C) 2026 Elisha Riedlinger
 
 This software is provided 'as-is', without any express or implied warranty. In no event will the author(s) be held liable for any damages arising from the use of this software. Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
 
@@ -91,6 +91,6 @@ dinputto8 uses code from some other projects. Below is a list of locations that 
  - [DDrawCompat](https://github.com/narzoul/DDrawCompat/): Includes code to for logging.
 
 ### Development
-dinputto8 is written in C++ using Microsoft Visual Studio Community 2017.
+dinputto8 is written in C++ using Microsoft Visual Studio Community 2022.
 
 Thanks for stopping by!
