@@ -16,6 +16,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
 
  * 1NSANE
  * 8th Wonder of the World
+ * Alien Versus Predator 2
  * Arcanum
  * Atlantis 3: The New World
  * B-17: Flying Fortress
@@ -44,6 +45,7 @@ Delete the `dinput.dll` files from the game's directory. You can also delete the
  * Knight Rider 2
  * Legacy of Kain: Soul Reaver
  * Lionheart: Legacy of the Crusader
+ * Max Payne
  * MegaRace 3
  * Michelin Rally Masters: Race of Champions
  * Might and Magic IX
