@@ -44,6 +44,14 @@ private:
 	// For SetDataFormat
 	std::vector<DIOBJECTDATAFORMAT> rgodf;
 
+	// Effects
+	HWND LasthWnd = nullptr;
+	DWORD CooperativeLevel = 0;
+	std::vector<DWORD> FoundAxes;
+	bool bAxisMode = false;
+	bool bRange = false;
+	bool IsAcquired = false;
+
 	// For EnumObjects
 	struct ObjectOrderValue
 	{

@@ -16,6 +16,8 @@
 
 #include "dinputto8.h"
 
+#define LogDebug Log
+
 static HWND GetMainWindow()
 {
 	struct ENUMEDATA
@@ -470,23 +472,76 @@ HRESULT m_IDirectInputDeviceX::SetProperty(REFGUID rguidProp, LPCDIPROPHEADER pd
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
 	// Get rguidProp as a raw integer value, assuming it's not an actual GUID pointer
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Property Identifier: " << reinterpret_cast<ULONG_PTR>(&rguidProp);
+	ULONG_PTR prop = reinterpret_cast<ULONG_PTR>(&rguidProp);
 
-	return ProxyInterface->SetProperty(rguidProp, pdiph);
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Property Identifier: " << prop;
+
+	HRESULT hr = ProxyInterface->SetProperty(rguidProp, pdiph);
+
+	if (SUCCEEDED(hr) && pdiph)
+	{
+		switch (prop)
+		{
+		case 2: // DIPROP_AXISMODE
+		{
+			bAxisMode = true;
+
+			const DIPROPDWORD& dipdw = *reinterpret_cast<const DIPROPDWORD*>(pdiph);
+
+			Logging::Log() << __FUNCTION__ << " DIPROP_AXISMODE"
+				<< " dwHow: " << Logging::hex(dipdw.diph.dwHow)
+				<< " dwData: " << Logging::hex(dipdw.dwData);
+			break;
+		}
+
+		case 4: // DIPROP_RANGE
+		{
+			bRange = true;
+
+			const DIPROPRANGE& diprg = *reinterpret_cast<const DIPROPRANGE*>(pdiph);
+
+			Logging::Log() << __FUNCTION__ << " DIPROP_RANGE"
+				<< " dwHow: " << Logging::hex(diprg.diph.dwHow)
+				<< " lMin: " << diprg.lMin
+				<< " lMax: " << diprg.lMax;
+			break;
+		}
+		}
+	}
+	else
+	{
+		Logging::Log() << __FUNCTION__ << " (" << this << ") Error: failed to set Property Identifier: " << prop;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::Acquire()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->Acquire();
+	HRESULT hr = ProxyInterface->Acquire();
+
+	if (SUCCEEDED(hr))
+	{
+		IsAcquired = true;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::Unacquire()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	return ProxyInterface->Unacquire();
+	HRESULT hr = ProxyInterface->Unacquire();
+
+	if (SUCCEEDED(hr))
+	{
+		IsAcquired = false;
+	}
+
+	return hr;
 }
 
 HRESULT m_IDirectInputDeviceX::GetDeviceState(DWORD cbData, LPVOID lpvData)
@@ -642,6 +697,16 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 		HRESULT hr = ProxyInterface->SetDataFormat(Format);
 		if (SUCCEEDED(hr))
 		{
+			if (Format->rgodf)
+			{
+				FoundAxes.clear();
+				for (DWORD i = 0; i < Format->dwNumObjs; i++)
+				{
+					const DIOBJECTDATAFORMAT& obj = Format->rgodf[i];
+					FoundAxes.push_back(obj.dwOfs);
+				}
+			}
+
 			StoreLastValidFormat(Format);
 			SetEnumObjectDataFromFormat(Format);
 		}
@@ -699,6 +764,16 @@ HRESULT m_IDirectInputDeviceX::SetDataFormat(LPCDIDATAFORMAT lpdf)
 	HRESULT hr = ProxyInterface->SetDataFormat(&df);
 	if (SUCCEEDED(hr))
 	{
+		if (df.rgodf)
+		{
+			FoundAxes.clear();
+			for (DWORD i = 0; i < df.dwNumObjs; i++)
+			{
+				const DIOBJECTDATAFORMAT& obj = df.rgodf[i];
+				FoundAxes.push_back(obj.dwOfs);
+			}
+		}
+
 		StoreLastValidFormat(&df);
 		SetEnumObjectDataFromFormat(&df);
 	}
@@ -717,14 +792,19 @@ HRESULT m_IDirectInputDeviceX::SetCooperativeLevel(HWND hwnd, DWORD dwFlags)
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") hwnd: " << hwnd << " dwFlags: " << Logging::hex(dwFlags);
 
 	// If hwnd is null, assign the main application window as a fallback
-	if (!hwnd && IsMouse)
+	if (!IsWindow(hwnd) && IsMouse)
 	{
-		hwnd = GetMainWindow();
+		hwnd = IsWindow(LasthWnd) ? LasthWnd : GetMainWindow();
 		Logging::LogDebug() << __FUNCTION__ << " Warning: null hwnd, using: " << hwnd << (dwFlags & DISCL_FOREGROUND ? " Removing: DISCL_FOREGROUND" : "");
 		dwFlags = (dwFlags | DISCL_BACKGROUND) & ~DISCL_FOREGROUND;
 	}
 
-	return ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
+	HRESULT hr = ProxyInterface->SetCooperativeLevel(hwnd, dwFlags);
+
+	LasthWnd = hwnd;
+	CooperativeLevel = dwFlags;
+
+	return hr;
 }
 
 template HRESULT m_IDirectInputDeviceX::GetObjectInfoX<IDirectInputDevice8A, LPDIDEVICEOBJECTINSTANCEA>(IDirectInputDevice8A*, LPDIDEVICEOBJECTINSTANCEA, DWORD, DWORD);
@@ -826,7 +906,7 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 
 HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN pUnkOuter)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << pUnkOuter;
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << Logging::hex(lpeff ? lpeff->dwFlags : 0);
 
 	if (!ppdeff)
 	{
@@ -834,21 +914,198 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	}
 	*ppdeff = nullptr;
 
+	if (lpeff)
+	{
+		return DIERR_INVALIDPARAM;
+	}
+
 	if (pUnkOuter)
 	{
 		LOG_LIMIT(3, __FUNCTION__ << " Warning: 'pUnkOuter' is not null: " << pUnkOuter);
 	}
 
-	DIEFFECT eff = {};
-	if (lpeff && lpeff->dwSize == sizeof(DIEFFECT_DX5))
+	if (lpeff->dwSize != sizeof(DIEFFECT_DX5) && lpeff->dwSize != sizeof(DIEFFECT_DX6))
 	{
-		memcpy(&eff, lpeff, lpeff->dwSize);
-		eff.dwSize = sizeof(eff);
-		lpeff = &eff;
+		LOG_LIMIT(3, __FUNCTION__ << " Warning: dwSize doesn't match: " << lpeff->dwSize);
 	}
 
+	DIEFFECT eff = {};
+	{
+		const size_t size = min(lpeff->dwSize, sizeof(DIEFFECT));
+		memcpy(&eff, lpeff, size);
+		eff.dwSize = sizeof(DIEFFECT);
+	}
+	
+	// 1. Device must actually support force feedback
+	{
+		DIDEVCAPS DIDevCaps = {};
+		HRESULT hr = ProxyInterface->GetCapabilities(&DIDevCaps);
+
+		if (SUCCEEDED(hr))
+		{
+			if (DIDevCaps.dwFlags && DIDC_FORCEFEEDBACK)
+			{
+				Logging::Log() << __FUNCTION__ << " Device force feedback found!";
+			}
+			else
+			{
+				Logging::Log() << __FUNCTION__ << " Warning: Device force feedback NOT found!";
+			}
+		}
+	}
+
+	// 2. Cooperative level must be correct: (DISCL_EXCLUSIVE | DISCL_FOREGROUND)
+	{
+		if (!(CooperativeLevel & DISCL_EXCLUSIVE) || !(CooperativeLevel & DISCL_FOREGROUND))
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: CooperativeLevel EXCLUSIVE and FOREGROUND not set: " << CooperativeLevel;
+		}
+	}
+
+	// 3. Data format must be DIJOYSTATE2 (or equivalent)
+	{
+		// You typically need:  SetDataFormat(&c_dfDIJoystick2);
+		// Checked in #6 below
+	}
+
+	// 4. Axes must be configured BEFORE CreateEffect
+	{
+		// Axis mode: DIPROP_AXISMODE = DIPROPAXISMODE_ABS
+		if (!bAxisMode)
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: DIPROP_AXISMODE not set!";
+		}
+		// Range:
+		//    DIPROPRANGE lMin = -1000;
+		//    DIPROPRANGE lMax = 1000;
+		if (!bRange)
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: DIPROP_RANGE not set!";
+		}
+	}
+
+	// 5. Effect structure version mismatch
+	{
+		// eff.dwSize = sizeof(DIEFFECT);
+	}
+
+	// 6. Axes pointers must be valid and consistent
+	{
+		// DWORD axes[2] = { DIJOFS_X, DIJOFS_Y };
+		// effect.cAxes = 2;
+		// effect.rgdwAxes = axes;
+		if (!eff.rgdwAxes || eff.cAxes == 0)
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: null axes pointers!";
+		}
+		else
+		{
+			Logging::Log() << __FUNCTION__ << " Note: common used axes. DIJOFS_X: " << DIJOFS_X << " DIJOFS_Y: " << DIJOFS_Y;
+			for (UINT x = 0; x < eff.cAxes; x++)
+			{
+				if (std::find(FoundAxes.begin(), FoundAxes.end(), eff.rgdwAxes[x]) != FoundAxes.end())
+				{
+					Logging::Log() << __FUNCTION__ << " Found " << x << " Axes! " << eff.rgdwAxes[x];
+				}
+				else
+				{
+					Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: " << eff.rgdwAxes[x];
+				}
+			}
+		}
+	}
+
+	// 7. DIEFFECT flags
+	{
+		// Common required flags:
+		//  * DIEFF_CARTESIAN OR DIEFF_SPHERICAL
+		//  * DIEFF_OBJECTOFFSETS
+		Logging::Log() << __FUNCTION__ << " DIEFFECT flags: " << Logging::hex(eff.dwFlags);
+	}
+
+	// 8. Envelope and parameter validation
+	{
+		// If using constant force / periodic effects :
+		// envelope pointer must be valid if lpEnvelope != nullptr
+		//   gain must be in valid range
+		//   duration must be correct or INFINITE
+		if (eff.lpEnvelope != nullptr)
+		{
+			Logging::Log() << __FUNCTION__ << " DIEFFECT Envelope." << 
+				" dwAttackLevel: " << eff.lpEnvelope->dwAttackLevel <<
+				" dwAttackTime: " << eff.lpEnvelope->dwAttackTime <<
+				" dwFadeLevel: " << eff.lpEnvelope->dwFadeLevel <<
+				" dwFadeTime: " << eff.lpEnvelope->dwFadeTime;
+		}
+	}
+
+	// 9. Effect must match device capability exactly
+	{
+		// Before CreateEffect, you should call :
+		//   EnumEffects()
+		// or at least verify :
+		//  * effect type is supported(GUID)
+		//  * axes count is supported
+		//  * periodic type supported(sine, square, etc.)
+
+		// Callback structure
+		struct EffectEnumerator
+		{
+			static BOOL CALLBACK EnumEffectsCallback(
+				LPCDIEFFECTINFO pdei,
+				LPVOID pvRef)
+			{
+				auto* list = reinterpret_cast<std::vector<DIEFFECTINFO>*>(pvRef);
+
+				list->push_back(*pdei);
+
+				return DIENUM_CONTINUE;
+			}
+		};
+
+		std::vector<DIEFFECTINFO> effects;
+
+		ProxyInterface->EnumEffects(
+			EffectEnumerator::EnumEffectsCallback,
+			&effects,
+			DIEFT_ALL
+		);
+
+		bool supported = false;
+
+		for (auto& e : effects)
+		{
+			if (e.guid == rguid)
+			{
+				supported = true;
+				break;
+			}
+		}
+
+		if (!supported)
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: effect not supported by device: " << rguid;
+		}
+	}
+
+	// 10. Device must be acquired
+	{
+		if (!IsAcquired)
+		{
+			Logging::Log() << __FUNCTION__ << " Warning: device is NOT acquired!";
+		}
+	}
+
+	// 11. Order of operations matters (important for wrappers)
+	// Correct sequence is :
+	//  * SetCooperativeLevel
+	//  * SetDataFormat
+	//  * SetProperty(axis range, deadzone, etc.)
+	//  * Acquire
+	//  * CreateEffect
+
 	IDirectInputEffect* ProxyEffect;
-	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, &ProxyEffect, nullptr);
+	HRESULT hr = ProxyInterface->CreateEffect(rguid, &eff, &ProxyEffect, nullptr);
 
 	if (SUCCEEDED(hr))
 	{
