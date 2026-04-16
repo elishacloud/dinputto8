@@ -906,7 +906,7 @@ HRESULT m_IDirectInputDeviceX::Initialize(HINSTANCE hinst, DWORD dwVersion, REFG
 
 HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LPDIRECTINPUTEFFECT * ppdeff, LPUNKNOWN pUnkOuter)
 {
-	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << Logging::hex(lpeff ? lpeff->dwFlags : 0);
+	Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Trying! " << rguid << " " << lpeff;
 
 	if (!ppdeff)
 	{
@@ -935,7 +935,23 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 		memcpy(&eff, lpeff, size);
 		eff.dwSize = sizeof(DIEFFECT);
 	}
-	
+	Logging::Log() << __FUNCTION__ << " (" << this << ") DIEFFECT: " <<
+		" " << eff.dwSize <<
+		" " << eff.dwFlags <<
+		" " << eff.dwDuration <<
+		" " << eff.dwSamplePeriod <<
+		" " << eff.dwGain <<
+		" " << eff.dwTriggerButton <<
+		" " << eff.dwTriggerRepeatInterval <<
+		" " << eff.cAxes <<
+		" " << eff.rgdwAxes <<
+		" " << eff.rglDirection <<
+		" " << eff.lpEnvelope <<
+		" " << eff.cbTypeSpecificParams <<
+		" " << eff.lpvTypeSpecificParams <<
+		" " << eff.dwStartDelay <<
+		"";
+
 	// 1. Device must actually support force feedback
 	{
 		DIDEVCAPS DIDevCaps = {};
@@ -994,7 +1010,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 		// DWORD axes[2] = { DIJOFS_X, DIJOFS_Y };
 		// effect.cAxes = 2;
 		// effect.rgdwAxes = axes;
-		if (!eff.rgdwAxes || eff.cAxes == 0)
+		if (eff.cAxes == 0)
 		{
 			Logging::Log() << __FUNCTION__ << " Warning: null axes pointers!";
 		}
@@ -1003,13 +1019,43 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 			Logging::Log() << __FUNCTION__ << " Note: common used axes. DIJOFS_X: " << DIJOFS_X << " DIJOFS_Y: " << DIJOFS_Y;
 			for (UINT x = 0; x < eff.cAxes; x++)
 			{
-				if (std::find(FoundAxes.begin(), FoundAxes.end(), eff.rgdwAxes[x]) != FoundAxes.end())
+				if (eff.rgdwAxes && std::find(FoundAxes.begin(), FoundAxes.end(), eff.rgdwAxes[x]) != FoundAxes.end())
 				{
-					Logging::Log() << __FUNCTION__ << " Found " << x << " Axes! " << eff.rgdwAxes[x];
+					if (eff.rgdwAxes && eff.rglDirection)
+					{
+						Logging::Log() << __FUNCTION__ << " Found " << x << " Axes: " << eff.rgdwAxes[x] << " Direction: " << eff.rglDirection[x];
+					}
+					else if (eff.rgdwAxes)
+					{
+						Logging::Log() << __FUNCTION__ << " Found " << x << " Axes: " << eff.rgdwAxes[x] << " Direction: nullptr";
+					}
+					else if (eff.rglDirection)
+					{
+						Logging::Log() << __FUNCTION__ << " Found " << x << " Axes: nullptr Direction: " << eff.rglDirection[x];
+					}
+					else
+					{
+						Logging::Log() << __FUNCTION__ << " Found " << x << " Axes: nullptr Direction: nullptr";
+					}
 				}
 				else
 				{
-					Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: " << eff.rgdwAxes[x];
+					if (eff.rgdwAxes && eff.rglDirection)
+					{
+						Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: " << eff.rgdwAxes[x] << " Direction: " << eff.rglDirection[x];
+					}
+					else if (eff.rgdwAxes)
+					{
+						Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: " << eff.rgdwAxes[x] << " Direction: nullptr";
+					}
+					else if (eff.rglDirection)
+					{
+						Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: nullptr Direction: " << eff.rglDirection[x];
+					}
+					else
+					{
+						Logging::Log() << __FUNCTION__ << " Warning: could NOT find " << x << " Axes: nullptr Direction: nullptr";
+					}
 				}
 			}
 		}
