@@ -47,7 +47,7 @@ public:
 		HRESULT hr = E_OUTOFMEMORY;
 		*ppvObject = nullptr;
 
-		typename WrapperClass::proxy_type* proxyObject; 
+		typename WrapperClass::proxy_type* proxyObject = nullptr;
 		HRESULT proxyHr = m_dinput8Factory->CreateInstance(pUnkOuter, WrapperClass::GetCompatibleIID(riid), reinterpret_cast<void**>(&proxyObject));
 		if (FAILED(proxyHr))
 		{
@@ -59,6 +59,10 @@ public:
 		{
 			hr = wrapper->QueryInterface(riid, ppvObject);
 			wrapper->Release();
+		}
+		else
+		{
+			proxyObject->Release();
 		}
 		return hr;
 	}
