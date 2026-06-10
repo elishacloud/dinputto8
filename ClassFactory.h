@@ -48,7 +48,7 @@ public:
 		*ppvObject = nullptr;
 
 		typename WrapperClass::proxy_type* proxyObject; 
-		HRESULT proxyHr = m_dinput8Factory->CreateInstance(pUnkOuter, WrapperClass::proxy_iid, reinterpret_cast<void**>(&proxyObject));
+		HRESULT proxyHr = m_dinput8Factory->CreateInstance(pUnkOuter, WrapperClass::GetCompatibleIID(riid), reinterpret_cast<void**>(&proxyObject));
 		if (FAILED(proxyHr))
 		{
 			return proxyHr;
