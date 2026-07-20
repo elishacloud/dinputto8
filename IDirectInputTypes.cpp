@@ -175,3 +175,78 @@ DWORD ConvertDevSubTypeTo7(DWORD dwDevType, DWORD dwDevType7, DWORD dwDevSubType
 		return DIDEVTYPEJOYSTICK_UNKNOWN;
 	}
 }
+
+bool FixLegacyEffect(REFGUID guid, LPCDIEFFECT& lpeff, DIEFFECT& eff)
+{
+	bool modified = false;
+
+	if (!lpeff)
+	{
+		return false;
+	}
+
+	auto MakeWritable = [&]()
+	{
+		if (!modified)
+		{
+			if (&eff != lpeff)
+			{
+				eff = *lpeff;
+				lpeff = &eff;
+			}
+			modified = true;
+		}
+	};
+
+	if (lpeff->cAxes == 1 &&
+		lpeff->rgdwAxes && *lpeff->rgdwAxes == DIJOFS_Y &&
+		lpeff->rglDirection && *lpeff->rglDirection == 0)
+	{
+		const DWORD* OldAxesPtr = lpeff->rgdwAxes;
+
+		MakeWritable();
+
+		static DWORD DefaultAxis = DIJOFS_X;
+		eff.rgdwAxes = &DefaultAxis;
+
+		LOG_LIMIT(3, __FUNCTION__
+			<< " Warning: Remapped force-feedback axis."
+			<< " GUID=" << guid
+			<< ", Axis=" << *OldAxesPtr << "->" << *eff.rgdwAxes);
+	}
+
+	auto IsConditionEffect = [](REFGUID guid)
+	{
+		return guid == GUID_Spring ||
+			guid == GUID_Damper ||
+			guid == GUID_Friction ||
+			guid == GUID_Inertia;
+	};
+
+	if (lpeff->cAxes == 2)
+	{
+		const DWORD OldFlags = lpeff->dwFlags;
+		const DWORD OldAxes = lpeff->cAxes;
+		const DWORD OldTypeSpecificParams = lpeff->cbTypeSpecificParams;
+
+		MakeWritable();
+
+		eff.cAxes = 1;
+		eff.dwFlags &= ~(DIEFF_CARTESIAN | DIEFF_POLAR | DIEFF_SPHERICAL);
+		eff.dwFlags |= DIEFF_CARTESIAN;
+
+		if (IsConditionEffect(guid) && eff.cbTypeSpecificParams == OldAxes * sizeof(DICONDITION))
+		{
+			eff.cbTypeSpecificParams = eff.cAxes * sizeof(DICONDITION);
+		}
+
+		LOG_LIMIT(3, __FUNCTION__
+			<< " Warning: Converted legacy effect to single axis."
+			<< " GUID=" << guid
+			<< ", Flags=" << Logging::hex(OldFlags) << "->" << Logging::hex(eff.dwFlags)
+			<< ", Axes=" << OldAxes << "->" << eff.cAxes
+			<< ", TypeSpecificParams=" << OldTypeSpecificParams << "->" << eff.cbTypeSpecificParams);
+	}
+
+	return modified;
+}

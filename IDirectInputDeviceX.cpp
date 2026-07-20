@@ -850,10 +850,28 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 	IDirectInputEffect* ProxyEffect;
 	HRESULT hr = ProxyInterface->CreateEffect(rguid, lpeff, &ProxyEffect, nullptr);
 
+	if (hr == DIERR_INVALIDPARAM)
+	{
+		if (FixLegacyEffect(rguid, lpeff, eff))
+		{
+			hr = ProxyInterface->CreateEffect(rguid, lpeff, &ProxyEffect, nullptr);
+
+			if (FAILED(hr))
+			{
+				Logging::Log() << __FUNCTION__ << " (" << this << ") Retry failed! hr: " << (DIERR)hr;
+			}
+			else
+			{
+				Logging::Log() << __FUNCTION__ << " (" << this << ") Successfully recovered from DIERR_INVALIDPARAM.";
+			}
+		}
+	}
+
 	if (SUCCEEDED(hr))
 	{
 		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(ProxyEffect);
 		pEffect->SetVersion(diVersion);
+		pEffect->SetGUID(rguid);
 
 		*ppdeff = pEffect;
 	}
@@ -863,6 +881,7 @@ HRESULT m_IDirectInputDeviceX::CreateEffect(REFGUID rguid, LPCDIEFFECT lpeff, LP
 
 		m_IDirectInputEffect* pEffect = new m_IDirectInputEffect(nullptr);
 		pEffect->SetVersion(diVersion);
+		pEffect->SetGUID(rguid);
 
 		// Return an effect class even on failure becasue some games don't check for failure
 		*ppdeff = pEffect;

@@ -16,8 +16,13 @@ typedef enum _DIERR { } DIERR;
 
 #ifdef DINPUTTO8NOLOG
 
+#ifndef LOG_ONCE
 #define LOG_ONCE(msg)
-#define LOG_LIMIT(num, msg)
+#endif
+#ifndef LOG_LIMIT
+#define LOG_LIMIT(num, msg) \
+	Logging::Log() << msg;
+#endif
 
 namespace Logging
 {

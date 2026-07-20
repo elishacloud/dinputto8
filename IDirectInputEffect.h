@@ -10,6 +10,8 @@ private:
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
 
+	GUID guid = {};
+
 public:
 	m_IDirectInputEffect(IDirectInputEffect *aOriginal)
 		: AddressLookupTableDinputObject(aOriginal)
@@ -48,5 +50,9 @@ public:
 	void SetVersion(DWORD dwVersion)
 	{
 		diVersion = dwVersion;
+	}
+	void SetGUID(REFGUID rguid)
+	{
+		guid = rguid;
 	}
 };

@@ -139,8 +139,6 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 	}
 
 #ifdef _DEBUG
-	GUID guid;
-	GetEffectGuid(&guid);
 	LogEffectFormat(lpeff, guid);
 #endif // DEBUG
 
@@ -154,6 +152,23 @@ HRESULT m_IDirectInputEffect::SetParameters(LPCDIEFFECT lpeff, DWORD dwFlags)
 
 	HRESULT hr = ProxyInterface->SetParameters(lpeff, dwFlags);
 
+	if (hr == DIERR_INVALIDPARAM)
+	{
+		if (FixLegacyEffect(guid, lpeff, eff))
+		{
+			hr = ProxyInterface->SetParameters(lpeff, dwFlags);
+
+			if (FAILED(hr))
+			{
+				Logging::Log() << __FUNCTION__ << " (" << this << ") Retry failed! hr: " << (DIERR)hr;
+			}
+			else
+			{
+				Logging::Log() << __FUNCTION__ << " (" << this << ") Successfully recovered from DIERR_INVALIDPARAM.";
+			}
+		}
+	}
+	
 	if (FAILED(hr))
 	{
 		Logging::LogDebug() << __FUNCTION__ << " (" << this << ") Failed! hr: " << (DIERR)hr;
