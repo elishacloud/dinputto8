@@ -316,6 +316,25 @@ ULONG m_IDirectInputDeviceX::Release()
 	return ref;
 }
 
+// True when this device should be limited to the 32 buttons that DIJOYSTATE can
+// represent. See the LegacyMaxButtons comment in the header for why.
+//
+// DIJOYSTATE2 first appears in the DirectX 7 SDK, so a caller asking for 0x0700 or
+// later may legitimately be using c_dfDIJoystick2 and can address all 128 buttons.
+// Only versions below that are clamped, which leaves DX7/DX8 callers untouched.
+bool m_IDirectInputDeviceX::ClampLegacyButtons() const
+{
+	if (IsMouse || diVersion == 0 || diVersion >= 0x0700)
+	{
+		return false;
+	}
+
+	// DevType7 is already the DirectInput 1-7 style type, set by
+	// InitializeEnumObjectData via ConvertDevTypeTo7 - compare it directly,
+	// the same way that function does.
+	return DevType7 == DIDEVTYPE_JOYSTICK;
+}
+
 HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -334,6 +353,18 @@ HRESULT m_IDirectInputDeviceX::GetCapabilities(LPDIDEVCAPS lpDIDevCaps)
 		if (SUCCEEDED(hr))
 		{
 			lpDIDevCaps->dwDevType = didi.dwDevType;
+		}
+
+		// Report only what a DIJOYSTATE-era caller can actually address. Reporting
+		// 128 on a device the caller believes has at most 32 is what drives fixed
+		// 32-entry lookup tables out of bounds.
+		if (ClampLegacyButtons() && lpDIDevCaps->dwButtons > LegacyMaxButtons)
+		{
+			LOG_LIMIT(3, __FUNCTION__ << " Note: clamping reported buttons from "
+				<< lpDIDevCaps->dwButtons << " to " << LegacyMaxButtons
+				<< " for DirectInput version " << Logging::hex(diVersion));
+
+			lpDIDevCaps->dwButtons = LegacyMaxButtons;
 		}
 	}
 
@@ -370,6 +401,8 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(T* ProxyInterfaceT, V lpCallback, LP
 		LPVOID pvRef = nullptr;
 		DWORD dwStructSize = sizeof(D);
 		bool bOldDInputEnumerationBehaviour = false;
+		bool bClampLegacyButtons = false;
+		DWORD dwMaxButtons = LegacyMaxButtons;
 
 		static BOOL CALLBACK StoreObjectsCallback(const D* lpddoi, LPVOID pvRef)
 		{
@@ -377,6 +410,18 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(T* ProxyInterfaceT, V lpCallback, LP
 
 			// Old DInput does not enumerate collections without data
 			if (self->bOldDInputEnumerationBehaviour && DIDFT_GETTYPE(lpddoi->dwType) == (DIDFT_COLLECTION|DIDFT_NODATA))
+			{
+				return DIENUM_CONTINUE;
+			}
+
+			// Keep enumeration consistent with the button count reported by
+			// GetCapabilities. Clamping one but not the other is worse than
+			// clamping neither: a caller that trusts the count would still be
+			// handed instance numbers beyond it here, and callers that size
+			// their tables from the enumeration would still overflow.
+			if (self->bClampLegacyButtons &&
+				(DIDFT_GETTYPE(lpddoi->dwType) & DIDFT_BUTTON) != 0 &&
+				DIDFT_GETINSTANCE(lpddoi->dwType) >= self->dwMaxButtons)
 			{
 				return DIENUM_CONTINUE;
 			}
@@ -432,6 +477,8 @@ HRESULT m_IDirectInputDeviceX::EnumObjectsX(T* ProxyInterfaceT, V lpCallback, LP
 	CallbackContext.pObjectDataMap = &EnumObjectDataLUT;
 	CallbackContext.dwDefaultOffset = OffsetForMissingObjects;
 	CallbackContext.dwStructSize = diVersion >= 0x500 ? sizeof(D) : sizeof(D_Old);
+	CallbackContext.bClampLegacyButtons = ClampLegacyButtons();
+	CallbackContext.dwMaxButtons = LegacyMaxButtons;
 
 	HRESULT hr = ProxyInterfaceT->EnumObjects(ObjectEnumerator::StoreObjectsCallback, &CallbackContext, dwFlags);
 	if (FAILED(hr))

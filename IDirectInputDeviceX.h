@@ -44,6 +44,27 @@ private:
 	// For data format fixups
 	DWORD DevType7 = 0;
 
+	// DirectInput 1-7 exposes joystick state as DIJOYSTATE, whose button array is
+	// BYTE rgbButtons[32]. Only DIJOYSTATE2 (DirectInput 8) widened that to 128.
+	// A pre-DX7 caller therefore has no way to address button 33 or beyond, yet a
+	// modern device can still report up to 128 through the DInput8 proxy.
+	//
+	// Passing that count through breaks period software in a way that looks like a
+	// driver fault. Sega Rally 2's control applet (Sega's MUSASHI MGInput.dll, 1999)
+	// indexes a fixed 32-entry offset table with the button index it is handed:
+	//
+	//     mov  ebp, [ebp + eax*4]   ; offsetTable[buttonIndex] - unbounded
+	//     mov  edi, [edi + ebp]     ; ACCESS VIOLATION on a 128-button device
+	//
+	// Any device reporting more than 32 buttons reads past that table and
+	// dereferences a garbage offset. Clamping what we advertise keeps such callers
+	// inside the contract their DirectInput version actually defines.
+	static const DWORD LegacyMaxButtons = 32;
+
+	// Whether to apply that clamp. Set for joysticks on pre-DX8 interfaces; never
+	// for mice or keyboards, whose object counts are unrelated.
+	bool ClampLegacyButtons() const;
+
 	// Critical section for shared memory
 	CRITICAL_SECTION dics = {};
 
