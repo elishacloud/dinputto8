@@ -54,7 +54,7 @@ ULONG m_IDirectInputDeviceX::Release()
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
-	LONG ref = InterlockedDecrement(&RefCount);
+	ULONG ref = InterlockedDecrement(&RefCount);
 
 	if (ref == 0)
 	{
