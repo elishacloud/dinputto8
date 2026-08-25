@@ -84,6 +84,8 @@ private:
 	EnumObjectDataMap EnumObjectDataLUT;
 	DWORD OffsetForMissingObjects = 0; // -1 after the data format is set
 
+	// Helper functions
+	HWND GetMainWindow();
 	void InitializeEnumObjectData();
 	void StoreLastValidFormat(LPCDIDATAFORMAT lpdf);
 	void SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf);
@@ -244,4 +246,8 @@ public:
 	// Helper functions
 	void SetVersion(DWORD dwVersion) { diVersion = dwVersion; }
 	void SetAsMouse() { IsMouse = true; }
+
+	// Static functions
+	template<typename T>
+	static auto FindByDITypeAndInstance(T& collection, DWORD dwType);
 };

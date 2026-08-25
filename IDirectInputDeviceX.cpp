@@ -16,258 +16,6 @@
 
 #include "dinputto8.h"
 
-static HWND GetMainWindow()
-{
-	struct ENUMEDATA
-	{
-		DWORD processId = GetCurrentProcessId();
-		HWND mainWindow = nullptr;
-	} WindowData;
-
-	EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL
-		{
-			DWORD wndProcessId;
-			GetWindowThreadProcessId(hwnd, &wndProcessId);
-			ENUMEDATA* WindowData = reinterpret_cast<ENUMEDATA*>(lParam);
-
-			if (wndProcessId == WindowData->processId && GetWindow(hwnd, GW_OWNER) == nullptr && IsWindowVisible(hwnd))
-			{
-				WindowData->mainWindow = hwnd;
-				return FALSE;  // Stop enumerating once found
-			}
-
-			return TRUE;
-		}, reinterpret_cast<LPARAM>(&WindowData));
-
-	// Fallback to GetForegroundWindow if no suitable window is found
-	if (!WindowData.mainWindow)
-	{
-		WindowData.mainWindow = GetForegroundWindow();
-	}
-
-	return WindowData.mainWindow;
-}
-
-// Our EnumObjectDataLUT contains only abstract types AXIS, BUTTON and POV, so consider it a match if
-// any bit of the type matches (e.g. DIDFT_AXIS is 3 while DIDFT_ABSAXIS is 1).
-template<typename T>
-static auto FindByDITypeAndInstance(T& collection, DWORD dwType)
-{
-	auto it = collection.lower_bound(dwType & 0xFFFFFF);
-	if (it != collection.end())
-	{
-		if (!(DIDFT_GETINSTANCE(it->first) == DIDFT_GETINSTANCE(dwType) &&
-			(DIDFT_GETTYPE(dwType) == 0 || (DIDFT_GETTYPE(dwType) & DIDFT_GETTYPE(it->first)) != 0)))
-		{
-			it = collection.end();
-		}
-	}
-	return it;
-}
-
-void m_IDirectInputDeviceX::InitializeEnumObjectData()
-{
-	DIDEVICEINSTANCEW didi { sizeof(didi) };
-	if (SUCCEEDED(ProxyInterface->GetDeviceInfo(&didi)))
-	{
-		BOOL IsGamepad = FALSE;
-		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType), didi.wUsagePage, didi.wUsage, didi.dwDevType & DIDEVTYPE_HID, IsGamepad);
-
-		// We only need to do this trickery for game controllers - keyboard/mice should be sorted fine
-		// If this is ever proven to be false, just add code here for other DIDEVTYPE_*
-		if (DevType7 == DIDEVTYPE_JOYSTICK)
-		{
-			// List based off the one in Wine, and restructured to match our use case better:
-			// https://gitlab.winehq.org/besentv/wine/-/blob/wine-1.5.29/dlls/dinput/data_formats.c#L82
-			// The important part is to keep instances of the same object type (axis, POV, button etc.) in order.
-			auto AddObject = [this](DWORD key, DWORD dwOfs)
-				{
-					EnumObjectDataLUT.try_emplace(key, ObjectOrderValue{ dwOfs, dwOfs });
-				};
-
-			// Axes
-			{
-				DWORD dwAxisInstanceNo = 0;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_X); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_Y); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_Z); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RX); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RY); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RZ); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_SLIDER(0)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_SLIDER(1)); dwAxisInstanceNo++;
-
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVX)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVY)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVZ)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVRx)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVRy)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lVRz)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglVSlider[0])); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglVSlider[1])); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lAX)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lAY)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lAZ)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lARx)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lARy)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lARz)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglASlider[0])); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglASlider[1])); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFX)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFY)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFZ)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFRx)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFRy)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,lFRz)); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglFSlider[0])); dwAxisInstanceNo++;
-				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2,rglFSlider[1])); dwAxisInstanceNo++;
-			}
-
-			// POV
-			for (DWORD dwPovNo = 0; dwPovNo < 4; ++dwPovNo)
-			{
-				AddObject(DIDFT_POV | DIDFT_MAKEINSTANCE(dwPovNo), DIJOFS_POV(dwPovNo));
-			}
-			
-			// Buttons
-			for (DWORD dwButtonNo = 0; dwButtonNo < 128; ++dwButtonNo)
-			{
-				AddObject(DIDFT_BUTTON | DIDFT_MAKEINSTANCE(dwButtonNo), DIJOFS_BUTTON(dwButtonNo));
-			}
-		}
-	}
-}
-
-void m_IDirectInputDeviceX::StoreLastValidFormat(LPCDIDATAFORMAT lpdf)
-{
-	if (!lpdf)
-	{
-		return;
-	}
-
-	// Copy object array safely
-	if (lpdf->dwNumObjs && lpdf->rgodf)
-	{
-		LastValidObjects.assign(lpdf->rgodf, lpdf->rgodf + lpdf->dwNumObjs);
-	}
-	else
-	{
-		LastValidObjects.clear();
-	}
-
-	// Copy the structure
-	LastValidFormat = *lpdf;
-
-	// Redirect pointer to our owned memory
-	LastValidFormat.rgodf = LastValidObjects.empty() ? nullptr : LastValidObjects.data();
-
-	HasValidFormat = true;
-}
-
-void m_IDirectInputDeviceX::SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf)
-{
-	OffsetForMissingObjects = static_cast<DWORD>(-1);
-
-	// First set all offsets to -1, then update them for any objects that are defined
-	for (auto& element : EnumObjectDataLUT)
-	{
-		element.second.dwOfs = static_cast<DWORD>(-1);
-	}
-
-	// lpdf is most likely going to contain mostly DIDFT_ANYINSTANCE as instance numbers,
-	// so we need a map to track those by type.
-	// Mixing specific instances and DIDFT_ANYINSTANCE for the same type is not permitted,
-	// so we don't need to worry about aliasing.
-	std::map<DWORD, DWORD> InstanceNumbersByType {
-		{ DIDFT_AXIS, 0 }, { DIDFT_BUTTON, 0 }, { DIDFT_POV, 0 },
-	};
-
-	// To support proper relocation of axes with specific GUIDs, we need to "remember" their respective instance numbers.
-	// Annoying, but at least it can be contained into just this function.
-	std::list<std::pair<const GUID*, DWORD>> InstanceNumbersByGUID;
-	if (DevType7 == DIDEVTYPE_MOUSE)
-	{
-		DWORD instanceNo = 0;
-		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
-	}
-	else if (DevType7 == DIDEVTYPE_JOYSTICK)
-	{
-		DWORD instanceNo = 0;
-		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
-	}
-
-	const auto begin = lpdf->rgodf;
-	const auto end = begin + lpdf->dwNumObjs;
-	for (auto it = begin; it != end; ++it)
-	{
-		auto instanceNumIt = FindByDITypeAndInstance(InstanceNumbersByType, DIDFT_GETTYPE(it->dwType));
-		if (instanceNumIt != InstanceNumbersByType.end())
-		{
-			DWORD instanceNum = DIDFT_GETINSTANCE(it->dwType);
-			if (instanceNum == 0xFFFF) // Is ANYINSTANCE in use?
-			{
-				// Does this GUID have a predefined instance?
-				auto instanceGuidIt = std::find_if(InstanceNumbersByGUID.begin(), InstanceNumbersByGUID.end(),
-					[pguid = it->pguid] (const auto& e)
-					{
-						const GUID& a = pguid ? *pguid : GUID{};
-						const GUID& b = e.first ? *e.first : GUID{};
-						return memcmp(&a, &b, sizeof(GUID)) == 0;
-					});
-				if (instanceGuidIt != InstanceNumbersByGUID.end())
-				{
-					instanceNum = instanceGuidIt->second;
-					// Once a GUID has been used, "pop" it so the next object with the same GUID is used next time
-					InstanceNumbersByGUID.erase(instanceGuidIt);
-				}
-				else
-				{
-					instanceNum = instanceNumIt->second++;
-				}
-			}
-
-			auto enumObjectIt = FindByDITypeAndInstance(EnumObjectDataLUT, DIDFT_MAKEINSTANCE(instanceNum) | DIDFT_GETTYPE(it->dwType));
-			if (enumObjectIt != EnumObjectDataLUT.end())
-			{
-				enumObjectIt->second.dwOfs = it->dwOfs;
-			}
-		}	
-	}
-}
-
 HRESULT m_IDirectInputDeviceX::QueryInterface(REFIID riid, LPVOID FAR * ppvObj)
 {
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
@@ -1077,4 +825,260 @@ HRESULT m_IDirectInputDeviceX::WriteEffectToFileX(T* ProxyInterfaceT, V lpszFile
 	Logging::LogDebug() << __FUNCTION__ << " (" << this << ")";
 
 	return ProxyInterfaceT->WriteEffectToFile(lpszFileName, dwEntries, rgDiFileEft, dwFlags);
+}
+
+// ******************************
+// Helper functions
+// ******************************
+
+HWND m_IDirectInputDeviceX::GetMainWindow()
+{
+	struct ENUMEDATA
+	{
+		DWORD processId = GetCurrentProcessId();
+		HWND mainWindow = nullptr;
+	} WindowData;
+
+	EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL
+	{
+		DWORD wndProcessId;
+		GetWindowThreadProcessId(hwnd, &wndProcessId);
+		ENUMEDATA* WindowData = reinterpret_cast<ENUMEDATA*>(lParam);
+
+		if (wndProcessId == WindowData->processId && GetWindow(hwnd, GW_OWNER) == nullptr && IsWindowVisible(hwnd))
+		{
+			WindowData->mainWindow = hwnd;
+			return FALSE;  // Stop enumerating once found
+		}
+
+		return TRUE;
+	}, reinterpret_cast<LPARAM>(&WindowData));
+
+	// Fallback to GetForegroundWindow if no suitable window is found
+	if (!WindowData.mainWindow)
+	{
+		WindowData.mainWindow = GetForegroundWindow();
+	}
+
+	return WindowData.mainWindow;
+}
+
+// Our EnumObjectDataLUT contains only abstract types AXIS, BUTTON and POV, so consider it a match if
+// any bit of the type matches (e.g. DIDFT_AXIS is 3 while DIDFT_ABSAXIS is 1).
+template<typename T>
+static auto m_IDirectInputDeviceX::FindByDITypeAndInstance(T& collection, DWORD dwType)
+{
+	auto it = collection.lower_bound(dwType & 0xFFFFFF);
+	if (it != collection.end())
+	{
+		if (!(DIDFT_GETINSTANCE(it->first) == DIDFT_GETINSTANCE(dwType) &&
+			(DIDFT_GETTYPE(dwType) == 0 || (DIDFT_GETTYPE(dwType) & DIDFT_GETTYPE(it->first)) != 0)))
+		{
+			it = collection.end();
+		}
+	}
+	return it;
+}
+
+void m_IDirectInputDeviceX::InitializeEnumObjectData()
+{
+	DIDEVICEINSTANCEW didi{ sizeof(didi) };
+	if (SUCCEEDED(ProxyInterface->GetDeviceInfo(&didi)))
+	{
+		BOOL IsGamepad = FALSE;
+		DevType7 = ConvertDevTypeTo7(GET_DIDEVICE_TYPE(didi.dwDevType), didi.wUsagePage, didi.wUsage, didi.dwDevType & DIDEVTYPE_HID, IsGamepad);
+
+		// We only need to do this trickery for game controllers - keyboard/mice should be sorted fine
+		// If this is ever proven to be false, just add code here for other DIDEVTYPE_*
+		if (DevType7 == DIDEVTYPE_JOYSTICK)
+		{
+			// List based off the one in Wine, and restructured to match our use case better:
+			// https://gitlab.winehq.org/besentv/wine/-/blob/wine-1.5.29/dlls/dinput/data_formats.c#L82
+			// The important part is to keep instances of the same object type (axis, POV, button etc.) in order.
+			auto AddObject = [this](DWORD key, DWORD dwOfs)
+			{
+				EnumObjectDataLUT.try_emplace(key, ObjectOrderValue{ dwOfs, dwOfs });
+			};
+
+			// Axes
+			{
+				DWORD dwAxisInstanceNo = 0;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_X); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_Y); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_Z); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RX); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RY); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_RZ); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_SLIDER(0)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), DIJOFS_SLIDER(1)); dwAxisInstanceNo++;
+
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVX)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVY)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVZ)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVRx)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVRy)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lVRz)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglVSlider[0])); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglVSlider[1])); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lAX)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lAY)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lAZ)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lARx)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lARy)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lARz)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglASlider[0])); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglASlider[1])); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFX)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFY)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFZ)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFRx)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFRy)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, lFRz)); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglFSlider[0])); dwAxisInstanceNo++;
+				AddObject(DIDFT_AXIS | DIDFT_MAKEINSTANCE(dwAxisInstanceNo), FIELD_OFFSET(DIJOYSTATE2, rglFSlider[1])); dwAxisInstanceNo++;
+			}
+
+			// POV
+			for (DWORD dwPovNo = 0; dwPovNo < 4; ++dwPovNo)
+			{
+				AddObject(DIDFT_POV | DIDFT_MAKEINSTANCE(dwPovNo), DIJOFS_POV(dwPovNo));
+			}
+
+			// Buttons
+			for (DWORD dwButtonNo = 0; dwButtonNo < 128; ++dwButtonNo)
+			{
+				AddObject(DIDFT_BUTTON | DIDFT_MAKEINSTANCE(dwButtonNo), DIJOFS_BUTTON(dwButtonNo));
+			}
+		}
+	}
+}
+
+void m_IDirectInputDeviceX::StoreLastValidFormat(LPCDIDATAFORMAT lpdf)
+{
+	if (!lpdf)
+	{
+		return;
+	}
+
+	// Copy object array safely
+	if (lpdf->dwNumObjs && lpdf->rgodf)
+	{
+		LastValidObjects.assign(lpdf->rgodf, lpdf->rgodf + lpdf->dwNumObjs);
+	}
+	else
+	{
+		LastValidObjects.clear();
+	}
+
+	// Copy the structure
+	LastValidFormat = *lpdf;
+
+	// Redirect pointer to our owned memory
+	LastValidFormat.rgodf = LastValidObjects.empty() ? nullptr : LastValidObjects.data();
+
+	HasValidFormat = true;
+}
+
+void m_IDirectInputDeviceX::SetEnumObjectDataFromFormat(LPCDIDATAFORMAT lpdf)
+{
+	OffsetForMissingObjects = static_cast<DWORD>(-1);
+
+	// First set all offsets to -1, then update them for any objects that are defined
+	for (auto& element : EnumObjectDataLUT)
+	{
+		element.second.dwOfs = static_cast<DWORD>(-1);
+	}
+
+	// lpdf is most likely going to contain mostly DIDFT_ANYINSTANCE as instance numbers,
+	// so we need a map to track those by type.
+	// Mixing specific instances and DIDFT_ANYINSTANCE for the same type is not permitted,
+	// so we don't need to worry about aliasing.
+	std::map<DWORD, DWORD> InstanceNumbersByType{
+		{ DIDFT_AXIS, 0 }, { DIDFT_BUTTON, 0 }, { DIDFT_POV, 0 },
+	};
+
+	// To support proper relocation of axes with specific GUIDs, we need to "remember" their respective instance numbers.
+	// Annoying, but at least it can be contained into just this function.
+	std::list<std::pair<const GUID*, DWORD>> InstanceNumbersByGUID;
+	if (DevType7 == DIDEVTYPE_MOUSE)
+	{
+		DWORD instanceNo = 0;
+		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
+	}
+	else if (DevType7 == DIDEVTYPE_JOYSTICK)
+	{
+		DWORD instanceNo = 0;
+		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_XAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_YAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_ZAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RxAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RyAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_RzAxis, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+		InstanceNumbersByGUID.emplace_back(&GUID_Slider, instanceNo++);
+	}
+
+	const auto begin = lpdf->rgodf;
+	const auto end = begin + lpdf->dwNumObjs;
+	for (auto it = begin; it != end; ++it)
+	{
+		auto instanceNumIt = FindByDITypeAndInstance(InstanceNumbersByType, DIDFT_GETTYPE(it->dwType));
+		if (instanceNumIt != InstanceNumbersByType.end())
+		{
+			DWORD instanceNum = DIDFT_GETINSTANCE(it->dwType);
+			if (instanceNum == 0xFFFF) // Is ANYINSTANCE in use?
+			{
+				// Does this GUID have a predefined instance?
+				auto instanceGuidIt = std::find_if(InstanceNumbersByGUID.begin(), InstanceNumbersByGUID.end(),
+					[pguid = it->pguid](const auto& e)
+				{
+					const GUID& a = pguid ? *pguid : GUID{};
+					const GUID& b = e.first ? *e.first : GUID{};
+					return memcmp(&a, &b, sizeof(GUID)) == 0;
+				});
+				if (instanceGuidIt != InstanceNumbersByGUID.end())
+				{
+					instanceNum = instanceGuidIt->second;
+					// Once a GUID has been used, "pop" it so the next object with the same GUID is used next time
+					InstanceNumbersByGUID.erase(instanceGuidIt);
+				}
+				else
+				{
+					instanceNum = instanceNumIt->second++;
+				}
+			}
+
+			auto enumObjectIt = FindByDITypeAndInstance(EnumObjectDataLUT, DIDFT_MAKEINSTANCE(instanceNum) | DIDFT_GETTYPE(it->dwType));
+			if (enumObjectIt != EnumObjectDataLUT.end())
+			{
+				enumObjectIt->second.dwOfs = it->dwOfs;
+			}
+		}
+	}
 }
