@@ -23,7 +23,7 @@ private:
 	proxy_type *ProxyInterface;
 	IDirectInput8A *ProxyInterfaceA; // Non-owning alias
 
-	LONG RefCount = 1;
+	ULONG RefCount = 1;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;

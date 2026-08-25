@@ -5,7 +5,7 @@ class m_IDirectInputEffect final : public IDirectInputEffect, AddressLookupTable
 private:
 	IDirectInputEffect *ProxyInterface;
 
-	LONG RefCount = 1;
+	ULONG RefCount = 1;
 
 	// Requested DirectInput version - used to alter behaviour by requested version
 	DWORD diVersion = 0;
