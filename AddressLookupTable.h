@@ -32,11 +32,24 @@ private:
 
 	void DeleteAll()
 	{
-		for (const auto& map : g_map)
+		for (size_t i = 0; i < MaxCacheIndex; ++i)
 		{
-			for (const auto& entry : map)
+			while (true)
 			{
-				delete entry.second;
+				auto it = g_map[i].begin();
+				auto InterfaceCache = it->second;
+				if (it == g_map[i].end())
+				{
+					break;
+				}
+
+				// Remove it before deleting interface
+				g_map[i].erase(it);
+
+				if (InterfaceCache)
+				{
+					delete InterfaceCache;
+				}
 			}
 		}
 	}
