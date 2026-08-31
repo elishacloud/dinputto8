@@ -69,7 +69,7 @@ public:
 		constexpr size_t CacheIndex = AddressCacheIndex<T>::CacheIndex;
 
 		auto it = g_map[CacheIndex].find(Proxy);
-		if (it != std::end(g_map[CacheIndex]))
+		if (it != g_map[CacheIndex].end())
 		{
 			return static_cast<T*>(it->second);
 		}
@@ -99,7 +99,7 @@ public:
 
 		auto it = std::find_if(g_map[CacheIndex].begin(), g_map[CacheIndex].end(),
 			[=](auto& Map) -> bool { return Map.second == Wrapper; });
-		if (it != std::end(g_map[CacheIndex]))
+		if (it != g_map[CacheIndex].end())
 		{
 			g_map[CacheIndex].erase(it);
 		}
