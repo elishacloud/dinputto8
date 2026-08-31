@@ -34,14 +34,10 @@ private:
 	{
 		for (size_t i = 0; i < MaxCacheIndex; ++i)
 		{
-			while (true)
+			while (!g_map[i].empty())
 			{
 				auto it = g_map[i].begin();
 				auto InterfaceCache = it->second;
-				if (it == g_map[i].end())
-				{
-					break;
-				}
 
 				// Remove it before deleting interface
 				g_map[i].erase(it);
